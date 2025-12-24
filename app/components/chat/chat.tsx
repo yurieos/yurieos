@@ -13,7 +13,9 @@ import {
   type MessageWithExtras,
 } from "@/app/components/chat/conversation";
 import { ChatInput } from "@/app/components/chat-input/chat-input";
-import { useDocumentTitle } from "@/app/hooks/use-document-title";
+import { fileToDataUrl, useChatFiles } from "@/app/hooks/use-chat-files";
+import { useChatInitialization } from "@/app/hooks/use-chat-initialization";
+import { useChatPersistence } from "@/app/hooks/use-chat-persistence";
 import { useChatSession } from "@/app/providers/chat-session-provider";
 import { useUser } from "@/app/providers/user-provider";
 import { toast } from "@/components/ui/toast";
@@ -23,15 +25,11 @@ import {
   REASONING_EFFORTS,
   type ReasoningEffort,
 } from "@/lib/config/constants";
+import { createStreamingError } from "@/lib/error-utils";
 import {
-  createChat as createLocalChat,
   deleteMessage as deleteLocalMessage,
   fromUIMessage,
-  getChat,
-  getMessages,
-  type LocalChat,
   type LocalMessage,
-  saveMessage,
 } from "@/lib/local-storage";
 import { createPlaceholderId, validateInput } from "@/lib/message-utils";
 import { supportsReasoningEffort } from "@/lib/model-utils";
@@ -41,16 +39,6 @@ import { getUserTimezone } from "@/lib/user-utils";
 import { cn } from "@/lib/utils";
 
 const spaceGrotesk = Space_Grotesk({ subsets: ["latin"] });
-
-// Convert a File to a data URL (base64)
-function fileToDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = () => reject(new Error("Failed to read file"));
-    reader.readAsDataURL(file);
-  });
-}
 
 // Schema for chat body
 const ChatBodySchema = z.object({
@@ -78,59 +66,36 @@ export default function Chat() {
   const searchParams = useSearchParams();
   const { user, isLoading: isUserLoading } = useUser();
 
-  const [optimisticChatId, setOptimisticChatId] = useState<string | null>(null);
-  const activeChatId = chatId ?? optimisticChatId;
-  const activeChatIdRef = useRef<string | null>(activeChatId);
-  const persistChatIdRef = useRef<string | null>(activeChatId);
-
-  useEffect(() => {
-    activeChatIdRef.current = activeChatId;
-  }, [activeChatId]);
-
-  useEffect(() => {
-    if (chatId) {
-      setOptimisticChatId(null);
-    }
-  }, [chatId]);
+  // Custom Hooks
+  const { pendingFiles, handleFileUpload, handleFileRemove, clearFiles } =
+    useChatFiles();
 
   // Local state
   const [hasDialogAuth, setHasDialogAuth] = useState(false);
   const [reasoningEffort, setReasoningEffort] = useState<ReasoningEffort>(
     REASONING_EFFORT_DEFAULT
   );
-  const [currentChat, setCurrentChat] = useState<LocalChat | null | undefined>(
-    undefined
-  );
-  const [localMessages, setLocalMessages] = useState<LocalMessage[]>([]);
-  const processedUrl = useRef(false);
-
-  // File attachment state
-  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
-
-  // Load chat and messages from localStorage
-  useEffect(() => {
-    if (!activeChatId) {
-      setCurrentChat(null);
-      setLocalMessages([]);
-      persistChatIdRef.current = null;
-      return;
-    }
-
-    const chat = getChat(activeChatId);
-    setCurrentChat(chat);
-
-    if (!chat) {
-      setLocalMessages([]);
-      persistChatIdRef.current = null;
-      return;
-    }
-
-    const msgs = getMessages(activeChatId);
-    setLocalMessages(msgs);
-    persistChatIdRef.current = activeChatId;
-  }, [activeChatId]);
-
   const [selectedModel, setSelectedModel] = useState(MODEL_DEFAULT);
+
+  // Initialization Hook (handles URL params and optimistic ID)
+  // We need currentChat for document title, but it's fetched inside useChatPersistence.
+  // We'll pass a placeholder title or update it via effect if needed, but useChatInitialization
+  // handles the hook call for us.
+  const {
+    activeChatId,
+    setOptimisticChatId,
+    handleCreateChat,
+    checkAndRunQueryParam,
+  } = useChatInitialization(chatId, undefined);
+
+  // Persistence Hook
+  const {
+    currentChat,
+    localMessages,
+    saveLocalMessage,
+    persistChatIdRef,
+    isLoading: isChatLoading,
+  } = useChatPersistence(activeChatId);
 
   // Enhanced useChat hook with AI SDK best practices
   const { messages, status, regenerate, stop, setMessages, sendMessage } =
@@ -143,7 +108,16 @@ export default function Chat() {
       }),
       onError: (error) => {
         console.error("Chat error:", error);
-        toast({ title: "An error occurred", status: "error" });
+
+        // Use standardized error handling
+        const { errorPayload } = createStreamingError(error);
+        const errorMessage = errorPayload.error.message;
+
+        toast({
+          title: "An error occurred",
+          description: errorMessage,
+          status: "error",
+        });
       },
       onFinish: (finishData) => {
         // Save assistant message to localStorage when streaming finishes
@@ -154,15 +128,17 @@ export default function Chat() {
           streamedChatsRef.current.add(chatIdToPersist);
 
           const localMsg = fromUIMessage(finishData.message, chatIdToPersist);
-          saveMessage(localMsg);
-
-          // Update local messages state to prevent sync issues
-          if (chatIdToPersist === activeChatIdRef.current) {
-            setLocalMessages((prev) => [...prev, localMsg]);
-          }
+          saveLocalMessage(localMsg);
         }
       },
     });
+
+  // Refs for stable access in effects/callbacks
+  const activeChatIdRef = useRef<string | null>(activeChatId);
+
+  useEffect(() => {
+    activeChatIdRef.current = activeChatId;
+  }, [activeChatId]);
 
   // Sync localStorage messages to chat state on mount
   const hydratedChatIdRef = useRef<string | null>(null);
@@ -235,11 +211,11 @@ export default function Chat() {
       return;
     }
 
-    const uiMessages: UIMessage[] = localMessages.map((msg) => ({
+    const uiMessages = localMessages.map((msg) => ({
       id: msg.id,
       role: msg.role,
       parts: msg.parts ?? [{ type: "text", text: msg.content }],
-    }));
+    })) as UIMessage[];
 
     setMessages(uiMessages);
     hydratedChatIdRef.current = activeChatId;
@@ -260,21 +236,6 @@ export default function Chat() {
       setMessages([]);
     }
   }, [status, activeChatId, setMessages]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-    if (window.location.pathname === "/" && optimisticChatId) {
-      setOptimisticChatId(null);
-    }
-  }, [optimisticChatId]);
-
-  // Create chat function
-  const handleCreateChat = useCallback((title: string) => {
-    const chat = createLocalChat(title, MODEL_DEFAULT);
-    return chat.id;
-  }, []);
 
   // Core message sending function
   const sendMessageHelper = useCallback(
@@ -348,11 +309,15 @@ export default function Chat() {
         createdAt: Date.now(),
         metadata: {},
       };
-      saveMessage(userMessage);
-
-      // Update local messages state to prevent sync issues
-      if (chatIdToUse === activeChatId) {
-        setLocalMessages((prev) => [...prev, userMessage]);
+      try {
+        saveLocalMessage(userMessage);
+      } catch (error) {
+        toast({
+          title: "Failed to save message",
+          description: "Your local storage might be full.",
+          status: "error",
+        });
+        console.error("Failed to save message:", error);
       }
 
       // Mark this chat as having active streaming to prevent hydration race condition
@@ -365,41 +330,22 @@ export default function Chat() {
         toast({ title: "Failed to send message", status: "error" });
       }
     },
-    [activeChatId, selectedModel, reasoningEffort, sendMessage]
+    [
+      activeChatId,
+      selectedModel,
+      reasoningEffort,
+      sendMessage,
+      persistChatIdRef,
+      saveLocalMessage,
+    ]
   );
 
-  // URL parameter processing
+  // Trigger URL param check
   useEffect(() => {
-    if (isUserLoading || !user || processedUrl.current) {
-      return;
-    }
-
-    const query = searchParams.get("q");
-
-    if (query) {
-      processedUrl.current = true;
-
-      const trimmedQuery = query.trim().substring(0, 1000);
-      if (!trimmedQuery) {
-        return;
-      }
-
-      const startChat = async () => {
-        try {
-          const newChatId = handleCreateChat(trimmedQuery);
-          if (newChatId) {
-            setOptimisticChatId(newChatId);
-            window.history.pushState(null, "", `/c/${newChatId}`);
-            await sendMessageHelper(trimmedQuery, newChatId);
-          }
-        } catch {
-          toast({ title: "Failed to create chat", status: "error" });
-        }
-      };
-
-      startChat();
-    }
-  }, [isUserLoading, user, searchParams, handleCreateChat, sendMessageHelper]);
+    // Wrap helper to match expected signature for hook
+    const helper = (q: string, id: string) => sendMessageHelper(q, id, []);
+    checkAndRunQueryParam(helper);
+  }, [checkAndRunQueryParam, sendMessageHelper]);
 
   // Main submit handler
   const submit = useCallback(
@@ -430,7 +376,7 @@ export default function Chat() {
       }
 
       // Clear pending files before sending (optimistic update)
-      setPendingFiles([]);
+      clearFiles();
 
       await sendMessageHelper(
         inputMessage,
@@ -443,6 +389,8 @@ export default function Chat() {
       activeChatId,
       messages.length,
       handleCreateChat,
+      setOptimisticChatId,
+      clearFiles,
       sendMessageHelper,
       pendingFiles,
     ]
@@ -467,7 +415,9 @@ export default function Chat() {
       setIsDeleting(true);
 
       try {
-        deleteLocalMessage(id);
+        if (activeChatId) {
+          deleteLocalMessage(activeChatId, id);
+        }
         setIsDeleting(false);
 
         // If we deleted all messages, redirect to home
@@ -518,7 +468,14 @@ export default function Chat() {
       streamedChatsRef.current.add(activeChatId);
       regenerate(options);
     },
-    [activeChatId, selectedModel, reasoningEffort, setMessages, regenerate]
+    [
+      activeChatId,
+      selectedModel,
+      reasoningEffort,
+      setMessages,
+      regenerate,
+      persistChatIdRef,
+    ]
   );
 
   const handleEdit = useCallback(
@@ -593,7 +550,7 @@ export default function Chat() {
         });
       }
     },
-    [activeChatId, selectedModel, setMessages, regenerate]
+    [activeChatId, selectedModel, setMessages, regenerate, persistChatIdRef]
   );
 
   // Branch is not supported in local mode
@@ -604,24 +561,17 @@ export default function Chat() {
     });
   }, []);
 
-  // File handlers
-  const handleFileUpload = useCallback((files: File[]) => {
-    setPendingFiles((prev) => [...prev, ...files]);
-  }, []);
-
-  const handleFileRemove = useCallback((file: File) => {
-    setPendingFiles((prev) => prev.filter((f) => f !== file));
-  }, []);
-
   // Chat redirect effect
   useEffect(() => {
-    if (!isUserLoading && chatId && currentChat === null && !isDeleting) {
+    if (
+      !(isUserLoading || isChatLoading) &&
+      chatId &&
+      currentChat === null &&
+      !isDeleting
+    ) {
       router.replace("/");
     }
-  }, [chatId, currentChat, isUserLoading, router, isDeleting]);
-
-  // Document title update
-  useDocumentTitle(currentChat?.title, activeChatId || undefined);
+  }, [chatId, currentChat, isUserLoading, isChatLoading, router, isDeleting]);
 
   // Message scrolling
   const targetMessageId = searchParams.get("m");

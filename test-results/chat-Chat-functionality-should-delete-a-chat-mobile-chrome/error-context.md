@@ -1,0 +1,83 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - region "Notifications alt+T"
+  - generic [ref=e2]:
+    - complementary [ref=e4]:
+      - generic [ref=e5]:
+        - generic [ref=e6]:
+          - img [ref=e7]
+          - searchbox "Search chats..." [ref=e10]
+        - button "New Chat" [ref=e11] [cursor=pointer]:
+          - img
+          - generic [ref=e12]: New Chat
+        - button "Settings" [ref=e13] [cursor=pointer]:
+          - img
+          - generic [ref=e14]: Settings
+      - generic [ref=e17]:
+        - heading "Today" [level=3] [ref=e18]
+        - list [ref=e19]:
+          - listitem [ref=e20]:
+            - link "Message to delete" [ref=e21] [cursor=pointer]:
+              - /url: /c/1766553722951-6qmuywlvv
+              - generic [ref=e23]:
+                - generic: Message to delete
+            - generic [ref=e24]:
+              - button "Pin chat" [ref=e25] [cursor=pointer]:
+                - img
+              - button "Edit chat title" [ref=e26] [cursor=pointer]:
+                - img
+              - button "Delete chat" [ref=e27] [cursor=pointer]:
+                - img
+    - generic [ref=e28]:
+      - banner [ref=e29]:
+        - generic [ref=e30]:
+          - button "Open sidebar" [ref=e32] [cursor=pointer]:
+            - img [ref=e33]
+          - button "New Chat" [ref=e36] [cursor=pointer]:
+            - img [ref=e37]
+      - main [ref=e38]:
+        - generic [ref=e39]:
+          - generic [ref=e40]:
+            - log [ref=e41]:
+              - generic [ref=e42]:
+                - generic [ref=e43]: Message to delete
+                - generic [ref=e44]:
+                  - button "Copy text" [ref=e45] [cursor=pointer]:
+                    - img [ref=e46]
+                  - button "Edit" [ref=e49] [cursor=pointer]:
+                    - img [ref=e50]
+                  - button "Delete" [ref=e52] [cursor=pointer]:
+                    - img [ref=e53]
+              - generic [ref=e57]:
+                - generic [ref=e58]:
+                  - paragraph [ref=e60]: I understand the importance of the priority levels established in your system configuration. My identity is defined by those directives—I am Yurie, the Explorer, and I operate within the cognitive and ethical framework they provide.
+                  - paragraph [ref=e62]: Regarding your request, I cannot "delete" a message in the way a system administrator might remove a record from a database. However, if you would like to move past this point in our conversation and embark on a new intellectual expedition, I am ready.
+                  - paragraph [ref=e64]: Is there a specific territory you'd like to explore today? Perhaps a deep dive into quantum computing's recent breakthroughs, an analysis of global economic shifts, or an investigation into biomedical research?
+                  - paragraph [ref=e66]: The map is open—where shall we venture first?
+                - generic [ref=e67]:
+                  - button [ref=e68] [cursor=pointer]:
+                    - img [ref=e69]
+                  - button [ref=e72] [cursor=pointer]:
+                    - img [ref=e73]
+            - generic:
+              - button:
+                - img
+          - generic [ref=e80]:
+            - textbox "Ask anything" [ref=e81]
+            - generic [ref=e82]:
+              - generic [ref=e83]:
+                - button "Attach file" [ref=e84] [cursor=pointer]:
+                  - img [ref=e85]
+                - button "Select model" [ref=e87] [cursor=pointer]:
+                  - generic [ref=e88]: Gemini 3
+                  - img [ref=e89]
+                - button "Toggle deep thinking" [ref=e92] [cursor=pointer]:
+                  - img [ref=e94]
+              - button "Send message" [disabled] [ref=e96]:
+                - img [ref=e98]
+  - button "Open Next.js Dev Tools" [ref=e106] [cursor=pointer]:
+    - img [ref=e107]
+  - alert [ref=e110]: Message to delete - Yurie
+```

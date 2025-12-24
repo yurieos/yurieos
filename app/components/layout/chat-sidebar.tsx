@@ -1,10 +1,11 @@
 "use client";
 
 import { SidebarSimple } from "@phosphor-icons/react";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, Settings } from "lucide-react";
 import { motion } from "motion/react";
 import { usePathname, useRouter } from "next/navigation";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { DataSettingsDialog } from "@/app/components/settings/data-settings-dialog";
 import { useChatSession } from "@/app/providers/chat-session-provider";
 import { useSidebar } from "@/app/providers/sidebar-provider";
 import { Button } from "@/components/ui/button";
@@ -213,6 +214,17 @@ function SidebarPanel({
           </TooltipTrigger>
           <TooltipContent>New Chat</TooltipContent>
         </Tooltip>
+
+        <DataSettingsDialog>
+          <Button
+            className="h-9 w-9 shrink-0 rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
+            size="icon"
+            variant="ghost"
+          >
+            <Settings className="size-5" />
+            <span className="sr-only">Settings</span>
+          </Button>
+        </DataSettingsDialog>
       </motion.div>
 
       {/* Scrollable Chat List */}

@@ -4,6 +4,7 @@
  */
 
 import type { UIMessage } from "@ai-sdk/react";
+import { z } from "zod";
 
 // Types for local storage
 export type LocalChat = {
@@ -15,18 +16,22 @@ export type LocalChat = {
   isPinned: boolean;
 };
 
-export type LocalMessage = {
-  id: string;
-  chatId: string;
-  role: "user" | "assistant" | "system";
-  content: string;
-  parts?: UIMessage["parts"];
-  createdAt: number;
-  metadata?: Record<string, unknown>;
-};
+// Zod schema for message validation
+export const LocalMessageSchema = z.object({
+  id: z.string(),
+  chatId: z.string(),
+  role: z.enum(["user", "assistant", "system", "data"]),
+  content: z.string(),
+  parts: z.array(z.any()).optional(), // We can be more specific if needed, but parts structure is complex
+  createdAt: z.number(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
+});
+
+export type LocalMessage = z.infer<typeof LocalMessageSchema>;
 
 const CHATS_KEY = "yurie_chats";
-const MESSAGES_KEY = "yurie_messages";
+// const MESSAGES_KEY = "yurie_messages"; // Deprecated
+const MESSAGES_KEY_PREFIX = "yurie_messages_";
 const SETTINGS_KEY = "yurie_settings";
 const CHATS_UPDATED_EVENT = "chatsUpdated";
 
@@ -146,88 +151,186 @@ export function deleteChat(chatId: string): boolean {
   return true;
 }
 
-function saveChats(chats: LocalChat[]): void {
+export function saveChats(chats: LocalChat[]): void {
   if (typeof window === "undefined") {
     return;
   }
-  try {
-    localStorage.setItem(CHATS_KEY, JSON.stringify(chats));
-    dispatchChatsUpdated();
-  } catch {
-    // Handle quota exceeded or other errors silently
-  }
+  localStorage.setItem(CHATS_KEY, JSON.stringify(chats));
+  dispatchChatsUpdated();
 }
 
 // Message operations
+function getChatMessagesKey(chatId: string): string {
+  return `${MESSAGES_KEY_PREFIX}${chatId}`;
+}
+
+// Migration helper: Move from giant list to per-chat lists
+function migrateMessagesIfNeeded(chatId: string): void {
+  if (typeof window === "undefined") return;
+
+  // If we already have the new key, assume migrated (or empty)
+  if (localStorage.getItem(getChatMessagesKey(chatId))) {
+    return;
+  }
+
+  const OLD_KEY = "yurie_messages";
+  const oldData = localStorage.getItem(OLD_KEY);
+  if (!oldData) return;
+
+  try {
+    const allOldMessages = JSON.parse(oldData) as LocalMessage[];
+    // Filter for this chat
+    const chatMessages = allOldMessages.filter((m) => m.chatId === chatId);
+
+    if (chatMessages.length > 0) {
+      // Save to new location
+      localStorage.setItem(
+        getChatMessagesKey(chatId),
+        JSON.stringify(chatMessages)
+      );
+      // We don't delete from old key to be safe, or we can rely on a global migration later.
+      // But for "lazy" migration, this works.
+    }
+  } catch (e) {
+    console.error("Migration failed for chat", chatId, e);
+  }
+}
+
 export function getMessages(chatId: string): LocalMessage[] {
   if (typeof window === "undefined") {
     return [];
   }
+
+  // Attempt migration if needed
+  migrateMessagesIfNeeded(chatId);
+
   try {
-    const data = localStorage.getItem(MESSAGES_KEY);
-    const allMessages = data ? (JSON.parse(data) as LocalMessage[]) : [];
-    return allMessages
-      .filter((m) => m.chatId === chatId)
-      .sort((a, b) => a.createdAt - b.createdAt);
+    const key = getChatMessagesKey(chatId);
+    const data = localStorage.getItem(key);
+    if (!data) return [];
+
+    const parsed = JSON.parse(data);
+    // Validate with Zod - if fails, return empty or try to recover?
+    // We'll return what matches
+    if (Array.isArray(parsed)) {
+      return parsed
+        .filter((m) => {
+          const result = LocalMessageSchema.safeParse(m);
+          return result.success;
+        })
+        .sort((a, b) => a.createdAt - b.createdAt) as LocalMessage[];
+    }
+    return [];
   } catch {
     return [];
   }
 }
 
-function getAllMessages(): LocalMessage[] {
+// WARNING: High cost operation. Use sparingly (e.g. export)
+export function getAllMessages(): LocalMessage[] {
   if (typeof window === "undefined") {
     return [];
   }
-  try {
-    const data = localStorage.getItem(MESSAGES_KEY);
-    return data ? (JSON.parse(data) as LocalMessage[]) : [];
-  } catch {
-    return [];
+
+  // Also check old storage for migration purposes if needed
+  // For now, iterate all chats
+  const chats = getChats();
+  const allMessages: LocalMessage[] = [];
+
+  for (const chat of chats) {
+    allMessages.push(...getMessages(chat.id));
   }
+
+  return allMessages;
 }
 
 export function saveMessage(message: LocalMessage): LocalMessage {
-  const allMessages = getAllMessages();
-  allMessages.push(message);
-  saveAllMessages(allMessages);
+  if (typeof window === "undefined") return message;
+
+  const key = getChatMessagesKey(message.chatId);
+  const currentMessages = getMessages(message.chatId);
+
+  // Avoid duplicates? The caller usually handles this, but we append.
+  // Check if message with ID exists to update it vs append
+  const existingIndex = currentMessages.findIndex((m) => m.id === message.id);
+
+  if (existingIndex >= 0) {
+    currentMessages[existingIndex] = message;
+  } else {
+    currentMessages.push(message);
+  }
+
+  localStorage.setItem(key, JSON.stringify(currentMessages));
+
   // Touch the parent chat so history ordering/grouping stays correct.
   touchChat(message.chatId);
   return message;
 }
 
-function saveAllMessages(messages: LocalMessage[]): void {
+// For imports mainly
+export function saveAllMessages(messages: LocalMessage[]): void {
   if (typeof window === "undefined") {
     return;
   }
-  try {
-    localStorage.setItem(MESSAGES_KEY, JSON.stringify(messages));
-  } catch {
-    // Handle quota exceeded or other errors silently
+
+  // Group by chatId
+  const messagesByChat: Record<string, LocalMessage[]> = {};
+
+  for (const msg of messages) {
+    if (!messagesByChat[msg.chatId]) {
+      messagesByChat[msg.chatId] = [];
+    }
+    messagesByChat[msg.chatId].push(msg);
+  }
+
+  // Save each group
+  for (const [chatId, msgs] of Object.entries(messagesByChat)) {
+    // We should probably merge with existing? Or overwrite?
+    // `saveAllMessages` in the old impl overwrote everything (based on the input list being "all").
+    // For import, we usually want to overwrite or merge.
+    // Let's implement merge semantics to be safe: load existing, upsert new ones.
+
+    const existing = getMessages(chatId);
+    const existingMap = new Map(existing.map((m) => [m.id, m]));
+
+    for (const m of msgs) {
+      existingMap.set(m.id, m);
+    }
+
+    const merged = Array.from(existingMap.values()).sort(
+      (a, b) => a.createdAt - b.createdAt
+    );
+    localStorage.setItem(getChatMessagesKey(chatId), JSON.stringify(merged));
   }
 }
 
 function deleteMessagesForChat(chatId: string): void {
-  const allMessages = getAllMessages();
-  const filtered = allMessages.filter((m) => m.chatId !== chatId);
-  saveAllMessages(filtered);
+  if (typeof window === "undefined") return;
+  localStorage.removeItem(getChatMessagesKey(chatId));
 }
 
-export function deleteMessage(messageId: string): boolean {
-  const allMessages = getAllMessages();
-  const index = allMessages.findIndex((m) => m.id === messageId);
+// Updated signature to include chatId for efficiency
+export function deleteMessage(chatId: string, messageId: string): boolean {
+  if (typeof window === "undefined") return false;
+
+  const messages = getMessages(chatId);
+  const index = messages.findIndex((m) => m.id === messageId);
 
   if (index === -1) {
     return false;
   }
 
-  // Delete this message and all messages after it in the same chat
-  const targetMessage = allMessages[index];
-  const filtered = allMessages.filter(
-    (m) =>
-      m.chatId !== targetMessage.chatId || m.createdAt < targetMessage.createdAt
+  // Delete this message and all messages after it in the same chat (Branching logic often implies this)
+  // The original implementation deleted "all messages after it in the same chat".
+  // Let's preserve that behavior.
+
+  const targetMessage = messages[index];
+  // Filter out the target and anything created after it
+  const filtered = messages.filter(
+    (m) => m.createdAt < targetMessage.createdAt
   );
 
-  saveAllMessages(filtered);
+  localStorage.setItem(getChatMessagesKey(chatId), JSON.stringify(filtered));
   return true;
 }
 
@@ -249,11 +352,7 @@ export function updateSettings(updates: Partial<LocalSettings>): LocalSettings {
   const newSettings = { ...settings, ...updates };
 
   if (typeof window !== "undefined") {
-    try {
-      localStorage.setItem(SETTINGS_KEY, JSON.stringify(newSettings));
-    } catch {
-      // Handle quota exceeded or other errors silently
-    }
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(newSettings));
   }
 
   return newSettings;
@@ -267,10 +366,17 @@ export function fromUIMessage(
   const textPart = uiMessage.parts?.find((p) => p.type === "text");
   const content = textPart && "text" in textPart ? textPart.text : "";
 
+  // Helper to ensure role is valid
+  const role = (
+    ["user", "assistant", "system", "data"].includes(uiMessage.role)
+      ? uiMessage.role
+      : "user"
+  ) as "user" | "assistant" | "system" | "data";
+
   return {
     id: uiMessage.id,
     chatId,
-    role: uiMessage.role as "user" | "assistant" | "system",
+    role,
     content,
     parts: uiMessage.parts,
     createdAt: Date.now(),

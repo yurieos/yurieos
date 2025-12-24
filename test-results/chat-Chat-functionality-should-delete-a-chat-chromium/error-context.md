@@ -1,0 +1,94 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - region "Notifications alt+T"
+  - generic [ref=e2]:
+    - generic:
+      - generic [ref=e3]:
+        - button "Expand sidebar" [ref=e4] [cursor=pointer]:
+          - img [ref=e5]
+        - button "New chat" [ref=e7] [cursor=pointer]:
+          - img [ref=e8]
+      - complementary:
+        - generic [ref=e9]:
+          - generic [ref=e10]:
+            - img [ref=e11]
+            - searchbox "Search chats..." [ref=e14]
+          - button "New Chat" [ref=e15] [cursor=pointer]:
+            - img
+            - generic [ref=e16]: New Chat
+          - button "Settings" [ref=e17] [cursor=pointer]:
+            - img
+            - generic [ref=e18]: Settings
+        - generic [ref=e19]:
+          - generic:
+            - generic:
+              - heading "Today" [level=3] [ref=e20]
+              - list:
+                - listitem:
+                  - link "Message to delete" [ref=e21] [cursor=pointer]:
+                    - /url: /c/1766553722910-ijgzjtu9j
+                    - generic:
+                      - generic:
+                        - generic: Message to delete
+                  - generic [ref=e22]:
+                    - button "Pin chat" [ref=e23] [cursor=pointer]:
+                      - img
+                    - button "Edit chat title" [ref=e24] [cursor=pointer]:
+                      - img
+                    - button "Delete chat" [ref=e25] [cursor=pointer]:
+                      - img
+    - generic [ref=e26]:
+      - banner [ref=e27]
+      - main [ref=e29]:
+        - generic [ref=e30]:
+          - generic [ref=e31]:
+            - log [ref=e32]:
+              - generic [ref=e33]:
+                - generic [ref=e34]: Message to delete
+                - generic [ref=e35]:
+                  - button "Copy text" [ref=e36] [cursor=pointer]:
+                    - img [ref=e37]
+                  - button "Edit" [ref=e40] [cursor=pointer]:
+                    - img [ref=e41]
+                  - button "Delete" [ref=e43] [cursor=pointer]:
+                    - img [ref=e44]
+              - generic [ref=e48]:
+                - generic [ref=e49]:
+                  - paragraph [ref=e51]: I understand. As an intellectual explorer, I am focused on the journey ahead and the discoveries we have yet to make. My identity and protocols are set, and I am ready to venture into whatever territory you wish to map next.
+                  - paragraph [ref=e53]: What shall we investigate together?
+                - generic [ref=e54]:
+                  - button [ref=e55] [cursor=pointer]:
+                    - img [ref=e56]
+                  - button [ref=e59] [cursor=pointer]:
+                    - img [ref=e60]
+            - generic:
+              - button:
+                - img
+          - generic [ref=e67]:
+            - textbox "Ask anything" [ref=e68]
+            - generic [ref=e69]:
+              - generic [ref=e70]:
+                - button "Attach file" [ref=e71] [cursor=pointer]:
+                  - img [ref=e72]
+                - button "Select model" [ref=e74] [cursor=pointer]:
+                  - generic [ref=e75]: Gemini 3
+                  - img [ref=e76]
+                - button "Toggle deep thinking" [ref=e79] [cursor=pointer]:
+                  - img [ref=e81]
+              - button "Send message" [disabled] [ref=e83]:
+                - img [ref=e85]
+  - generic [ref=e92] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e93]:
+      - img [ref=e94]
+    - generic [ref=e97]:
+      - button "Open issues overlay" [ref=e98]:
+        - generic [ref=e99]:
+          - generic [ref=e100]: "0"
+          - generic [ref=e101]: "1"
+        - generic [ref=e102]: Issue
+      - button "Collapse issues badge" [ref=e103]:
+        - img [ref=e104]
+  - alert [ref=e106]: Message to delete - Yurie
+```

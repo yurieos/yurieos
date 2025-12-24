@@ -48,7 +48,9 @@ export function detectProviderError(error: unknown): DetectedError | null {
 
     // Check for content policy violation in error message
     if (
-      errorMessage.includes("limited access to this content for safety reasons") ||
+      errorMessage.includes(
+        "limited access to this content for safety reasons"
+      ) ||
       errorMessage.includes("invalid_prompt") ||
       errorMessage.includes("Invalid prompt")
     ) {
@@ -117,8 +119,10 @@ function detectFromErrorObject(
   // OpenAI content policy / invalid prompt errors
   if (
     errorCode === "invalid_prompt" ||
-    errorType === "invalid_request_error" &&
-      errorMessage.includes("limited access to this content for safety reasons")
+    (errorType === "invalid_request_error" &&
+      errorMessage.includes(
+        "limited access to this content for safety reasons"
+      ))
   ) {
     return {
       type: "content_policy_violation",

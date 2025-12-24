@@ -4,8 +4,8 @@
 
 import { ERROR_CODES } from "./error-codes";
 import {
-  detectProviderError,
   type DetectedError,
+  detectProviderError,
 } from "./provider-error-detector";
 
 type ErrorDisplayType = "conversation" | "toast" | "both";

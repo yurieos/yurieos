@@ -34,6 +34,7 @@ import {
   MessageContent,
 } from "@/components/prompt-kit/message";
 import { TextShimmer } from "@/components/prompt-kit/text-shimmer";
+import { Button } from "@/components/ui/button";
 import {
   Collapsible,
   CollapsibleContent,
@@ -748,6 +749,7 @@ function MessageAssistantComponent({
   readOnly,
 }: MessageAssistantProps) {
   const isStreaming = status === "streaming" || status === "submitted";
+  const hasError = status === "error";
   const hasAnyText = parts?.some(
     (p) => p.type === "text" && p.text.trim().length > 0
   );
@@ -859,7 +861,25 @@ function MessageAssistantComponent({
           }
         })}
 
-        {!readOnly && hasAnyText && !isStreaming && (
+        {/* Retry Button for Error State */}
+        {hasError && isLast && onReload && (
+          <div className="mt-2 flex items-center gap-2">
+            <Button
+              className="border-destructive/50 text-destructive hover:bg-destructive/10"
+              onClick={onReload}
+              size="sm"
+              variant="outline"
+            >
+              <RotateCw className="mr-2 size-4" />
+              Retry
+            </Button>
+            <span className="text-muted-foreground text-xs">
+              Failed to generate response.
+            </span>
+          </div>
+        )}
+
+        {!readOnly && hasAnyText && !isStreaming && !hasError && (
           <MessageActions className="mt-2">
             {onReload && (
               <MessageAction tooltip="Regenerate">

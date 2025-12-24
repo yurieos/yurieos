@@ -1,0 +1,67 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - region "Notifications alt+T"
+  - generic [ref=e2]:
+    - complementary [ref=e4]:
+      - generic [ref=e5]:
+        - generic [ref=e6]:
+          - img [ref=e7]
+          - searchbox "Search chats..." [ref=e10]
+        - button "New Chat" [ref=e11] [cursor=pointer]:
+          - img
+          - generic [ref=e12]: New Chat
+        - button "Settings" [ref=e13] [cursor=pointer]:
+          - img
+          - generic [ref=e14]: Settings
+    - generic [ref=e17]:
+      - banner [ref=e18]:
+        - button "Open sidebar" [ref=e21] [cursor=pointer]:
+          - img [ref=e22]
+      - main [ref=e24]:
+        - generic [ref=e25]:
+          - heading "yurie" [level=1] [ref=e27]
+          - generic [ref=e29]:
+            - generic [ref=e31]:
+              - button "Science" [ref=e32] [cursor=pointer]:
+                - img
+                - text: Science
+              - button "History" [ref=e33] [cursor=pointer]:
+                - img
+                - text: History
+              - button "Research" [ref=e34] [cursor=pointer]:
+                - img
+                - text: Research
+              - button "Rabbit Hole" [ref=e35] [cursor=pointer]:
+                - img
+                - text: Rabbit Hole
+              - button "Adventure" [ref=e36] [cursor=pointer]:
+                - img
+                - text: Adventure
+            - generic [ref=e38]:
+              - textbox "Ask anything" [active] [ref=e39]
+              - generic [ref=e40]:
+                - generic [ref=e41]:
+                  - button "Attach file" [ref=e42] [cursor=pointer]:
+                    - img [ref=e43]
+                  - button "Select model" [ref=e45] [cursor=pointer]:
+                    - generic [ref=e46]: Gemini 3
+                    - img [ref=e47]
+                  - button "Toggle deep thinking" [ref=e50] [cursor=pointer]:
+                    - img [ref=e52]
+                - button "Send message" [disabled] [ref=e54]:
+                  - img [ref=e56]
+  - generic [ref=e63] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e64]:
+      - img [ref=e65]
+    - generic [ref=e68]:
+      - button "Open issues overlay" [ref=e69]:
+        - generic [ref=e70]:
+          - generic [ref=e71]: "0"
+          - generic [ref=e72]: "1"
+        - generic [ref=e73]: Issue
+      - button "Collapse issues badge" [ref=e74]:
+        - img [ref=e75]
+  - alert [ref=e77]
+```
