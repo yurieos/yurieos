@@ -1,0 +1,35 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "extends": ["ultracite/core", "ultracite/next"],
+  "files": {
+    "includes": [
+      "!components",
+      "!hooks",
+      "!node_modules",
+      "!app/globals.css",
+      "!*.lock",
+      "!ai-chatbot-main",
+      "!tweakcn-main",
+      "!zola-main"
+    ]
+  },
+  "linter": {
+    "rules": {
+      "style": {
+        "useFilenamingConvention": "off",
+        "noMagicNumbers": "off"
+      },
+      "complexity": {
+        "noExcessiveCognitiveComplexity": "off",
+        "noExcessiveLinesPerFunction": "off"
+      },
+      "nursery": {
+        "noUnnecessaryConditions": "off",
+        "useMaxParams": "off"
+      }
+    },
+    "domains": {
+      "next": "recommended"
+    }
+  }
+}

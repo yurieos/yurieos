@@ -1,0 +1,13 @@
+User-agent: *
+Disallow: /api/
+Disallow: /auth/callback
+Disallow: /auth/error
+Disallow: /c/
+Disallow: /share/
+Disallow: /tasks
+Allow: /
+Allow: /privacy
+Allow: /security
+Allow: /auth$
+
+Sitemap: https://yurie.ai/sitemap.xml
