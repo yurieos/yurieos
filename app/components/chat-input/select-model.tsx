@@ -92,68 +92,70 @@ export function SelectModel({
     : undefined;
 
   return (
-    <DropdownMenu>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <DropdownMenuTrigger asChild>
-            <span>
-              <ModelPill
-                displayProvider={
-                  currentModel?.displayProvider ?? currentModel?.provider
-                }
-                iconSrc={currentIcon}
-                modelName={shortName}
-              />
-            </span>
-          </DropdownMenuTrigger>
-        </TooltipTrigger>
-        <TooltipContent>Select model</TooltipContent>
-      </Tooltip>
-      <DropdownMenuContent align="start" className="min-w-48">
-        {MODELS.map((model) => {
-          const iconSrc = getProviderIcon(
-            model.provider,
-            model.displayProvider
-          );
-          const needsInvert =
-            (model.displayProvider ?? model.provider) === "openai";
-          return (
-            <DropdownMenuItem
-              className="cursor-pointer"
-              key={model.id}
-              onClick={() => onSelectModelAction(model.id)}
-            >
-              <div className="flex w-full items-center justify-between gap-2">
-                <div className="flex items-start gap-2">
-                  {iconSrc && (
-                    <Image
-                      alt=""
-                      className={cn(
-                        "mt-0.5 size-4 shrink-0",
-                        needsInvert && "dark:invert"
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <span>
+                <ModelPill
+                  displayProvider={
+                    currentModel?.displayProvider ?? currentModel?.provider
+                  }
+                  iconSrc={currentIcon}
+                  modelName={shortName}
+                />
+              </span>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="min-w-48">
+              {MODELS.map((model) => {
+                const iconSrc = getProviderIcon(
+                  model.provider,
+                  model.displayProvider
+                );
+                const needsInvert =
+                  (model.displayProvider ?? model.provider) === "openai";
+                return (
+                  <DropdownMenuItem
+                    className="cursor-pointer"
+                    key={model.id}
+                    onClick={() => onSelectModelAction(model.id)}
+                  >
+                    <div className="flex w-full items-center justify-between gap-2">
+                      <div className="flex items-start gap-2">
+                        {iconSrc && (
+                          <Image
+                            alt=""
+                            className={cn(
+                              "mt-0.5 size-4 shrink-0",
+                              needsInvert && "dark:invert"
+                            )}
+                            height={16}
+                            src={iconSrc}
+                            width={16}
+                          />
+                        )}
+                        <div className="flex flex-col gap-0.5">
+                          <span className="font-medium">{model.name}</span>
+                          {model.description && (
+                            <span className="max-w-56 text-muted-foreground text-xs">
+                              {model.description.split("\n")[0]}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      {model.id === selectedModel && (
+                        <Check className="size-4 shrink-0 text-foreground" />
                       )}
-                      height={16}
-                      src={iconSrc}
-                      width={16}
-                    />
-                  )}
-                  <div className="flex flex-col gap-0.5">
-                    <span className="font-medium">{model.name}</span>
-                    {model.description && (
-                      <span className="max-w-56 text-muted-foreground text-xs">
-                        {model.description.split("\n")[0]}
-                      </span>
-                    )}
-                  </div>
-                </div>
-                {model.id === selectedModel && (
-                  <Check className="size-4 shrink-0 text-foreground" />
-                )}
-              </div>
-            </DropdownMenuItem>
-          );
-        })}
-      </DropdownMenuContent>
-    </DropdownMenu>
+                    </div>
+                  </DropdownMenuItem>
+                );
+              })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </span>
+      </TooltipTrigger>
+      <TooltipContent>Select model</TooltipContent>
+    </Tooltip>
   );
 }

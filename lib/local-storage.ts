@@ -166,7 +166,9 @@ function getChatMessagesKey(chatId: string): string {
 
 // Migration helper: Move from giant list to per-chat lists
 function migrateMessagesIfNeeded(chatId: string): void {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined") {
+    return;
+  }
 
   // If we already have the new key, assume migrated (or empty)
   if (localStorage.getItem(getChatMessagesKey(chatId))) {
@@ -175,7 +177,9 @@ function migrateMessagesIfNeeded(chatId: string): void {
 
   const OLD_KEY = "yurie_messages";
   const oldData = localStorage.getItem(OLD_KEY);
-  if (!oldData) return;
+  if (!oldData) {
+    return;
+  }
 
   try {
     const allOldMessages = JSON.parse(oldData) as LocalMessage[];
@@ -207,7 +211,9 @@ export function getMessages(chatId: string): LocalMessage[] {
   try {
     const key = getChatMessagesKey(chatId);
     const data = localStorage.getItem(key);
-    if (!data) return [];
+    if (!data) {
+      return [];
+    }
 
     const parsed = JSON.parse(data);
     // Validate with Zod - if fails, return empty or try to recover?
@@ -245,7 +251,9 @@ export function getAllMessages(): LocalMessage[] {
 }
 
 export function saveMessage(message: LocalMessage): LocalMessage {
-  if (typeof window === "undefined") return message;
+  if (typeof window === "undefined") {
+    return message;
+  }
 
   const key = getChatMessagesKey(message.chatId);
   const currentMessages = getMessages(message.chatId);
@@ -305,13 +313,17 @@ export function saveAllMessages(messages: LocalMessage[]): void {
 }
 
 function deleteMessagesForChat(chatId: string): void {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined") {
+    return;
+  }
   localStorage.removeItem(getChatMessagesKey(chatId));
 }
 
 // Updated signature to include chatId for efficiency
 export function deleteMessage(chatId: string, messageId: string): boolean {
-  if (typeof window === "undefined") return false;
+  if (typeof window === "undefined") {
+    return false;
+  }
 
   const messages = getMessages(chatId);
   const index = messages.findIndex((m) => m.id === messageId);

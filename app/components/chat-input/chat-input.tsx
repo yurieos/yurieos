@@ -337,7 +337,12 @@ export function ChatInput({
           onValueChange={setValue}
         />
       )}
-      <div className="relative order-1 px-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] pb-standalone-safe md:px-2">
+      <div
+        className="relative order-1 px-4 py-3 md:px-2"
+        style={{
+          paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom, 0px))",
+        }}
+      >
         <PromptInput
           className="relative z-10 backdrop-blur-xl"
           maxHeight={200}

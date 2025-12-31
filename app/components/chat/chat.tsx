@@ -599,39 +599,19 @@ export default function Chat() {
     return null;
   }
 
+  const hasMessages = activeChatId || messages.length > 0;
+
   return (
     <div
       className={cn(
-        "@container/main relative flex h-full flex-col items-center",
-        activeChatId || messages.length > 0
-          ? "justify-start"
-          : "justify-center pb-32"
+        "@container/main relative flex h-full flex-col overflow-hidden",
+        hasMessages ? "justify-start" : "items-center justify-center"
       )}
     >
       <DialogAuth open={hasDialogAuth} setOpen={setHasDialogAuth} />
 
       <AnimatePresence initial={false} mode="popLayout">
-        {!activeChatId && messages.length === 0 ? (
-          <motion.div
-            animate={{ opacity: 1 }}
-            className="relative mx-auto max-w-[50rem] px-4"
-            exit={{ opacity: 0 }}
-            initial={{ opacity: 0 }}
-            key="onboarding"
-            layout="position"
-            layoutId="onboarding"
-            transition={{ layout: { duration: 0 } }}
-          >
-            <h1
-              className={cn(
-                "mb-8 font-medium text-4xl tracking-tight",
-                spaceGrotesk.className
-              )}
-            >
-              yurie
-            </h1>
-          </motion.div>
-        ) : (
+        {hasMessages ? (
           <Conversation
             autoScroll={!targetMessageId}
             isReasoningModel={supportsReasoningEffort(selectedModel)}
@@ -646,40 +626,80 @@ export default function Chat() {
             selectedModel={selectedModel}
             status={status}
           />
+        ) : (
+          <motion.div
+            animate={{ opacity: 1 }}
+            className="relative mx-auto mb-20 flex w-full max-w-[50rem] flex-col items-center px-4"
+            exit={{ opacity: 0 }}
+            initial={{ opacity: 0 }}
+            key="onboarding"
+            layout="position"
+            layoutId="onboarding"
+            transition={{ layout: { duration: 0 } }}
+          >
+            <h1
+              className={cn(
+                "mb-4 text-center font-medium text-4xl tracking-tight",
+                spaceGrotesk.className
+              )}
+            >
+              yurie
+            </h1>
+            <ChatInput
+              files={pendingFiles}
+              hasSuggestions={true}
+              isReasoningModel={supportsReasoningEffort(selectedModel)}
+              isSubmitting={status === "streaming"}
+              isUserAuthenticated={true}
+              onFileRemoveAction={handleFileRemove}
+              onFileUploadAction={handleFileUpload}
+              onSelectModelAction={setSelectedModel}
+              onSelectReasoningEffortAction={setReasoningEffort}
+              onSendAction={submit}
+              onSuggestionAction={submit}
+              reasoningEffort={reasoningEffort}
+              selectedModel={selectedModel}
+              status={status}
+              stopAction={stop}
+            />
+          </motion.div>
         )}
       </AnimatePresence>
 
-      <motion.div
-        className={cn(
-          "relative inset-x-0 bottom-0 z-50 mx-auto w-full max-w-3xl"
-        )}
-        layout="position"
-        layoutId="chat-input-container"
-        transition={{
-          layout: {
-            ...TRANSITION_LAYOUT,
-            duration: messages.length === 1 ? 0.2 : 0,
-          },
-        }}
-      >
-        <ChatInput
-          files={pendingFiles}
-          hasSuggestions={!activeChatId && messages.length === 0}
-          isReasoningModel={supportsReasoningEffort(selectedModel)}
-          isSubmitting={status === "streaming"}
-          isUserAuthenticated={true}
-          onFileRemoveAction={handleFileRemove}
-          onFileUploadAction={handleFileUpload}
-          onSelectModelAction={setSelectedModel}
-          onSelectReasoningEffortAction={setReasoningEffort}
-          onSendAction={submit}
-          onSuggestionAction={submit}
-          reasoningEffort={reasoningEffort}
-          selectedModel={selectedModel}
-          status={status}
-          stopAction={stop}
-        />
-      </motion.div>
+      {/* Sticky input area at bottom when there are messages */}
+      {hasMessages && (
+        <motion.div
+          className="sticky inset-x-0 bottom-0 z-50 w-full border-border/40 border-t bg-background/95 backdrop-blur-sm"
+          layout="position"
+          layoutId="chat-input-container"
+          transition={{
+            layout: {
+              ...TRANSITION_LAYOUT,
+              duration: messages.length === 1 ? 0.2 : 0,
+            },
+          }}
+        >
+          <div className="mx-auto w-full max-w-3xl">
+            <ChatInput
+              files={pendingFiles}
+              hasSuggestions={false}
+              isReasoningModel={supportsReasoningEffort(selectedModel)}
+              isSubmitting={status === "streaming"}
+              isUserAuthenticated={true}
+              onFileRemoveAction={handleFileRemove}
+              onFileUploadAction={handleFileUpload}
+              onSelectModelAction={setSelectedModel}
+              onSelectReasoningEffortAction={setReasoningEffort}
+              onSendAction={submit}
+              onSuggestionAction={submit}
+              reasoningEffort={reasoningEffort}
+              selectedModel={selectedModel}
+              status={status}
+              stopAction={stop}
+            />
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 }

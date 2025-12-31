@@ -11,7 +11,7 @@ export function useChatInitialization(
   currentChatTitle?: string
 ) {
   const searchParams = useSearchParams();
-  const pathname = usePathname();
+  const _pathname = usePathname();
   const { user, isLoading: isUserLoading } = useUser();
   const [optimisticChatId, setOptimisticChatId] = useState<string | null>(null);
 
@@ -71,7 +71,7 @@ export function useChatInitialization(
     if (window.location.pathname === "/" && optimisticChatId) {
       setOptimisticChatId(null);
     }
-  }, [pathname, optimisticChatId]);
+  }, [optimisticChatId]);
 
   // Document title update
   useDocumentTitle(currentChatTitle, activeChatId || undefined);

@@ -11,6 +11,8 @@ import {
   useState,
 } from "react";
 
+const TRAILING_SLASH_REGEX = /\/$/;
+
 type ChatSessionContextType = {
   chatId: string | null;
   isDeleting: boolean;
@@ -38,7 +40,7 @@ export function ChatSessionProvider({
   const chatId = useMemo(() => {
     if (pathname?.startsWith("/c/")) {
       const id = pathname.split("/c/")[1];
-      return id.replace(/\/$/, ""); // Remove trailing slash if present
+      return id.replace(TRAILING_SLASH_REGEX, ""); // Remove trailing slash if present
     }
     return null;
   }, [pathname]);

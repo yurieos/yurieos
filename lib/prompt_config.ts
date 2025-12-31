@@ -549,14 +549,22 @@ function getContextSection(dateTime: FormattedDateTime): string {
 
 function getUserSection(user: NonNullable<UserInfo>): string | null {
   const details: string[] = [];
-  if (user.preferredName || user.name)
+  if (user.preferredName || user.name) {
     details.push(`<user_name>${user.preferredName || user.name}</user_name>`);
-  if (user.occupation)
+  }
+  if (user.occupation) {
     details.push(`<user_occupation>${user.occupation}</user_occupation>`);
-  if (user.traits) details.push(`<user_traits>${user.traits}</user_traits>`);
-  if (user.about) details.push(`<user_bio>${user.about}</user_bio>`);
+  }
+  if (user.traits) {
+    details.push(`<user_traits>${user.traits}</user_traits>`);
+  }
+  if (user.about) {
+    details.push(`<user_bio>${user.about}</user_bio>`);
+  }
 
-  if (details.length === 0) return null;
+  if (details.length === 0) {
+    return null;
+  }
 
   return `
 <user_profile_context>
@@ -622,7 +630,9 @@ export function buildSystemPrompt(
     }
     if (user) {
       const userSection = getUserSection(user);
-      if (userSection) sections.push(userSection);
+      if (userSection) {
+        sections.push(userSection);
+      }
     }
     return sections.join("\n\n");
   }
@@ -663,7 +673,9 @@ export function buildSystemPrompt(
 
   if (user) {
     const userSection = getUserSection(user);
-    if (userSection) sections.push(userSection);
+    if (userSection) {
+      sections.push(userSection);
+    }
   }
 
   sections.push(getOperationalTrigger());
