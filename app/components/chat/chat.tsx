@@ -2,7 +2,6 @@
 
 import { type UIMessage, useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
-import { AnimatePresence, motion } from "motion/react";
 import dynamic from "next/dynamic";
 import { Space_Grotesk } from "next/font/google";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -33,7 +32,6 @@ import {
 } from "@/lib/local-storage";
 import { createPlaceholderId, validateInput } from "@/lib/message-utils";
 import { supportsReasoningEffort } from "@/lib/model-utils";
-import { TRANSITION_LAYOUT } from "@/lib/motion";
 import { API_ROUTE_CHAT } from "@/lib/routes";
 import { getUserTimezone } from "@/lib/user-utils";
 import { cn } from "@/lib/utils";
@@ -602,16 +600,12 @@ export default function Chat() {
   const hasMessages = activeChatId || messages.length > 0;
 
   return (
-    <div
-      className={cn(
-        "@container/main relative flex h-full flex-col overflow-hidden",
-        hasMessages ? "justify-start" : "items-center justify-center"
-      )}
-    >
+    <div className="flex h-full flex-1 flex-col overflow-hidden">
       <DialogAuth open={hasDialogAuth} setOpen={setHasDialogAuth} />
 
-      <AnimatePresence initial={false} mode="popLayout">
-        {hasMessages ? (
+      {hasMessages ? (
+        <>
+          {/* Scrollable messages area */}
           <Conversation
             autoScroll={!targetMessageId}
             isReasoningModel={supportsReasoningEffort(selectedModel)}
@@ -626,20 +620,37 @@ export default function Chat() {
             selectedModel={selectedModel}
             status={status}
           />
-        ) : (
-          <motion.div
-            animate={{ opacity: 1 }}
-            className="relative mx-auto mb-12 flex w-full max-w-[50rem] flex-col items-center px-4"
-            exit={{ opacity: 0 }}
-            initial={{ opacity: 0 }}
-            key="onboarding"
-            layout="position"
-            layoutId="onboarding"
-            transition={{ layout: { duration: 0 } }}
-          >
+
+          {/* Bottom input area */}
+          <div className="shrink-0 bg-background px-4 pb-safe sm:px-6 lg:px-8">
+            <div className="mx-auto w-full max-w-3xl">
+              <ChatInput
+                files={pendingFiles}
+                hasSuggestions={false}
+                isReasoningModel={supportsReasoningEffort(selectedModel)}
+                isSubmitting={status === "streaming"}
+                isUserAuthenticated={true}
+                onFileRemoveAction={handleFileRemove}
+                onFileUploadAction={handleFileUpload}
+                onSelectModelAction={setSelectedModel}
+                onSelectReasoningEffortAction={setReasoningEffort}
+                onSendAction={submit}
+                onSuggestionAction={submit}
+                reasoningEffort={reasoningEffort}
+                selectedModel={selectedModel}
+                status={status}
+                stopAction={stop}
+              />
+            </div>
+          </div>
+        </>
+      ) : (
+        /* Empty state - centered */
+        <div className="flex flex-1 flex-col items-center justify-center px-4 sm:px-6 lg:px-8">
+          <div className="flex w-full max-w-2xl flex-col items-center">
             <h1
               className={cn(
-                "mb-4 text-center font-medium text-4xl tracking-tight",
+                "mb-6 text-center font-medium text-4xl tracking-tight",
                 spaceGrotesk.className
               )}
             >
@@ -662,43 +673,8 @@ export default function Chat() {
               status={status}
               stopAction={stop}
             />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Sticky input area at bottom when there are messages */}
-      {hasMessages && (
-        <motion.div
-          className="sticky inset-x-0 bottom-0 z-50 w-full border-border/40 border-t bg-background/95 backdrop-blur-sm"
-          layout="position"
-          layoutId="chat-input-container"
-          transition={{
-            layout: {
-              ...TRANSITION_LAYOUT,
-              duration: messages.length === 1 ? 0.2 : 0,
-            },
-          }}
-        >
-          <div className="mx-auto w-full max-w-3xl pb-safe">
-            <ChatInput
-              files={pendingFiles}
-              hasSuggestions={false}
-              isReasoningModel={supportsReasoningEffort(selectedModel)}
-              isSubmitting={status === "streaming"}
-              isUserAuthenticated={true}
-              onFileRemoveAction={handleFileRemove}
-              onFileUploadAction={handleFileUpload}
-              onSelectModelAction={setSelectedModel}
-              onSelectReasoningEffortAction={setReasoningEffort}
-              onSendAction={submit}
-              onSuggestionAction={submit}
-              reasoningEffort={reasoningEffort}
-              selectedModel={selectedModel}
-              status={status}
-              stopAction={stop}
-            />
           </div>
-        </motion.div>
+        </div>
       )}
     </div>
   );

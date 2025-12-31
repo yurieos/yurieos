@@ -66,14 +66,11 @@ const Conversation = React.memo(
     // console.log('Rendering messages:', messages);
 
     return (
-      <div className="relative flex min-h-0 w-full flex-1 flex-col items-center overflow-y-auto overflow-x-hidden">
+      <div className="relative flex min-h-0 w-full flex-1 flex-col items-center overflow-y-auto overflow-x-hidden px-4 sm:px-6 lg:px-8">
         <ChatContainer
           autoScroll={autoScroll}
-          className="relative flex w-full flex-col items-center pt-2 pb-28 md:pb-32"
+          className="relative flex w-full flex-col items-center py-4"
           ref={containerRef}
-          style={{
-            scrollbarGutter: "stable both-edges",
-          }}
         >
           {messages?.map((message, index) => {
             const isLast = index === messages.length - 1;
