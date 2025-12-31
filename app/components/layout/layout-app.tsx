@@ -104,8 +104,8 @@ export default function LayoutApp({ children }: { children: React.ReactNode }) {
       >
         {/* Header */}
         <Header />
-        {/* Scrollable main content */}
-        <main className="flex-1 overflow-y-auto">{children}</main>
+        {/* Main content - scrolling handled by child components */}
+        <main className="flex-1">{children}</main>
       </div>
     </div>
   );
