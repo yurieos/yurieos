@@ -679,12 +679,11 @@ export default function Chat() {
             },
           }}
         >
-          <div className="mx-auto w-full max-w-3xl">
+          <div className="mx-auto w-full max-w-3xl pb-safe">
             <ChatInput
               files={pendingFiles}
               hasSuggestions={false}
               isReasoningModel={supportsReasoningEffort(selectedModel)}
-              isSticky={true}
               isSubmitting={status === "streaming"}
               isUserAuthenticated={true}
               onFileRemoveAction={handleFileRemove}

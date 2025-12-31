@@ -395,6 +395,11 @@ samp {
 /* PWA Standalone specific styles */
 @media all and (display-mode: standalone) {
   .pb-standalone-safe {
-    padding-bottom: 20px !important;
+    padding-bottom: env(safe-area-inset-bottom, 20px) !important;
   }
+}
+
+/* Safe area utility for sticky bottom elements */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
