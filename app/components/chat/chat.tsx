@@ -629,7 +629,7 @@ export default function Chat() {
         ) : (
           <motion.div
             animate={{ opacity: 1 }}
-            className="relative mx-auto mb-20 flex w-full max-w-[50rem] flex-col items-center px-4"
+            className="relative mx-auto mb-12 flex w-full max-w-[50rem] flex-col items-center px-4"
             exit={{ opacity: 0 }}
             initial={{ opacity: 0 }}
             key="onboarding"
@@ -684,6 +684,7 @@ export default function Chat() {
               files={pendingFiles}
               hasSuggestions={false}
               isReasoningModel={supportsReasoningEffort(selectedModel)}
+              isSticky={true}
               isSubmitting={status === "streaming"}
               isUserAuthenticated={true}
               onFileRemoveAction={handleFileRemove}

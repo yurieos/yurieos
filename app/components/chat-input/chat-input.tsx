@@ -42,6 +42,7 @@ type ChatInputProps = {
   reasoningEffort: ReasoningEffort;
   onSelectReasoningEffortAction: (reasoningEffort: ReasoningEffort) => void;
   initialValue?: string;
+  isSticky?: boolean;
 };
 
 export function ChatInput({
@@ -61,6 +62,7 @@ export function ChatInput({
   reasoningEffort,
   onSelectReasoningEffortAction,
   initialValue = "",
+  isSticky = false,
 }: ChatInputProps) {
   // Local state for input value to prevent parent re-renders
   const [value, setValue] = useState(initialValue);
@@ -338,10 +340,15 @@ export function ChatInput({
         />
       )}
       <div
-        className="relative order-1 px-4 py-3 md:px-2"
-        style={{
-          paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom, 0px))",
-        }}
+        className="relative order-1 px-4 py-2 md:px-2"
+        style={
+          isSticky
+            ? {
+                paddingBottom:
+                  "calc(0.5rem + env(safe-area-inset-bottom, 0px))",
+              }
+            : undefined
+        }
       >
         <PromptInput
           className="relative z-10 backdrop-blur-xl"

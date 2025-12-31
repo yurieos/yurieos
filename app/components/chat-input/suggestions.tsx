@@ -63,7 +63,7 @@ export const Suggestions = memo(function SuggestionsComponent({
     () => (
       <motion.div
         animate="animate"
-        className="mx-auto flex w-full max-w-2xl flex-wrap justify-center gap-2 px-2"
+        className="mx-auto flex w-full max-w-2xl justify-start gap-2 overflow-x-auto px-2 md:flex-wrap md:justify-center md:overflow-x-visible"
         exit="exit"
         initial="initial"
         key="suggestions-grid"
@@ -77,7 +77,7 @@ export const Suggestions = memo(function SuggestionsComponent({
         {SUGGESTIONS_CONFIG.map((suggestion, index) => (
           <MotionPromptSuggestion
             animate="animate"
-            className="capitalize"
+            className="shrink-0 capitalize"
             exit="exit"
             initial="initial"
             key={suggestion.label}
