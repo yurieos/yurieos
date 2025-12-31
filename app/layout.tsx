@@ -106,7 +106,7 @@ export default function RootLayout({
   const isDev = process.env.NODE_ENV === "development";
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html className="h-svh overflow-hidden" lang="en" suppressHydrationWarning>
       <head>
         <script
           // biome-ignore lint/security/noDangerouslySetInnerHtml: Must run before first paint to prevent theme border/outline flash on refresh.
@@ -117,7 +117,7 @@ export default function RootLayout({
       </head>
       <body
         className={cn(
-          "font-sans antialiased",
+          "h-full overflow-hidden font-sans antialiased",
           geistSans.variable,
           geistMono.variable
         )}

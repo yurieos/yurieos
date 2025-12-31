@@ -92,7 +92,7 @@ export default function LayoutApp({ children }: { children: React.ReactNode }) {
 
   return (
     // Main flex container - sidebar background extends to edges
-    <div className="flex h-dvh overflow-hidden bg-sidebar dark:bg-input/30">
+    <div className="flex h-full overflow-hidden bg-sidebar dark:bg-input/30">
       {/* Sidebar */}
       <ChatSidebar />
 

@@ -645,8 +645,8 @@ export default function Chat() {
           </div>
         </>
       ) : (
-        /* Empty state - centered */
-        <div className="flex flex-1 flex-col items-center justify-center px-4 sm:px-6 lg:px-8">
+        /* Empty state - centered, no scroll */
+        <div className="flex flex-1 flex-col items-center justify-center overflow-hidden px-4 sm:px-6 lg:px-8">
           <div className="flex w-full max-w-2xl flex-col items-center">
             <h1
               className={cn(
