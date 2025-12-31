@@ -15,7 +15,7 @@ export const PromptSystem = memo(function PromptSystemComponent({
   inputValue,
 }: PromptSystemProps) {
   return (
-    <div className="relative order-2 w-full py-2">
+    <div className="relative order-2 w-full pt-2">
       <Suggestions
         inputValue={inputValue}
         onSuggestion={onSuggestion}

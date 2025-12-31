@@ -153,10 +153,8 @@ export const Suggestions = memo(function SuggestionsComponent({
   );
 
   return (
-    <div className="flex min-h-[180px] flex-col items-center justify-start">
-      <AnimatePresence mode="popLayout">
-        {showCategorySuggestions ? suggestionsList : suggestionsGrid}
-      </AnimatePresence>
-    </div>
+    <AnimatePresence mode="popLayout">
+      {showCategorySuggestions ? suggestionsList : suggestionsGrid}
+    </AnimatePresence>
   );
 });

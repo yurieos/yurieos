@@ -318,7 +318,7 @@ export function ChatInput({
   }
 
   return (
-    <div className="relative flex w-full flex-col gap-3">
+    <div className="relative flex w-full flex-col gap-2">
       {hasSuggestions && (
         <PromptSystem
           inputValue={value}
@@ -326,7 +326,7 @@ export function ChatInput({
           onValueChange={setValue}
         />
       )}
-      <div className="relative order-1 py-2">
+      <div className="relative order-1">
         <PromptInput
           className="relative z-10 backdrop-blur-xl"
           maxHeight={200}
