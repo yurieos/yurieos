@@ -67,17 +67,6 @@ export function ChatInput({
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Track isEmpty state to prevent PromptSystem re-renders on every keystroke
-  const [isEmpty, setIsEmpty] = useState(true);
-
-  // Only update isEmpty when the emptiness state actually changes
-  useEffect(() => {
-    const currentEmpty = !value || value.trim() === "";
-    if (currentEmpty !== isEmpty) {
-      setIsEmpty(currentEmpty);
-    }
-  }, [value, isEmpty]);
-
   // Update local value when initialValue changes (e.g., when using suggestions)
   useEffect(() => {
     setValue(initialValue);
@@ -332,7 +321,7 @@ export function ChatInput({
     <div className="relative flex w-full flex-col gap-3">
       {hasSuggestions && (
         <PromptSystem
-          isEmpty={isEmpty}
+          inputValue={value}
           onSuggestion={handleSuggestionClick}
           onValueChange={setValue}
         />

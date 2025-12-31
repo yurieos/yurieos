@@ -1,14 +1,15 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
-import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PromptSuggestion } from "@/components/prompt-kit/prompt-suggestion";
+import { SUGGESTIONS as SUGGESTIONS_CONFIG } from "@/lib/config";
 import { TRANSITION_SUGGESTIONS } from "@/lib/motion";
-import { SUGGESTIONS as SUGGESTIONS_CONFIG } from "../../../lib/config";
 
 type SuggestionsProps = {
   onValueChange: (value: string) => void;
-  onSuggestion: (suggestion: string) => void;
+  onSuggestion?: (suggestion: string) => void;
+  inputValue?: string;
   isEmpty?: boolean;
 };
 
@@ -19,10 +20,10 @@ const MotionPromptSuggestion = motion.create(PromptSuggestion);
 
 export const Suggestions = memo(function SuggestionsComponent({
   onValueChange,
-  // onSuggestion,
-  isEmpty = true,
+  inputValue = "",
 }: SuggestionsProps) {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const prevInputValue = useRef(inputValue);
 
   const activeCategoryData = SUGGESTIONS_CONFIG.find(
     (group) => group.label === activeCategory
@@ -31,11 +32,13 @@ export const Suggestions = memo(function SuggestionsComponent({
   const showCategorySuggestions =
     activeCategoryData && activeCategoryData.items.length > 0;
 
+  // Reset active category when input is cleared (transitions from non-empty to empty)
   useEffect(() => {
-    if (isEmpty) {
+    if (prevInputValue.current !== "" && inputValue === "") {
       setActiveCategory(null);
     }
-  }, [isEmpty]);
+    prevInputValue.current = inputValue;
+  }, [inputValue]);
 
   const handleSuggestionClick = useCallback(
     (suggestion: string) => {
@@ -63,7 +66,7 @@ export const Suggestions = memo(function SuggestionsComponent({
     () => (
       <motion.div
         animate="animate"
-        className="mx-auto flex w-full max-w-2xl justify-start gap-2 overflow-x-auto px-2 md:flex-wrap md:justify-center md:overflow-x-visible"
+        className="mx-auto flex w-full max-w-2xl flex-wrap justify-center gap-2 px-2"
         exit="exit"
         initial="initial"
         key="suggestions-grid"
@@ -77,7 +80,7 @@ export const Suggestions = memo(function SuggestionsComponent({
         {SUGGESTIONS_CONFIG.map((suggestion, index) => (
           <MotionPromptSuggestion
             animate="animate"
-            className="shrink-0 capitalize"
+            className="capitalize"
             exit="exit"
             initial="initial"
             key={suggestion.label}
@@ -119,7 +122,7 @@ export const Suggestions = memo(function SuggestionsComponent({
         {activeCategoryData?.items.map((suggestion: string, index: number) => (
           <MotionPromptSuggestion
             animate="animate"
-            className="text-left"
+            className="justify-start rounded-xl border-none bg-transparent text-left hover:border-none hover:bg-primary/10"
             exit="exit"
             highlight={activeCategoryData.highlight}
             initial="initial"
@@ -150,8 +153,10 @@ export const Suggestions = memo(function SuggestionsComponent({
   );
 
   return (
-    <AnimatePresence mode="popLayout">
-      {showCategorySuggestions ? suggestionsList : suggestionsGrid}
-    </AnimatePresence>
+    <div className="flex min-h-[180px] flex-col items-center justify-start">
+      <AnimatePresence mode="popLayout">
+        {showCategorySuggestions ? suggestionsList : suggestionsGrid}
+      </AnimatePresence>
+    </div>
   );
 });

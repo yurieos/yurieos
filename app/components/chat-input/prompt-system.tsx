@@ -6,18 +6,18 @@ import { Suggestions } from "./suggestions";
 type PromptSystemProps = {
   onValueChange: (value: string) => void;
   onSuggestion: (suggestion: string) => void;
-  isEmpty: boolean;
+  inputValue: string;
 };
 
 export const PromptSystem = memo(function PromptSystemComponent({
   onValueChange,
   onSuggestion,
-  isEmpty,
+  inputValue,
 }: PromptSystemProps) {
   return (
     <div className="relative order-2 w-full py-2">
       <Suggestions
-        isEmpty={isEmpty}
+        inputValue={inputValue}
         onSuggestion={onSuggestion}
         onValueChange={onValueChange}
       />
