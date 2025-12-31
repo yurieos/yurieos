@@ -490,13 +490,10 @@ const ChatSidebar = memo(function SidebarComponent() {
             x: isOpen ? 0 : -280,
             opacity: isOpen ? 1 : 0,
           }}
-          className="fixed top-2 bottom-2 left-2 z-[70] w-[calc(100vw-5rem)] max-w-72 overflow-hidden rounded-2xl border border-sidebar-border/50 bg-background shadow-2xl"
+          className="fixed top-[calc(0.5rem+env(safe-area-inset-top,0px))] bottom-[calc(0.5rem+env(safe-area-inset-bottom,0px))] left-[calc(0.5rem+env(safe-area-inset-left,0px))] z-[70] w-[calc(100vw-5rem)] max-w-72 overflow-hidden rounded-2xl border border-sidebar-border/50 bg-background shadow-2xl"
           initial={{
             x: -280,
             opacity: 0,
-          }}
-          style={{
-            paddingTop: "env(safe-area-inset-top, 0px)",
           }}
           transition={TRANSITION_LAYOUT}
         >

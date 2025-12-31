@@ -20,13 +20,13 @@ export function Header() {
   const { isSidebarOpen, toggleSidebar } = useSidebar();
 
   return (
-    <header className="sticky top-0 z-50 h-auto shrink-0 bg-background/80 pt-[env(safe-area-inset-top)] backdrop-blur-md transition-all md:bg-transparent md:pt-0">
-      <div className="relative mx-auto flex h-app-header items-center justify-between px-4 sm:px-6 md:rounded-t-xl lg:px-8">
+    <header className="sticky top-0 z-50 h-auto shrink-0 bg-background/80 pt-[env(safe-area-inset-top,0px)] backdrop-blur-md transition-all md:bg-transparent md:pt-0">
+      <div className="relative mx-auto flex h-app-header items-center justify-between pr-[calc(1rem+env(safe-area-inset-right,0px))] pl-[calc(1rem+env(safe-area-inset-left,0px))] sm:pr-[calc(1.5rem+env(safe-area-inset-right,0px))] sm:pl-[calc(1.5rem+env(safe-area-inset-left,0px))] md:rounded-t-xl lg:pr-[calc(2rem+env(safe-area-inset-right,0px))] lg:pl-[calc(2rem+env(safe-area-inset-left,0px))]">
         {/* Logo on mobile */}
         <div className="-ml-1.5 flex items-center sm:-ml-3 md:hidden">
           <button
             aria-label={isSidebarOpen ? "Close sidebar" : "Open sidebar"}
-            className="group ml-[env(safe-area-inset-left)] flex items-center justify-center rounded-full p-2 outline-none ring-offset-background transition-all duration-300 hover:bg-accent focus-visible:rounded-full focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            className="group flex items-center justify-center rounded-full p-2 outline-none ring-offset-background transition-all duration-300 hover:bg-accent focus-visible:rounded-full focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             onClick={toggleSidebar}
             type="button"
           >

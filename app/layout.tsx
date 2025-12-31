@@ -35,8 +35,6 @@ const THEME_INIT_SCRIPT = `(function(){try{var root=document.documentElement;var
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
   viewportFit: "cover",
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#fafafa" },
