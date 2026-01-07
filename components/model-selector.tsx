@@ -1,0 +1,127 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+
+import { Check, ChevronsUpDown } from 'lucide-react'
+
+import { Model } from '@/lib/types/models'
+
+import { createModelId } from '../lib/utils'
+
+import { Button } from './ui/button'
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList
+} from './ui/command'
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
+
+const setCookie = (name: string, value: string, days = 30) => {
+  const date = new Date()
+  date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000)
+  document.cookie = `${name}=${value};expires=${date.toUTCString()};path=/`
+}
+
+const getCookie = (name: string): string | null => {
+  for (const c of document.cookie.split(';')) {
+    const [n, v] = c.trim().split('=')
+    if (n === name) return v
+  }
+  return null
+}
+
+const groupByProvider = (models: Model[]) =>
+  models
+    .filter(m => m.enabled)
+    .reduce(
+      (g, m) => {
+        ;(g[m.provider] ??= []).push(m)
+        return g
+      },
+      {} as Record<string, Model[]>
+    )
+
+export function ModelSelector() {
+  const [open, setOpen] = useState(false)
+  const [value, setValue] = useState('')
+  const [models, setModels] = useState<Model[]>([])
+
+  useEffect(() => {
+    fetch('/api/config/models')
+      .then(r => r.json())
+      .then(d => d.models && setModels(d.models))
+      .catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    const saved = getCookie('selectedModel')
+    if (saved) {
+      try {
+        setValue(createModelId(JSON.parse(saved)))
+      } catch {}
+    } else if (models.length) {
+      const def =
+        models.find(m => m.id === 'gemini-3-flash-preview') || models[0]
+      setValue(createModelId(def))
+      setCookie('selectedModel', JSON.stringify(def))
+    }
+  }, [models])
+
+  const handleSelect = (id: string) => {
+    const newVal = id === value ? '' : id
+    setValue(newVal)
+    const model = models.find(m => createModelId(m) === newVal)
+    setCookie('selectedModel', model ? JSON.stringify(model) : '')
+    setOpen(false)
+  }
+
+  const selected = models.find(m => createModelId(m) === value)
+  const grouped = groupByProvider(models)
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="ghost"
+          role="combobox"
+          aria-expanded={open}
+          className="h-8 px-2 text-sm font-semibold text-foreground/70 hover:text-foreground focus:ring-0"
+        >
+          {selected?.name || 'Select model'}
+          <ChevronsUpDown className="ml-1 size-3 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-72 p-0" align="start">
+        <Command value={value}>
+          <CommandInput placeholder="Search models..." />
+          <CommandList>
+            <CommandEmpty>No model found.</CommandEmpty>
+            {Object.entries(grouped).map(([provider, list]) => (
+              <CommandGroup key={provider} heading={provider}>
+                {list.map(m => {
+                  const id = createModelId(m)
+                  return (
+                    <CommandItem
+                      key={id}
+                      value={id}
+                      onSelect={handleSelect}
+                      className="flex justify-between"
+                    >
+                      <span className="text-xs font-medium">{m.name}</span>
+                      <Check
+                        className={`size-4 ${value === id ? 'opacity-100' : 'opacity-0'}`}
+                      />
+                    </CommandItem>
+                  )
+                })}
+              </CommandGroup>
+            ))}
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  )
+}

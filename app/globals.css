@@ -1,0 +1,258 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Vintage Paper Theme - Light Mode */
+    --background: 43 38% 93%;
+    --foreground: 29 17% 25%;
+    --card: 43 100% 98%;
+    --card-foreground: 29 17% 25%;
+    --popover: 43 100% 98%;
+    --popover-foreground: 29 17% 25%;
+    --primary: 29 36% 49%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 41 34% 83%;
+    --secondary-foreground: 29 19% 30%;
+    --muted: 39 34% 89%;
+    --muted-foreground: 30 19% 41%;
+    --accent: 41 31% 75%;
+    --accent-foreground: 29 17% 25%;
+    --destructive: 10 54% 46%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 40 33% 80%;
+    --input: 40 33% 80%;
+    --ring: 29 36% 49%;
+    --radius: 0.25rem;
+    /* Sidebar */
+    --sidebar-background: 39 34% 89%;
+    --sidebar-foreground: 29 17% 25%;
+    --sidebar-primary: 29 36% 49%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 41 31% 75%;
+    --sidebar-accent-foreground: 29 17% 25%;
+    --sidebar-border: 40 33% 80%;
+    --sidebar-ring: 29 36% 49%;
+  }
+
+  .dark {
+    /* Vintage Paper Theme - Dark Mode */
+    --background: 20 14% 15%;
+    --foreground: 39 34% 89%;
+    --card: 20 14% 20%;
+    --card-foreground: 39 34% 89%;
+    --popover: 20 14% 20%;
+    --popover-foreground: 39 34% 89%;
+    --primary: 30 33% 63%;
+    --primary-foreground: 20 14% 15%;
+    --secondary: 20 12% 25%;
+    --secondary-foreground: 39 34% 89%;
+    --muted: 20 14% 20%;
+    --muted-foreground: 35 15% 73%;
+    --accent: 24 15% 30%;
+    --accent-foreground: 39 34% 89%;
+    --destructive: 10 54% 46%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 20 12% 25%;
+    --input: 20 12% 25%;
+    --ring: 30 33% 63%;
+    /* Sidebar */
+    --sidebar-background: 20 14% 12%;
+    --sidebar-foreground: 39 34% 89%;
+    --sidebar-primary: 30 33% 63%;
+    --sidebar-primary-foreground: 20 14% 15%;
+    --sidebar-accent: 24 15% 30%;
+    --sidebar-accent-foreground: 39 34% 89%;
+    --sidebar-border: 20 12% 25%;
+    --sidebar-ring: 30 33% 63%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--border));
+    border-radius: 4px;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--border));
+  }
+
+  html,
+  body {
+    @apply overflow-x-hidden;
+    max-width: 100vw;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  .prose pre {
+    @apply overflow-x-auto max-w-full;
+  }
+
+  .prose code {
+    @apply break-all;
+  }
+
+  .prose table {
+    @apply overflow-x-auto block max-w-full;
+  }
+
+  .prose p,
+  .prose li,
+  .prose h1,
+  .prose h2,
+  .prose h3,
+  .prose h4,
+  .prose h5,
+  .prose h6 {
+    @apply break-words;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+  }
+
+  .prose ol,
+  .prose ul {
+    @apply max-w-full overflow-hidden;
+  }
+
+  #scroll-container {
+    max-width: 100vw;
+  }
+
+  .codeblock {
+    max-width: 100%;
+  }
+
+  @media (max-width: 768px) {
+    .prose,
+    .prose > * {
+      @apply break-words;
+      overflow-wrap: break-word;
+      word-wrap: break-word;
+      max-width: 100%;
+    }
+
+    .codeblock {
+      max-width: calc(100vw - 2rem);
+      font-size: 0.75rem;
+    }
+
+    .chat-section {
+      max-width: 100%;
+      overflow-x: hidden;
+    }
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .animate-pulse-scale {
+    animation: pulse-scale 2s ease-in-out infinite;
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.3s ease-out forwards;
+  }
+}
+
+@keyframes pulse-scale {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* KaTeX Math Rendering - Dark Mode Support */
+.dark .katex,
+.dark .katex-display {
+  color: hsl(var(--foreground));
+}
+
+.dark .katex .mord,
+.dark .katex .mbin,
+.dark .katex .mrel,
+.dark .katex .mopen,
+.dark .katex .mclose,
+.dark .katex .mpunct,
+.dark .katex .minner {
+  color: inherit;
+}
+
+.dark .katex .frac-line {
+  border-color: hsl(var(--foreground));
+  background: hsl(var(--foreground));
+}
+
+.dark .katex .sqrt-line {
+  border-color: hsl(var(--foreground));
+}
+
+.dark .katex .sqrt > .sqrt-sign {
+  color: hsl(var(--foreground));
+}
+
+.dark .katex .delimsizing,
+.dark .katex .delimsizinginner {
+  color: hsl(var(--foreground));
+}
+
+.dark .katex .vertical-separator {
+  border-color: hsl(var(--foreground));
+}
+
+.dark .katex .hline {
+  border-color: hsl(var(--foreground));
+}
+
+.dark .katex .accent-body > span,
+.dark .katex .stretchy {
+  color: hsl(var(--foreground));
+}
+
+.dark .katex a {
+  color: hsl(var(--primary));
+}
+
+.dark .katex .katex-error {
+  color: hsl(var(--destructive));
+}
