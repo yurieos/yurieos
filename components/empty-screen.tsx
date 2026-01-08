@@ -4,26 +4,35 @@ import { Button } from '@/components/ui/button'
 
 const exampleMessages = [
   {
-    heading: 'Why do octopuses edit their RNA?',
-    message: 'Why do octopuses edit their RNA?'
+    heading: 'How were the pyramids really built?',
+    message: 'How were the pyramids really built?'
   },
   {
-    heading: 'The dancing plague of 1518',
-    message: 'The dancing plague of 1518'
+    heading: "Pompeii's final hours under Vesuvius",
+    message: "Pompeii's final hours under Vesuvius"
   },
   {
-    heading: 'How fungi control ant brains',
-    message: 'How fungi control ant brains'
+    heading: 'Why did Rome actually fall?',
+    message: 'Why did Rome actually fall?'
   },
   {
-    heading: 'Soviet experiments with dog heads',
-    message: 'Soviet experiments with dog heads'
+    heading: 'Who really killed Julius Caesar?',
+    message: 'Who really killed Julius Caesar?'
   },
   {
-    heading: 'Why time moves differently underwater',
-    message: 'Why time moves differently underwater'
+    heading: 'Was the Trojan Horse real?',
+    message: 'Was the Trojan Horse real?'
+  },
+  {
+    heading: 'Who really wrote the Dead Sea Scrolls?',
+    message: 'Who really wrote the Dead Sea Scrolls?'
+  },
+  {
+    heading: 'What did mummies teach modern science?',
+    message: 'What did mummies teach modern science?'
   }
 ]
+
 export function EmptyScreen({
   submitMessage,
   className

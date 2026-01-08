@@ -18,7 +18,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Tech Stack
 
-- **Next.js 15.3** with App Router and React Server Components
+- **Next.js 16.1** with App Router and React Server Components
 - **React 19** with TypeScript for type safety
 - **Google GenAI SDK** - Unified Gemini API client
 - **Gemini 3 Flash** - Fast responses with Google Search grounding
@@ -161,6 +161,23 @@ Models are defined in `lib/config/models.ts` with:
   - `includeThoughts`: Boolean to show thought summaries
 
 > **Note:** Model changes require a rebuild. This keeps configuration secure and simplifies the codebase.
+
+## Next.js 16.1 Conventions
+
+### Proxy (formerly Middleware)
+
+Next.js 16 renamed `middleware.ts` to `proxy.ts`. The proxy file is located at the project root:
+
+- **File**: `proxy.ts` (not `middleware.ts`)
+- **Export**: `export default async function proxy(request: NextRequest)`
+- **Purpose**: Request interception for authentication, redirects, etc.
+
+### ESLint Configuration
+
+Uses ESLint 9 flat config format:
+
+- **File**: `eslint.config.mjs` (not `.eslintrc.json`)
+- **Config**: Native Next.js flat config with `eslint-config-next`
 
 ## File Structure
 

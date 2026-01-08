@@ -4,7 +4,7 @@
 
 **Open-source AI research engine with Gemini deep research and real-time search grounding**
 
-[![Next.js](https://img.shields.io/badge/Next.js-15.3-black?logo=next.js)](https://nextjs.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-16.1-black?logo=next.js)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
@@ -139,7 +139,7 @@ Visit [http://localhost:3000](http://localhost:3000) to see the app.
 
 | Layer               | Technology                                  |
 | ------------------- | ------------------------------------------- |
-| **Framework**       | Next.js 15.3 (App Router)                   |
+| **Framework**       | Next.js 16.1 (App Router)                   |
 | **Runtime**         | React 19 with Server Components             |
 | **Language**        | TypeScript 5.7                              |
 | **Styling**         | Tailwind CSS + shadcn/ui                    |
@@ -149,6 +149,7 @@ Visit [http://localhost:3000](http://localhost:3000) to see the app.
 | **Auth**            | Supabase                                    |
 | **Storage**         | Upstash Redis                               |
 | **Package Manager** | Bun                                         |
+| **Linting**         | ESLint 9 (flat config)                      |
 
 ### Project Structure
 
@@ -206,6 +207,8 @@ yurie/
 ├── hooks/                        # React hooks
 ├── docs/
 │   └── CONFIGURATION.md          # Setup guide
+├── proxy.ts                      # Next.js 16 request proxy (auth, redirects)
+├── eslint.config.mjs             # ESLint 9 flat config
 └── ...config files
 ```
 
