@@ -61,10 +61,7 @@ export const UserMessage: React.FC<UserMessageProps> = ({
             size="icon"
             className={cn(
               'rounded-full size-8 shrink-0 transition-opacity',
-              'opacity-0',
-              'group-focus-within:opacity-100',
-              'md:opacity-0',
-              'md:group-hover:opacity-100'
+              'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100'
             )}
             onClick={handleEditClick}
           >
@@ -75,10 +72,7 @@ export const UserMessage: React.FC<UserMessageProps> = ({
             size="icon"
             className={cn(
               'rounded-full size-8 shrink-0 transition-opacity',
-              'opacity-0',
-              'group-focus-within:opacity-100',
-              'md:opacity-0',
-              'md:group-hover:opacity-100'
+              'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100'
             )}
             onClick={handleCopyClick}
           >

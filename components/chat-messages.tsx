@@ -7,6 +7,7 @@ import { ChatRequestOptions, UIMessage } from 'ai'
 import { cn } from '@/lib/utils'
 
 import { ResearchMode } from './chat'
+import { ChatErrorBoundary } from './error-boundary'
 import { RenderMessage } from './render-message'
 
 interface ChatSection {
@@ -93,26 +94,10 @@ export function ChatMessages({
           >
             {/* User message */}
             <div className="flex flex-col gap-4 mb-4">
-              <RenderMessage
-                message={section.userMessage}
-                messageId={section.userMessage.id}
-                getIsOpen={getIsOpen}
-                onOpenChange={handleOpenChange}
-                onQuerySelect={onQuerySelect}
-                chatId={chatId}
-                onUpdateMessage={onUpdateMessage}
-                reload={reload}
-                isLoading={isLoading}
-                researchMode={researchMode}
-              />
-            </div>
-
-            {/* Assistant messages */}
-            {section.assistantMessages.map(assistantMessage => (
-              <div key={assistantMessage.id} className="flex flex-col gap-4">
+              <ChatErrorBoundary>
                 <RenderMessage
-                  message={assistantMessage}
-                  messageId={assistantMessage.id}
+                  message={section.userMessage}
+                  messageId={section.userMessage.id}
                   getIsOpen={getIsOpen}
                   onOpenChange={handleOpenChange}
                   onQuerySelect={onQuerySelect}
@@ -122,6 +107,26 @@ export function ChatMessages({
                   isLoading={isLoading}
                   researchMode={researchMode}
                 />
+              </ChatErrorBoundary>
+            </div>
+
+            {/* Assistant messages */}
+            {section.assistantMessages.map(assistantMessage => (
+              <div key={assistantMessage.id} className="flex flex-col gap-4">
+                <ChatErrorBoundary>
+                  <RenderMessage
+                    message={assistantMessage}
+                    messageId={assistantMessage.id}
+                    getIsOpen={getIsOpen}
+                    onOpenChange={handleOpenChange}
+                    onQuerySelect={onQuerySelect}
+                    chatId={chatId}
+                    onUpdateMessage={onUpdateMessage}
+                    reload={reload}
+                    isLoading={isLoading}
+                    researchMode={researchMode}
+                  />
+                </ChatErrorBoundary>
               </div>
             ))}
           </div>

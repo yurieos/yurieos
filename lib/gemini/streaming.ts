@@ -1,8 +1,10 @@
 /**
  * Gemini Streaming Adapter
- * Bridges Gemini research with Vercel AI SDK format for frontend compatibility
+ * Bridges Gemini agentic workflow with Vercel AI SDK format for frontend compatibility
  *
- * Supports both standard research (seconds) and Deep Research Agent (minutes)
+ * Supports both standard agentic mode (seconds) and Deep Research Agent (minutes)
+ * @see https://ai.google.dev/gemini-api/docs/google-search
+ * @see https://ai.google.dev/gemini-api/docs/code-execution
  * @see https://ai.google.dev/gemini-api/docs/deep-research
  */
 
@@ -16,7 +18,7 @@ import { saveChat } from '@/lib/actions/chat'
 import { Chat } from '@/lib/types'
 import { ResearchAnnotation } from '@/lib/types/sources'
 
-import { research } from './research'
+import { process } from './agentic'
 import { processInputSafely } from './safety'
 import {
   ContentPart,
@@ -108,7 +110,7 @@ export async function createGeminiStreamResponse(
       }
 
       try {
-        // Research configuration
+        // Agentic workflow configuration
         // Per https://ai.google.dev/gemini-api/docs/thinking
         const researchConfig: ResearchConfig = {
           mode,
@@ -117,14 +119,14 @@ export async function createGeminiStreamResponse(
           conversationHistory: conversationHistory.slice(0, -1) // Exclude current query
         }
 
-        // Stream research results
-        for await (const chunk of research(sanitizedQuery, researchConfig)) {
+        // Stream results from agentic workflow
+        for await (const chunk of process(sanitizedQuery, researchConfig)) {
           switch (chunk.type) {
             case 'phase':
               // Update phase annotation
               if (mode === 'standard') {
-                // Map research phases to quicksearch phases
-                const quickSearchPhase =
+                // Map workflow phases to agentic phases
+                const agenticPhase =
                   chunk.phase === 'complete'
                     ? 'complete'
                     : chunk.phase === 'synthesizing'
@@ -132,9 +134,9 @@ export async function createGeminiStreamResponse(
                       : 'searching'
 
                 allAnnotations.push({
-                  type: 'quicksearch-phase',
+                  type: 'agentic-phase',
                   data: {
-                    phase: quickSearchPhase,
+                    phase: agenticPhase,
                     sourceCount,
                     startTime
                   }
@@ -199,11 +201,12 @@ export async function createGeminiStreamResponse(
               // Batch sources update
               if (chunk.sources) {
                 for (const source of chunk.sources) {
-                  // Check if source already added
+                  // Check if source already added by matching URL
                   const exists = allAnnotations.some(
                     a =>
                       a.type === 'research-source' &&
-                      (a.data as any).url === source.url
+                      'url' in a.data &&
+                      a.data.url === source.url
                   )
                   if (!exists) {
                     allAnnotations.push({
@@ -310,10 +313,10 @@ export async function createGeminiStreamResponse(
                 interactionMetadata.lastEventId = chunk.metadata.lastEventId
               }
 
-              // Research complete
+              // Agentic workflow complete
               if (mode === 'standard') {
                 allAnnotations.push({
-                  type: 'quicksearch-phase',
+                  type: 'agentic-phase',
                   data: {
                     phase: 'complete',
                     sourceCount,

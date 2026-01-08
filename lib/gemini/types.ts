@@ -1,11 +1,93 @@
 /**
  * Gemini Research Types
+ *
+ * Type definitions for Gemini API responses and internal data structures.
+ * @see https://ai.google.dev/gemini-api/docs
  */
 
 import { ThinkingConfig } from '@/lib/types/models'
 export type { ThinkingConfig }
 
-// Source Types
+// ============================================
+// Gemini API Response Types
+// ============================================
+
+/**
+ * Web grounding chunk from Google Search
+ * @see https://ai.google.dev/gemini-api/docs/google-search
+ */
+export interface WebGroundingChunk {
+  web?: {
+    uri: string
+    title?: string
+  }
+}
+
+/**
+ * Text segment with position information
+ */
+export interface GroundingSegment {
+  text?: string
+  startIndex?: number
+  endIndex?: number
+}
+
+/**
+ * Support mapping between text and sources
+ */
+export interface GroundingSupportItem {
+  segment?: GroundingSegment
+  groundingChunkIndices?: number[]
+}
+
+/**
+ * Grounding metadata from Gemini response
+ * @see https://ai.google.dev/gemini-api/docs/google-search
+ */
+export interface GroundingMetadata {
+  groundingChunks?: WebGroundingChunk[]
+  groundingSupports?: GroundingSupportItem[]
+  webSearchQueries?: string[]
+}
+
+/**
+ * Content part from Gemini response
+ */
+export interface GeminiResponsePart {
+  text?: string
+  thought?: boolean
+  thoughtSignature?: string
+}
+
+/**
+ * Content from Gemini response
+ */
+export interface GeminiContent {
+  parts?: GeminiResponsePart[]
+  role?: string
+}
+
+/**
+ * Candidate from Gemini generateContent response
+ * @see https://ai.google.dev/gemini-api/docs/text-generation
+ */
+export interface GeminiCandidate {
+  content?: GeminiContent
+  groundingMetadata?: GroundingMetadata
+  finishReason?: string
+  safetyRatings?: Array<{
+    category: string
+    probability: string
+  }>
+}
+
+// ============================================
+// Internal Source Types
+// ============================================
+
+/**
+ * Parsed grounding source for UI display
+ */
 export interface GroundingSource {
   id: string
   title: string

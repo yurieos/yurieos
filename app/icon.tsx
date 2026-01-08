@@ -22,7 +22,7 @@ export default async function Icon() {
         background: 'transparent'
       }}
     >
-      { }
+      {}
       <img
         src={emojiUrl}
         alt=""

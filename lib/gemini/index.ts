@@ -1,10 +1,12 @@
 /**
  * Gemini Module - Main Entry Point
  *
- * Simplified AI architecture using Google GenAI SDK
- * - Standard Mode: Gemini 3 Flash with Google Search grounding
- * - Deep Research: Official Deep Research Agent via Interactions API
+ * Two modes of operation:
+ * - Standard Mode (Agentic): Gemini 3 Flash with tools (Google Search, Code Execution)
+ * - Deep Research Mode: Official Deep Research Agent via Interactions API
  *
+ * @see https://ai.google.dev/gemini-api/docs/google-search
+ * @see https://ai.google.dev/gemini-api/docs/code-execution
  * @see https://ai.google.dev/gemini-api/docs/deep-research
  */
 
@@ -23,21 +25,31 @@ export type {
   ConversationTurn,
   DeepResearchInteractionMetadata,
   DeepResearchOptions,
+  GeminiCandidate,
+  GeminiContent,
+  GeminiResponsePart,
+  GroundingMetadata,
+  GroundingSegment,
   GroundingSource,
   GroundingSupport,
+  GroundingSupportItem,
   ResearchChunk,
   ResearchConfig,
   ResearchPhase,
-  ThinkingConfig
+  ThinkingConfig,
+  WebGroundingChunk
 } from './types'
 
-// Research
+// Agentic workflow
 export {
+  agenticChat,
   deepResearch,
   generateFollowUps,
+  process,
+  // Legacy exports for backwards compatibility
   research,
   standardResearch
-} from './research'
+} from './agentic'
 
 // Deep Research Agent (Interactions API)
 export { askFollowUp, executeDeepResearch } from './deep-research-agent'

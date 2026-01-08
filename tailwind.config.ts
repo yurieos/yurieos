@@ -95,13 +95,24 @@ const config = {
             opacity: '1'
           },
           to: { height: '0', opacity: '0' }
+        },
+        'bounce-dot': {
+          '0%, 100%': {
+            transform: 'translateY(0)',
+            animationTimingFunction: 'cubic-bezier(0.8, 0, 1, 1)'
+          },
+          '50%': {
+            transform: 'translateY(-25%)',
+            animationTimingFunction: 'cubic-bezier(0, 0, 0.2, 1)'
+          }
         }
       },
       animation: {
         'collapse-down': 'collapse-down 0.1s ease-in-out',
         'collapse-up': 'collapse-up 0.1s ease-in-out',
         'collapsible-down': 'collapsible-down 0.2s ease-out',
-        'collapsible-up': 'collapsible-up 0.2s ease-out'
+        'collapsible-up': 'collapsible-up 0.2s ease-out',
+        'bounce-dot': 'bounce-dot 1s infinite'
       },
       fontFamily: {
         sans: ['var(--font-sans)', ...fontFamily.serif],

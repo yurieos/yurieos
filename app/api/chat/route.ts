@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers'
 
 import { getCurrentUserId } from '@/lib/auth/get-current-user'
+import { getDefaultModel } from '@/lib/config/models'
 import { createGeminiStreamResponse, isGeminiAvailable } from '@/lib/gemini'
 import { validateChatRequest } from '@/lib/schema/chat'
 import { Model, ThinkingConfig } from '@/lib/types/models'
@@ -9,32 +10,15 @@ import { Model, ThinkingConfig } from '@/lib/types/models'
 export const maxDuration = 300
 
 /**
- * Default model configuration
- * Uses Gemini 3 Flash with medium thinking level
- * @see https://ai.google.dev/gemini-api/docs/thinking
- */
-const DEFAULT_MODEL: Model = {
-  id: 'gemini-3-flash-preview',
-  name: 'Gemini 3 Flash',
-  provider: 'Google',
-  providerId: 'google',
-  enabled: true,
-  toolCallType: 'manual',
-  toolCallModel: 'gemini-3-flash-preview',
-  thinkingConfig: {
-    thinkingLevel: 'medium',
-    includeThoughts: true
-  }
-}
-
-/**
  * Safely parses and validates the model from cookies
- * Includes thinkingConfig for Gemini 3 models
+ * Falls back to centralized default model from config
  * @see https://ai.google.dev/gemini-api/docs/thinking
  */
 function parseModelFromCookie(modelJson: string | undefined): Model {
+  const defaultModel = getDefaultModel()
+
   if (!modelJson) {
-    return DEFAULT_MODEL
+    return defaultModel
   }
 
   try {
@@ -46,7 +30,7 @@ function parseModelFromCookie(modelJson: string | undefined): Model {
       typeof parsed.providerId !== 'string'
     ) {
       console.warn('Invalid model structure in cookie, using default')
-      return DEFAULT_MODEL
+      return defaultModel
     }
 
     // Parse thinkingConfig if present (Gemini 3 uses thinkingLevel)
@@ -71,7 +55,7 @@ function parseModelFromCookie(modelJson: string | undefined): Model {
     }
   } catch (e) {
     console.error('Failed to parse selected model from cookie:', e)
-    return DEFAULT_MODEL
+    return defaultModel
   }
 }
 

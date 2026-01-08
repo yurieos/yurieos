@@ -1,14 +1,11 @@
 import { Suspense } from 'react'
 import Link from 'next/link'
 
-import { Plus } from 'lucide-react'
-
 import {
   Sidebar,
   SidebarContent,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
   SidebarTrigger
@@ -16,6 +13,7 @@ import {
 
 import { ChatHistorySection } from './sidebar/chat-history-section'
 import { ChatHistorySkeleton } from './sidebar/chat-history-skeleton'
+import { NewChatButton } from './new-chat-button'
 
 export default function AppSidebar() {
   return (
@@ -30,12 +28,7 @@ export default function AppSidebar() {
       <SidebarContent className="flex flex-col pl-2 pr-0 py-4 h-full">
         <SidebarMenu className="pr-2">
           <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <Link href="/" className="flex items-center gap-2">
-                <Plus size={18} />
-                <span>New chat</span>
-              </Link>
-            </SidebarMenuButton>
+            <NewChatButton variant="sidebar" />
           </SidebarMenuItem>
         </SidebarMenu>
         <div className="flex-1 overflow-y-auto">

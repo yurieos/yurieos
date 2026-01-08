@@ -23,7 +23,7 @@ export default async function AppleIcon() {
         borderRadius: 32
       }}
     >
-      { }
+      {}
       <img
         src={emojiUrl}
         alt=""

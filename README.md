@@ -17,16 +17,17 @@
 
 ## ✨ Features
 
-### 🔍 Dual Search Modes
+### 🔍 Dual Operation Modes
 
-- **Standard Mode** — Fast responses with Gemini 3 Flash + Google Search grounding
+- **Standard Mode (Agentic)** — Fast responses with Gemini 3 Flash + tools (Google Search, Code Execution)
 - **Deep Research Mode** — Comprehensive multi-step research with Gemini Deep Research Agent
 
-### 🧠 Gemini-Powered Research
+### 🧠 Gemini-Powered Agentic AI
 
 - **Google Search Grounding** — Real-time web search integrated directly into responses
+- **Code Execution** — Python code for calculations and data processing
 - **Thinking Mode** — Configurable reasoning depth (minimal, low, medium, high)
-- **Thought Summaries** — Transparent AI reasoning displayed during research
+- **Thought Summaries** — Transparent AI reasoning displayed during tasks
 - **Deep Research Agent** — Official Gemini API for comprehensive multi-step research
 
 ### 🤖 Model Support
@@ -184,9 +185,9 @@ yurie/
 │   └── ...
 │
 ├── lib/
-│   ├── gemini/                   # Gemini Research Module
+│   ├── gemini/                   # Gemini Agentic Module
 │   │   ├── client.ts             # Singleton GoogleGenAI client
-│   │   ├── research.ts           # Research workflow (standard + deep)
+│   │   ├── agentic.ts            # Agentic workflow (standard + deep)
 │   │   ├── deep-research-agent.ts # Official Deep Research Agent
 │   │   ├── streaming.ts          # Vercel AI SDK adapter
 │   │   ├── citations.ts          # Grounding metadata parsing
@@ -214,13 +215,28 @@ yurie/
 
 ---
 
-## 🔬 Deep Research Mode
+## 🔬 Operation Modes
+
+### Standard Mode (Agentic AI)
+
+Fast responses with built-in tools:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  QUERY → TOOLS (Search + Code Execution) → SYNTHESIZE           │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+- **Google Search grounding**: Real-time web information
+- **Code Execution**: Calculations and data processing
+
+### Deep Research Mode
 
 Deep Research uses the official Gemini Deep Research Agent via the Interactions API:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  QUERY → PLAN → SEARCH → ANALYZE → VERIFY → SYNTHESIZE         │
+│  QUERY → PLAN → SEARCH → ANALYZE → VERIFY → SYNTHESIZE          │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -270,7 +286,7 @@ const MODELS: Model[] = [
     providerId: 'google',
     enabled: true,
     toolCallType: 'native',
-    thinkingConfig: { thinkingLevel: 'minimal', includeThoughts: true }
+    thinkingConfig: { thinkingLevel: 'medium', includeThoughts: true }
   },
   {
     id: 'gemini-3-pro-preview',

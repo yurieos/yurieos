@@ -14,6 +14,12 @@ import { Button } from './ui/button'
 import type { ResearchMode } from './chat'
 import { EmptyScreen } from './empty-screen'
 
+/** Tool invocation part type for AI SDK v6 */
+interface ToolInvocationPart {
+  type: string
+  state?: 'input-available' | 'input-streaming' | 'output-available' | string
+}
+
 // Deep Research Toggle Button Component
 // Uses official Gemini Deep Research Agent via Interactions API
 // @see https://ai.google.dev/gemini-api/docs/deep-research
@@ -110,7 +116,7 @@ export function ChatPanel({
     if (lastMessage.role !== 'assistant' || !lastMessage.parts) return false
 
     const parts = lastMessage.parts
-    const lastPart = parts[parts.length - 1] as any
+    const lastPart = parts[parts.length - 1] as ToolInvocationPart | undefined
 
     // In v6, tool parts have type like 'tool-{toolName}' and state directly on the part
     return (

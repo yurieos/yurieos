@@ -2,6 +2,8 @@ import { memo, useMemo } from 'react'
 
 import { ChatRequestOptions, JSONValue, UIMessage } from 'ai'
 
+import { ResearchAnnotation } from '@/lib/types/sources'
+
 import { AnswerSection } from './answer-section'
 import { ResearchMode } from './chat'
 import RelatedQuestions from './related-questions'
@@ -24,32 +26,45 @@ interface RenderMessageProps {
   researchMode?: ResearchMode
 }
 
+/** Text part from UIMessage */
+interface TextPart {
+  type: 'text'
+  text: string
+}
+
+/** Metadata shape for UIMessage with annotations */
+interface MessageMetadata {
+  annotations?: ResearchAnnotation[]
+}
+
 // Helper to extract text from message parts
 function getTextFromParts(parts: UIMessage['parts']): string {
   if (!parts) return ''
   return parts
-    .filter(p => p.type === 'text')
-    .map(p => (p as any).text || '')
+    .filter((p): p is TextPart => p.type === 'text')
+    .map(p => p.text || '')
     .join('')
 }
 
 // Helper to get annotations from message metadata
-function getAnnotations(message: UIMessage): any[] {
-  const metadata = message.metadata as any
+function getAnnotations(message: UIMessage): ResearchAnnotation[] {
+  const metadata = message.metadata as MessageMetadata | undefined
   return metadata?.annotations || []
 }
 
 // Helper to check if the answer is complete based on annotations
-function isAnswerCompleteFromAnnotations(annotations: any[]): boolean {
-  // Check for quicksearch-phase complete
-  const hasQuickSearchComplete = annotations.some(
-    a => a?.type === 'quicksearch-phase' && a?.data?.phase === 'complete'
+function isAnswerCompleteFromAnnotations(
+  annotations: ResearchAnnotation[]
+): boolean {
+  // Check for agentic-phase complete (standard mode)
+  const hasAgenticComplete = annotations.some(
+    a => a.type === 'agentic-phase' && a.data.phase === 'complete'
   )
   // Check for deep research complete
   const hasResearchComplete = annotations.some(
-    a => a?.type === 'research-complete' && a?.data?.phase === 'complete'
+    a => a.type === 'research-complete' && a.data.phase === 'complete'
   )
-  return hasQuickSearchComplete || hasResearchComplete
+  return hasAgenticComplete || hasResearchComplete
 }
 
 export const RenderMessage = memo(function RenderMessage({
@@ -67,10 +82,7 @@ export const RenderMessage = memo(function RenderMessage({
   const annotations = useMemo(() => getAnnotations(message), [message])
 
   const relatedQuestions = useMemo(
-    () =>
-      annotations.filter(
-        (annotation: any) => annotation?.type === 'related-questions'
-      ),
+    () => annotations.filter(a => a.type === 'related-questions'),
     [annotations]
   )
 
@@ -82,7 +94,7 @@ export const RenderMessage = memo(function RenderMessage({
 
   // Check if there are thought steps for ChainOfThought display
   const hasThoughtSteps = useMemo(
-    () => annotations.some((a: any) => a?.type === 'thought-step'),
+    () => annotations.some(a => a.type === 'thought-step'),
     [annotations]
   )
 
@@ -147,7 +159,7 @@ export const RenderMessage = memo(function RenderMessage({
 
       {relatedQuestions.length > 0 && (
         <RelatedQuestions
-          annotations={relatedQuestions as JSONValue[]}
+          annotations={relatedQuestions as unknown as JSONValue[]}
           onQuerySelect={onQuerySelect}
           isOpen={getIsOpen(`${messageId}-related`)}
           onOpenChange={open => onOpenChange(`${messageId}-related`, open)}

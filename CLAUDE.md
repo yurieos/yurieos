@@ -21,7 +21,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Next.js 16.1** with App Router and React Server Components
 - **React 19** with TypeScript for type safety
 - **Google GenAI SDK** - Unified Gemini API client
-- **Gemini 3 Flash** - Fast responses with Google Search grounding
+- **Gemini 3 Flash** - Agentic AI with Google Search + Code Execution
 - **Deep Research Agent** - Comprehensive multi-step research
 - **Supabase** for authentication and backend services
 - **Redis** (Upstash) for chat history storage
@@ -30,29 +30,34 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Core Architecture
 
 1. **App Router Structure** (`/app`)
-   - `/api/chat/` - Main chat API using Gemini
-   - `/auth/` - Authentication pages (login, signup, password reset)
-   - `/search/` - Search functionality and results display
 
-2. **Gemini Research Module** (`/lib/gemini`)
-   - `/lib/gemini/client.ts` - Singleton GoogleGenAI client
-   - `/lib/gemini/research.ts` - Research workflow (standard + deep modes)
-   - `/lib/gemini/deep-research-agent.ts` - Official Deep Research Agent
-   - `/lib/gemini/streaming.ts` - Vercel AI SDK integration
-   - `/lib/gemini/citations.ts` - Grounding metadata parsing
-   - `/lib/gemini/safety.ts` - Input safety validation
-   - `/lib/gemini/system-instructions.ts` - Agentic system instruction templates
-   - `/lib/gemini/types.ts` - Type definitions
-   - `/lib/gemini/index.ts` - Module exports
+- `/api/chat/` - Main chat API using Gemini
+- `/auth/` - Authentication pages (login, signup, password reset)
+- `/search/` - Search functionality and results display
 
-3. **Research Modes**
-   - **Standard Mode**: Gemini 3 Flash with Google Search grounding (fast)
-   - **Deep Research Mode**: Deep Research Agent via Interactions API (comprehensive)
+2. **Gemini Agentic Module** (`/lib/gemini`)
+
+- `/lib/gemini/client.ts` - Singleton GoogleGenAI client
+- `/lib/gemini/agentic.ts` - Agentic workflow (standard + deep modes)
+- `/lib/gemini/deep-research-agent.ts` - Official Deep Research Agent
+- `/lib/gemini/streaming.ts` - Vercel AI SDK integration
+- `/lib/gemini/citations.ts` - Grounding metadata parsing
+- `/lib/gemini/safety.ts` - Input safety validation
+- `/lib/gemini/system-instructions.ts` - Agentic system instruction templates
+- `/lib/gemini/types.ts` - Type definitions
+- `/lib/gemini/index.ts` - Module exports
+
+3. **Operation Modes**
+
+- **Standard Mode (Agentic)**: Gemini 3 Flash with tools (Google Search, Code Execution)
+- **Deep Research Mode**: Deep Research Agent via Interactions API (comprehensive)
 
 4. **Component Organization** (`/components`)
    - `/sidebar/` - Chat history and navigation
    - `/ui/` - Reusable UI components from shadcn/ui
    - `/prompt-kit/` - Chain of thought display components
+   - `error-boundary.tsx` - React error boundaries for graceful error handling
+   - `new-chat-button.tsx` - Reusable new chat button (header/sidebar variants)
    - Feature-specific components (auth forms, chat interfaces)
 
 5. **State Management**
@@ -88,20 +93,22 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=
 
 See `.env.example` for a complete template.
 
-## Research Workflow
+## Workflow
 
-### Standard Mode (Gemini 3 Flash + Google Search)
+### Standard Mode (Agentic AI)
 
-Fast, efficient responses with grounded sources:
+Fast, efficient responses with tools:
 
 ```
-┌─────────────────────────────────────────────────┐
-│  QUERY → SEARCH (Google Grounding) → SYNTHESIZE │
-└─────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│  QUERY → TOOLS (Search + Code Execution) → SYNTHESIZE           │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 1. User submits query
-2. Gemini 3 Flash searches with Google Search grounding
+2. Gemini 3 Flash uses available tools:
+   - **Google Search grounding**: Real-time web information
+   - **Code Execution**: Calculations and data processing
 3. Response streams with sources displayed separately
 4. Follow-up questions generated
 
@@ -111,7 +118,7 @@ Comprehensive multi-step research with autonomous planning:
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│  QUERY → PLAN → SEARCH → ANALYZE → VERIFY → SYNTHESIZE      │
+│  QUERY → PLAN → SEARCH → ANALYZE → VERIFY → SYNTHESIZE       │
 └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -183,9 +190,9 @@ Uses ESLint 9 flat config format:
 
 ```
 lib/
-├── gemini/                    # Gemini Research Module
+├── gemini/                    # Gemini Agentic Module
 │   ├── client.ts              # Singleton GoogleGenAI client
-│   ├── research.ts            # Research workflow (standard + deep)
+│   ├── agentic.ts             # Agentic workflow (standard + deep)
 │   ├── deep-research-agent.ts # Official Deep Research Agent
 │   ├── streaming.ts           # Vercel AI SDK adapter
 │   ├── citations.ts           # Grounding metadata parsing
@@ -205,12 +212,28 @@ lib/
 
 ## Gemini Features Used
 
+### Model Constants
+
+Exported from `lib/gemini/client.ts`:
+
+- `GEMINI_3_FLASH` = `'gemini-3-flash-preview'` - Fast, efficient model
+- `GEMINI_3_PRO` = `'gemini-3-pro-preview'` - Advanced reasoning
+- `DEEP_RESEARCH_MODEL` = `'deep-research-pro-preview-12-2025'` - Deep research agent
+
 ### Google Search Grounding
 
 Built-in web search that provides:
 
 - Real-time information
 - Source metadata for reference display
+
+### Code Execution
+
+Python code execution for:
+
+- Mathematical calculations
+- Data processing and analysis
+- Complex computations
 
 ### Thinking (Gemini 3)
 

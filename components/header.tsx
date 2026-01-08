@@ -1,25 +1,17 @@
 'use client'
 
 import React from 'react'
-import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 import { User } from '@supabase/supabase-js'
-import { Plus } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 
-import { Button } from '@/components/ui/button'
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger
-} from '@/components/ui/tooltip'
 
 import GuestMenu from './guest-menu'
 import { ModelSelector } from './model-selector'
+import { NewChatButton } from './new-chat-button'
 import UserMenu from './user-menu'
 
 interface HeaderProps {
@@ -44,27 +36,7 @@ export const Header: React.FC<HeaderProps> = ({ user }) => {
       <div className="flex items-center gap-[3px]">
         {(isMobile || !open) && <SidebarTrigger className="size-8" />}
         <ModelSelector />
-        {isOnChatPage && (
-          <TooltipProvider delayDuration={0}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  asChild
-                  className="size-8 group"
-                >
-                  <Link href="/">
-                    <Plus size={18} />
-                  </Link>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                <p>New chat</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
+        {isOnChatPage && <NewChatButton variant="header" />}
       </div>
 
       {user ? <UserMenu user={user} /> : <GuestMenu />}

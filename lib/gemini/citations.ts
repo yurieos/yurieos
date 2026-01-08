@@ -1,17 +1,26 @@
 /**
  * Gemini Grounding Citations - Parse and format citation metadata
+ * @see https://ai.google.dev/gemini-api/docs/google-search
  */
 
-import { GroundingSource, GroundingSupport } from './types'
+import {
+  GeminiCandidate,
+  GroundingSource,
+  GroundingSupport,
+  GroundingSupportItem,
+  WebGroundingChunk
+} from './types'
 
 // ============================================
 // Parsing Helpers
 // ============================================
 
 /**
- * Parse grounding metadata from Gemini response
+ * Parse grounding metadata from Gemini response candidate
+ * @param candidate - The response candidate from Gemini API
+ * @returns Parsed sources, supports, and search queries
  */
-export function parseGroundingMetadata(candidate: any): {
+export function parseGroundingMetadata(candidate: GeminiCandidate | null): {
   sources: GroundingSource[]
   supports: GroundingSupport[]
   searchQueries: string[]
@@ -24,17 +33,17 @@ export function parseGroundingMetadata(candidate: any): {
 
   // Extract sources from groundingChunks
   const sources: GroundingSource[] = (metadata.groundingChunks || [])
-    .filter((chunk: any) => chunk.web?.uri)
-    .map((chunk: any, index: number) => ({
+    .filter((chunk: WebGroundingChunk) => chunk.web?.uri)
+    .map((chunk: WebGroundingChunk, index: number) => ({
       id: `src-${index}`,
-      title: chunk.web.title || 'Untitled',
-      url: chunk.web.uri,
-      domain: extractDomain(chunk.web.uri)
+      title: chunk.web?.title || 'Untitled',
+      url: chunk.web!.uri,
+      domain: extractDomain(chunk.web!.uri)
     }))
 
   // Extract supports (text-to-source mappings)
   const supports: GroundingSupport[] = (metadata.groundingSupports || []).map(
-    (support: any) => ({
+    (support: GroundingSupportItem) => ({
       text: support.segment?.text || '',
       startIndex: support.segment?.startIndex || 0,
       endIndex: support.segment?.endIndex || 0,

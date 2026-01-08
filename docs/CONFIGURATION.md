@@ -143,7 +143,7 @@ const MODELS: Model[] = [
     providerId: 'google',
     enabled: true,
     toolCallType: 'native',
-    thinkingConfig: { thinkingLevel: 'minimal', includeThoughts: true }
+    thinkingConfig: { thinkingLevel: 'medium', includeThoughts: true }
   },
   {
     id: 'gemini-3-pro-preview',
@@ -196,21 +196,24 @@ Set `includeThoughts: true` to display thought summaries in the UI.
 
 ---
 
-## Research Modes
+## Operation Modes
 
-Yurie supports two research modes:
+Yurie supports two operation modes:
 
-### Standard Mode
+### Standard Mode (Agentic AI)
 
-Fast responses using Gemini 3 Flash with Google Search grounding:
+Fast responses using Gemini 3 Flash with built-in tools:
 
 ```
-QUERY → SEARCH (Google Grounding) → SYNTHESIZE
+QUERY → TOOLS (Search + Code Execution) → SYNTHESIZE
 ```
 
 - **Speed:** Fast (seconds)
-- **Best for:** Quick questions, fact-checking, simple lookups
+- **Best for:** Quick questions, calculations, fact-checking
 - **Model:** Gemini 3 Flash
+- **Tools:**
+  - Google Search grounding (real-time web information)
+  - Code Execution (calculations and data processing)
 
 ### Deep Research Mode
 

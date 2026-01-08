@@ -1,8 +1,15 @@
 import { Model } from '@/lib/types/models'
 
 /**
+ * Default model ID - used when no model is selected
+ */
+export const DEFAULT_MODEL_ID = 'gemini-3-flash-preview'
+
+/**
  * Available AI models configuration.
  * To add or modify models, update this array and rebuild the application.
+ *
+ * @see https://ai.google.dev/gemini-api/docs/thinking for thinking levels
  */
 const MODELS: Model[] = [
   {
@@ -12,7 +19,7 @@ const MODELS: Model[] = [
     providerId: 'google',
     enabled: true,
     toolCallType: 'native',
-    thinkingConfig: { thinkingLevel: 'minimal', includeThoughts: true }
+    thinkingConfig: { thinkingLevel: 'medium', includeThoughts: true }
   },
   {
     id: 'gemini-3-pro-preview',
@@ -32,4 +39,24 @@ const MODELS: Model[] = [
  */
 export function getModels(): Model[] {
   return MODELS.filter(model => model.enabled)
+}
+
+/**
+ * Returns the default model configuration.
+ * This is the fallback when no model is selected via cookie.
+ */
+export function getDefaultModel(): Model {
+  const models = getModels()
+  return (
+    models.find(m => m.id === DEFAULT_MODEL_ID) ||
+    models[0] || {
+      id: DEFAULT_MODEL_ID,
+      name: 'Gemini 3 Flash',
+      provider: 'Google',
+      providerId: 'google',
+      enabled: true,
+      toolCallType: 'native',
+      thinkingConfig: { thinkingLevel: 'medium', includeThoughts: true }
+    }
+  )
 }

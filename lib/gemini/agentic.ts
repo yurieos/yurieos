@@ -1,12 +1,19 @@
 /**
- * Gemini Research Workflow - Simplified Architecture
+ * Gemini Agentic AI Workflow
  *
- * Standard Mode: Gemini 3 Flash with Google Search grounding + thinking
- * Deep Research Mode: Official Deep Research Agent via Interactions API
+ * Two modes of operation:
+ * - Standard Mode (Agentic): Gemini 3 Flash with tools (Google Search, Code Execution)
+ * - Deep Research Mode: Official Deep Research Agent via Interactions API
  *
- * @see https://ai.google.dev/gemini-api/docs/deep-research
+ * Agentic capabilities:
+ * - Google Search grounding for real-time web information
+ * - Code Execution for calculations and data processing
+ * - Thinking with configurable reasoning depth
+ *
+ * @see https://ai.google.dev/gemini-api/docs/google-search
+ * @see https://ai.google.dev/gemini-api/docs/code-execution
  * @see https://ai.google.dev/gemini-api/docs/thinking
- * @see https://ai.google.dev/gemini-api/docs/thought-signatures
+ * @see https://ai.google.dev/gemini-api/docs/deep-research
  */
 
 import { ThinkingLevel } from '@google/genai'
@@ -22,6 +29,7 @@ import {
 import {
   ContentPart,
   ConversationTurn,
+  GeminiCandidate,
   GroundingSource,
   ResearchChunk,
   ResearchConfig,
@@ -48,17 +56,17 @@ function mapThinkingLevel(level?: string): ThinkingLevel {
 }
 
 // ============================================
-// Main Research Function
+// Main Process Function (Router)
 // ============================================
 
 /**
- * Main research workflow - routes to appropriate mode
+ * Main workflow - routes to appropriate mode
  *
- * @param query - The research query
- * @param config - Research configuration
- * @yields ResearchChunk - Streaming research results
+ * @param query - The user query
+ * @param config - Configuration options
+ * @yields ResearchChunk - Streaming results
  */
-export async function* research(
+export async function* process(
   query: string,
   config: ResearchConfig = {}
 ): AsyncGenerator<ResearchChunk> {
@@ -67,16 +75,23 @@ export async function* research(
   if (mode === 'deep-research') {
     yield* deepResearch(query, config)
   } else {
-    yield* standardResearch(query, config)
+    yield* agenticChat(query, config)
   }
 }
 
+// Legacy export for backwards compatibility
+export { process as research }
+
 // ============================================
-// Standard Mode: Gemini 3 Flash + Google Search
+// Standard Mode: Agentic AI with Tools
 // ============================================
 
 /**
- * Standard research using Gemini 3 Flash or Pro with Google Search grounding
+ * Agentic chat using Gemini 3 Flash or Pro with built-in tools
+ *
+ * Tools enabled:
+ * - Google Search grounding: Real-time web search for current information
+ * - Code Execution: Python code for calculations and data processing
  *
  * Thinking levels per https://ai.google.dev/gemini-api/docs/thinking:
  * - Gemini 3 Flash: minimal, low, medium, high (default: high)
@@ -90,7 +105,7 @@ export async function* research(
  * - Gemini 3 models return thought signatures for all types of parts
  * - Must pass all signatures back as received for multi-turn
  */
-export async function* standardResearch(
+export async function* agenticChat(
   query: string,
   config: ResearchConfig
 ): AsyncGenerator<ResearchChunk> {
@@ -112,7 +127,7 @@ export async function* standardResearch(
     // Build conversation context if available (preserves thought signatures)
     const contents = buildContents(query, config.conversationHistory)
 
-    // Stream response with Google Search grounding and thinking
+    // Stream response with agentic tools and thinking
     // Per https://ai.google.dev/gemini-api/docs/thinking:
     // - thinkingLevel controls reasoning depth
     // - includeThoughts enables thought summaries
@@ -120,13 +135,19 @@ export async function* standardResearch(
       model: modelId,
       contents,
       config: {
-        tools: [{ googleSearch: {} }],
+        // Agentic tools
+        // Per https://ai.google.dev/gemini-api/docs/google-search
+        // Per https://ai.google.dev/gemini-api/docs/code-execution
+        tools: [
+          { googleSearch: {} }, // Real-time web search grounding
+          { codeExecution: {} } // Python code execution for calculations
+        ],
         systemInstruction: getStandardSystemInstruction(),
         thinkingConfig: {
           thinkingLevel,
           includeThoughts
         },
-        // Temperature 0.4 for factual accuracy in research responses
+        // Temperature 0.4 for factual accuracy in responses
         // Per https://ai.google.dev/gemini-api/docs/text-generation
         temperature: 0.4
       }
@@ -134,14 +155,17 @@ export async function* standardResearch(
 
     let allSources: GroundingSource[] = []
     let fullText = ''
-    let lastCandidate: any = null
+    let lastCandidate: GeminiCandidate | null = null
     // Collect all model response parts for thought signature preservation
     const collectedParts: ContentPart[] = []
 
     yield { type: 'phase', phase: 'synthesizing' }
 
     for await (const chunk of response) {
-      lastCandidate = chunk.candidates?.[0]
+      const candidate = chunk.candidates?.[0]
+      if (candidate) {
+        lastCandidate = candidate as GeminiCandidate
+      }
 
       // Process each part - handle both text and thoughts
       for (const part of lastCandidate?.content?.parts || []) {
@@ -210,13 +234,16 @@ export async function* standardResearch(
       metadata: { sourceCount: allSources.length }
     }
   } catch (error) {
-    console.error('[Standard Research] Error:', error)
+    console.error('[Agentic Chat] Error:', error)
     yield {
       type: 'error',
-      error: error instanceof Error ? error.message : 'Research failed'
+      error: error instanceof Error ? error.message : 'Request failed'
     }
   }
 }
+
+// Legacy export for backwards compatibility
+export { agenticChat as standardResearch }
 
 // ============================================
 // Deep Research Mode: Official Deep Research Agent

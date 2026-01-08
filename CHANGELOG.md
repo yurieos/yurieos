@@ -63,7 +63,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Technical Details
 
-- **Framework**: Next.js 15.3 (App Router)
+- **Framework**: Next.js 16.1.1 (App Router)
 - **Runtime**: React 19 with Server Components
 - **Language**: TypeScript 5.7
 - **Styling**: Tailwind CSS + shadcn/ui
@@ -76,6 +76,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 
 ## [Unreleased]
+
+### Added
+
+- **Error Boundary Components** (`components/error-boundary.tsx`)
+  - Generic `ErrorBoundary` for graceful React error handling
+  - `ChatErrorBoundary` with chat-specific messaging and recovery options
+
+- **New Chat Button** (`components/new-chat-button.tsx`)
+  - Reusable component with header and sidebar variants
+  - Smart navigation handling for fresh chat state
+
+### Changed
+
+- **Gemini Module Refactored** (`lib/gemini/`)
+  - Renamed `research.ts` → `agentic.ts` for clarity
+  - Unified agentic workflow for standard and deep research modes
+  - Added model constants: `GEMINI_3_FLASH`, `GEMINI_3_PRO`, `DEEP_RESEARCH_MODEL`
+  - Improved thought signature preservation for multi-turn conversations
+
+- **Model Configuration**
+  - Gemini 3 Flash default thinking level changed from `minimal` to `medium`
+  - Better balance between speed and reasoning depth
 
 ### Planned
 

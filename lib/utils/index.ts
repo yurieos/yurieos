@@ -20,6 +20,51 @@ export function createModelId(model: Model): string {
   return `${model.providerId}:${model.id}`
 }
 
+// ============================================
+// AI SDK Compatibility Types
+// ============================================
+
+/** Tool part in UI message (v6 format) */
+interface ToolUIPart {
+  type: string
+  toolCallId: string
+  state?: string
+  input?: unknown
+  output?: unknown
+}
+
+/** Tool result from ToolModelMessage content */
+interface ToolResultContent {
+  type?: string
+  toolCallId: string
+  toolName?: string
+  result?: unknown
+  output?: unknown
+}
+
+/** Reasoning data structure */
+interface ReasoningData {
+  reasoningText?: string
+  time?: number
+}
+
+/** Tool call content part */
+interface ToolCallContent {
+  type: 'tool-call'
+  toolCallId: string
+  toolName: string
+  args?: unknown
+  input?: unknown
+}
+
+/** Message with optional metadata - uses intersection type for compatibility */
+type MessageWithMetadata = ModelMessage & {
+  id?: string
+  metadata?: {
+    annotations?: JSONValue[]
+  }
+}
+
 function addToolMessageToChat({
   toolMessage,
   messages
@@ -34,27 +79,32 @@ function addToolMessageToChat({
         ...message,
         parts: message.parts.map(part => {
           if ((part.type as string).startsWith('tool-')) {
-            const toolPart = part as any
+            const toolPart = part as unknown as ToolUIPart
             // Find matching tool result in the tool message content
             // In v6, ToolModelMessage content has { type: 'tool-result', toolCallId, toolName, output }
             // In v4 it was 'result' - support both for compatibility
-            const toolResult = toolMessage.content.find(
-              tool =>
-                'toolCallId' in tool && tool.toolCallId === toolPart.toolCallId
-            )
+            const toolResult = toolMessage.content.find(tool => {
+              const toolWithId = tool as { toolCallId?: string }
+              return (
+                'toolCallId' in tool &&
+                toolWithId.toolCallId === toolPart.toolCallId
+              )
+            }) as ToolResultContent | undefined
 
             if (toolResult) {
               // v6 uses 'output', v4 uses 'result' - support both
-              const resultValue =
-                (toolResult as any).result || (toolResult as any).output
+              const resultValue = toolResult.result || toolResult.output
               if (resultValue) {
                 // v6 output is { type: 'json', value: {...} }, extract the value
-                const actualOutput = resultValue?.value ?? resultValue
+                const outputWithValue = resultValue as { value?: unknown }
+                const actualOutput = outputWithValue?.value ?? resultValue
+                // Return updated tool part with output, preserving the type as tool-{name}
                 return {
                   ...toolPart,
-                  state: 'output-available',
+                  type: toolPart.type as `tool-${string}`,
+                  state: 'output-available' as const,
                   output: actualOutput
-                }
+                } as UIMessage['parts'][number]
               }
             }
           }
@@ -100,8 +150,9 @@ export function convertToUIMessages(
             // If content.data is an object, capture its reasoning and time;
             // otherwise treat it as a simple string.
             if (typeof content.data === 'object' && content.data !== null) {
-              pendingReasoning = (content.data as any).reasoningText
-              pendingReasoningTime = (content.data as any).time
+              const reasoningData = content.data as ReasoningData
+              pendingReasoning = reasoningData.reasoningText
+              pendingReasoningTime = reasoningData.time
             } else {
               pendingReasoning = content.data as string
               pendingReasoningTime = 0
@@ -133,14 +184,14 @@ export function convertToUIMessages(
                 ('args' in content || 'input' in content)
               ) {
                 // In v6, tool calls are represented as tool-invocation parts
-                const toolInput =
-                  (content as any).args || (content as any).input
+                const toolCallContent = content as ToolCallContent
+                const toolInput = toolCallContent.args || toolCallContent.input
                 parts.push({
-                  type: `tool-${content.toolName}`,
-                  toolCallId: content.toolCallId,
+                  type: `tool-${toolCallContent.toolName}`,
+                  toolCallId: toolCallContent.toolCallId,
                   state: 'call',
                   input: toolInput
-                } as any)
+                } as unknown as UIMessage['parts'][number])
               }
             }
           }
@@ -153,20 +204,21 @@ export function convertToUIMessages(
       parts.unshift({
         type: 'reasoning',
         text: pendingReasoning
-      } as any)
+      } as unknown as UIMessage['parts'][number])
     }
 
     // Create the new message in v6 format
     // IMPORTANT: Create a copy of pendingAnnotations to avoid reference issues
     // Also preserve any existing metadata from the saved message
-    const existingMetadata = (message as any).metadata
+    const messageWithMeta = message as MessageWithMetadata
+    const existingMetadata = messageWithMeta.metadata
     const existingAnnotations = existingMetadata?.annotations || []
 
     // Merge pending annotations with existing saved annotations
     const allAnnotations = [...pendingAnnotations, ...existingAnnotations]
 
     const newMessage: UIMessage = {
-      id: (message as any).id || generateId(),
+      id: messageWithMeta.id || generateId(),
       role: message.role as 'user' | 'assistant' | 'system',
       parts,
       metadata:

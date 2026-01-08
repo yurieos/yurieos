@@ -95,12 +95,16 @@ export interface ThoughtStepAnnotation {
   data: { id: string; summary: string; details?: string[]; timestamp: number }
 }
 
-export type QuickSearchPhase = 'searching' | 'answering' | 'complete'
+export type AgenticPhase = 'searching' | 'answering' | 'complete'
 
-export interface QuickSearchPhaseAnnotation {
-  type: 'quicksearch-phase'
-  data: { phase: QuickSearchPhase; sourceCount: number; startTime?: number }
+export interface AgenticPhaseAnnotation {
+  type: 'agentic-phase'
+  data: { phase: AgenticPhase; sourceCount: number; startTime?: number }
 }
+
+// Legacy type alias for backwards compatibility
+export type QuickSearchPhase = AgenticPhase
+export type QuickSearchPhaseAnnotation = AgenticPhaseAnnotation
 
 export type ResearchAnnotation =
   | ResearchPhaseAnnotation
@@ -109,6 +113,6 @@ export type ResearchAnnotation =
   | ResearchCompleteAnnotation
   | RelatedQuestionsAnnotation
   | ThoughtStepAnnotation
-  | QuickSearchPhaseAnnotation
+  | AgenticPhaseAnnotation
 
 export type { UISource as Source }

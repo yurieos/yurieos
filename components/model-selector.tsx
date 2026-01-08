@@ -1,9 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { Check, ChevronsUpDown } from 'lucide-react'
+import { toast } from 'sonner'
 
+import { DEFAULT_MODEL_ID } from '@/lib/config/models'
 import { Model } from '@/lib/types/models'
 
 import { createModelId } from '../lib/utils'
@@ -22,7 +24,7 @@ import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
 const setCookie = (name: string, value: string, days = 30) => {
   const date = new Date()
   date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000)
-  document.cookie = `${name}=${value};expires=${date.toUTCString()};path=/`
+  document.cookie = `${name}=${value};expires=${date.toUTCString()};path=/;SameSite=Lax`
 }
 
 const getCookie = (name: string): string | null => {
@@ -62,17 +64,26 @@ export function ModelSelector() {
   const [open, setOpen] = useState(false)
   const [value, setValue] = useState(getInitialValue)
   const [models, setModels] = useState<Model[]>([])
+  const hasInitialized = useRef(false)
 
   useEffect(() => {
+    // Only fetch models once on mount
+    if (hasInitialized.current) return
+    hasInitialized.current = true
+
     fetch('/api/config/models')
-      .then(r => r.json())
+      .then(r => {
+        if (!r.ok) throw new Error('Failed to fetch models')
+        return r.json()
+      })
       .then(d => {
         if (d.models) {
           setModels(d.models)
           // Set default model if no cookie value exists
-          if (!value && d.models.length) {
+          const currentValue = getInitialValue()
+          if (!currentValue && d.models.length) {
             const def =
-              d.models.find((m: Model) => m.id === 'gemini-3-flash-preview') ||
+              d.models.find((m: Model) => m.id === DEFAULT_MODEL_ID) ||
               d.models[0]
             const modelId = createModelId(def)
             setValue(modelId)
@@ -80,8 +91,11 @@ export function ModelSelector() {
           }
         }
       })
-      .catch(() => {})
-  }, [value])
+      .catch(error => {
+        console.error('Failed to load models:', error)
+        toast.error('Failed to load available models')
+      })
+  }, [])
 
   const handleSelect = (id: string) => {
     const newVal = id === value ? '' : id
