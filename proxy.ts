@@ -1,7 +1,8 @@
-import { updateSession } from '@/lib/supabase/middleware'
 import { type NextRequest, NextResponse } from 'next/server'
 
-export async function middleware(request: NextRequest) {
+import { updateSession } from '@/lib/supabase/middleware'
+
+export default async function proxy(request: NextRequest) {
   // Handle Supabase session if configured
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY

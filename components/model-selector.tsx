@@ -44,31 +44,44 @@ const groupByProvider = (models: Model[]) =>
       {} as Record<string, Model[]>
     )
 
+// Initialize value from cookie (runs once on mount)
+function getInitialValue(): string {
+  if (typeof document === 'undefined') return ''
+  const saved = getCookie('selectedModel')
+  if (saved) {
+    try {
+      return createModelId(JSON.parse(saved))
+    } catch {
+      return ''
+    }
+  }
+  return ''
+}
+
 export function ModelSelector() {
   const [open, setOpen] = useState(false)
-  const [value, setValue] = useState('')
+  const [value, setValue] = useState(getInitialValue)
   const [models, setModels] = useState<Model[]>([])
 
   useEffect(() => {
     fetch('/api/config/models')
       .then(r => r.json())
-      .then(d => d.models && setModels(d.models))
+      .then(d => {
+        if (d.models) {
+          setModels(d.models)
+          // Set default model if no cookie value exists
+          if (!value && d.models.length) {
+            const def =
+              d.models.find((m: Model) => m.id === 'gemini-3-flash-preview') ||
+              d.models[0]
+            const modelId = createModelId(def)
+            setValue(modelId)
+            setCookie('selectedModel', JSON.stringify(def))
+          }
+        }
+      })
       .catch(() => {})
-  }, [])
-
-  useEffect(() => {
-    const saved = getCookie('selectedModel')
-    if (saved) {
-      try {
-        setValue(createModelId(JSON.parse(saved)))
-      } catch {}
-    } else if (models.length) {
-      const def =
-        models.find(m => m.id === 'gemini-3-flash-preview') || models[0]
-      setValue(createModelId(def))
-      setCookie('selectedModel', JSON.stringify(def))
-    }
-  }, [models])
+  }, [value])
 
   const handleSelect = (id: string) => {
     const newVal = id === value ? '' : id
