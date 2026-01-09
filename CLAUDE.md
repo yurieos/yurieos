@@ -1,261 +1,170 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for Claude Code when working with this repository.
 
-## Key Commands
+## Commands
 
-### Development
+```bash
+bun dev           # Development server (http://localhost:3000)
+bun run build     # Production build
+bun lint          # ESLint
+bun typecheck     # TypeScript check
+bun format        # Prettier format
+bun format:check  # Check formatting
+```
 
-- `bun dev` - Start development server with Next.js Turbo mode (http://localhost:3000)
-- `bun run build` - Create production build
-- `bun start` - Start production server
-- `bun lint` - Run ESLint for code quality checks and import sorting
-- `bun typecheck` - Run TypeScript type checking
-- `bun format` - Format code with Prettier
-- `bun format:check` - Check code formatting without modifying files
-
-## Architecture Overview
+## Architecture
 
 ### Tech Stack
 
-- **Next.js 16.1** with App Router and React Server Components
-- **React 19** with TypeScript for type safety
-- **Google GenAI SDK** - Unified Gemini API client
-- **Gemini 3 Flash** - Agentic AI with Google Search + Code Execution
-- **Deep Research Agent** - Comprehensive multi-step research
-- **Supabase** for authentication and backend services
-- **Redis** (Upstash) for chat history storage
-- **Tailwind CSS** with shadcn/ui components
+- **Next.js 16.1** with App Router and React 19
+- **Google GenAI SDK** - Gemini API client
+- **Vercel AI SDK 6.0** - Streaming primitives
+- **Supabase** - Authentication (optional)
+- **Upstash Redis** - Chat history (optional)
+- **Tailwind CSS + shadcn/ui** - Styling
 
-### Core Architecture
+### Core Structure
 
-1. **App Router Structure** (`/app`)
+```
+app/
+├── api/chat/         # Main chat API (Gemini)
+├── api/health/       # Health check endpoint
+├── auth/             # Authentication pages
+└── search/           # Chat conversation pages
 
-- `/api/chat/` - Main chat API using Gemini
-- `/auth/` - Authentication pages (login, signup, password reset)
-- `/search/` - Search functionality and results display
+lib/
+├── gemini/           # Gemini Agentic Module
+│   ├── core.ts       # Client, citations, safety
+│   ├── agentic.ts    # Agentic workflow
+│   ├── deep-research-agent.ts
+│   ├── streaming.ts  # Vercel AI SDK adapter
+│   ├── system-instructions.ts
+│   ├── types.ts
+│   └── index.ts
+├── schema/           # Zod validation schemas
+│   ├── chat.ts       # Chat message schemas
+│   └── model.ts      # Model cookie validation
+├── supabase/         # Supabase clients
+├── redis/            # Redis config
+├── actions/          # Server actions
+├── config/           # Model config
+├── types/            # Shared types
+└── utils/            # Utilities
 
-2. **Gemini Agentic Module** (`/lib/gemini`)
+components/
+├── ui/               # shadcn/ui components
+├── sidebar/          # Chat history
+├── prompt-kit/       # Chain of thought
+├── auth-forms.tsx    # All auth forms (login, signup, etc.)
+├── error-boundary.tsx # Error boundaries
+├── new-chat-button.tsx # Reusable new chat button
+└── ...               # Feature components
 
-- `/lib/gemini/client.ts` - Singleton GoogleGenAI client
-- `/lib/gemini/agentic.ts` - Agentic workflow (standard + deep modes)
-- `/lib/gemini/deep-research-agent.ts` - Official Deep Research Agent
-- `/lib/gemini/streaming.ts` - Vercel AI SDK integration
-- `/lib/gemini/citations.ts` - Grounding metadata parsing
-- `/lib/gemini/safety.ts` - Input safety validation
-- `/lib/gemini/system-instructions.ts` - Agentic system instruction templates
-- `/lib/gemini/types.ts` - Type definitions
-- `/lib/gemini/index.ts` - Module exports
-
-3. **Operation Modes**
-
-- **Standard Mode (Agentic)**: Gemini 3 Flash with tools (Google Search, Code Execution)
-- **Deep Research Mode**: Deep Research Agent via Interactions API (comprehensive)
-
-4. **Component Organization** (`/components`)
-   - `/sidebar/` - Chat history and navigation
-   - `/ui/` - Reusable UI components from shadcn/ui
-   - `/prompt-kit/` - Chain of thought display components
-   - `error-boundary.tsx` - React error boundaries for graceful error handling
-   - `new-chat-button.tsx` - Reusable new chat button (header/sidebar variants)
-   - Feature-specific components (auth forms, chat interfaces)
-
-5. **State Management**
-   - Server-side state via React Server Components
-   - Client-side hooks in `/hooks/`
-   - Redis for persistent chat history
-   - Supabase for user data
-
-## Environment Configuration
-
-### Required Variables
-
-```bash
-# Gemini API (required)
-GEMINI_API_KEY=         # Or use GOOGLE_API_KEY
+hooks/
+└── index.ts          # All hooks (useIsMobile, useCopyToClipboard, etc.)
 ```
 
-### Optional Variables
+### Operation Modes
+
+- **Standard**: Gemini 3 Flash + Google Search + Code Execution
+- **Deep Research**: Deep Research Agent via Interactions API (5-60 min)
+
+## Environment Variables
 
 ```bash
-# Base URL (for production deployments)
-NEXT_PUBLIC_BASE_URL=   # or BASE_URL
+# Required
+GEMINI_API_KEY=              # or GOOGLE_API_KEY
 
-# Chat History (Upstash Redis)
+# Optional
 ENABLE_SAVE_CHAT_HISTORY=true
 UPSTASH_REDIS_REST_URL=
 UPSTASH_REDIS_REST_TOKEN=
-
-# Authentication (Supabase)
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 ```
 
-See `.env.example` for a complete template.
+## Key Patterns
 
-## Workflow
+1. **Gemini Module**: All AI via `/lib/gemini/`
+2. **Async Generators**: Streaming research flows
+3. **Type Safety**: Zod schemas in `/lib/schema/`
+4. **Streaming**: Vercel AI SDK `createUIMessageStream`
+5. **Error Handling**: `ErrorBoundary` and `ChatErrorBoundary` components
+6. **Consolidated Hooks**: All hooks in `hooks/index.ts`
+7. **Consolidated Auth Forms**: All auth forms in `components/auth-forms.tsx`
 
-### Standard Mode (Agentic AI)
+## Pre-PR Checklist
 
-Fast, efficient responses with tools:
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  QUERY → TOOLS (Search + Code Execution) → SYNTHESIZE           │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-1. User submits query
-2. Gemini 3 Flash uses available tools:
-   - **Google Search grounding**: Real-time web information
-   - **Code Execution**: Calculations and data processing
-3. Response streams with sources displayed separately
-4. Follow-up questions generated
-
-### Deep Research Mode (Deep Research Agent)
-
-Comprehensive multi-step research with autonomous planning:
-
-```
-┌──────────────────────────────────────────────────────────────┐
-│  QUERY → PLAN → SEARCH → ANALYZE → VERIFY → SYNTHESIZE       │
-└──────────────────────────────────────────────────────────────┘
+```bash
+bun lint          # ✅ No ESLint errors
+bun typecheck     # ✅ No TypeScript errors
+bun format:check  # ✅ Code formatted
+bun run build     # ✅ Builds successfully
 ```
 
-1. Deep Research Agent autonomously plans research steps
-2. Multiple web searches with grounding
-3. Fact verification and triangulation
-4. Comprehensive cited report generated
-5. Thought summaries for transparency
+## Health Check
 
-## Key Development Patterns
+```bash
+curl http://localhost:3000/api/health
+```
 
-1. **All Research via Gemini**: The main `/api/chat` route uses the Gemini module
-2. **Async Generators**: Research flows through async generator functions for streaming
-3. **Type Safety**: Strict TypeScript with type definitions in `/lib/gemini/types.ts`
-4. **Schema Validation**: Zod schemas in `/lib/schema/` for data validation
-5. **Streaming**: Uses Vercel AI SDK's `createUIMessageStream` for real-time updates
+Returns `200 OK` with service status when Gemini is available:
 
-## Testing Approach
+```json
+{
+  "status": "healthy",
+  "timestamp": "2026-01-08T...",
+  "version": "0.1.0",
+  "services": {
+    "gemini": { "available": true },
+    "redis": { "configured": true, "connected": true },
+    "supabase": { "configured": true }
+  }
+}
+```
 
-Currently no dedicated test framework. Verify changes by:
-
-1. Running `bun lint` to check code quality
-2. Building with `bun run build` to catch TypeScript errors
-3. Manual testing in development mode
-
-## Pre-PR Requirements
-
-Before creating a pull request, you MUST ensure all of the following checks pass:
-
-1. **Linting**: Run `bun lint` and fix all ESLint errors and warnings
-2. **Type checking**: Run `bun typecheck` to ensure no TypeScript errors
-3. **Formatting**: Run `bun format:check` to verify code formatting
-4. **Build**: Run `bun run build` to ensure the application builds successfully
+Returns `503` if Gemini is not available.
 
 ## Model Configuration
 
-Models are defined in `lib/config/models.ts` with:
+Models in `lib/config/models.ts`:
 
-- `id`: Model identifier (e.g., `gemini-3-flash-preview`)
-- `name`: Display name for the UI
-- `provider`: Provider display name
-- `providerId`: Provider key (`google`)
-- `enabled`: Toggle availability
-- `toolCallType`: `"native"` or `"manual"` for function calling
-- `thinkingConfig`: Gemini 3 thinking configuration
-  - `thinkingLevel`: `"minimal"`, `"low"`, `"medium"`, or `"high"`
-  - `includeThoughts`: Boolean to show thought summaries
-
-> **Note:** Model changes require a rebuild. This keeps configuration secure and simplifies the codebase.
-
-## Next.js 16.1 Conventions
-
-### Proxy (formerly Middleware)
-
-Next.js 16 renamed `middleware.ts` to `proxy.ts`. The proxy file is located at the project root:
-
-- **File**: `proxy.ts` (not `middleware.ts`)
-- **Export**: `export default async function proxy(request: NextRequest)`
-- **Purpose**: Request interception for authentication, redirects, etc.
-
-### ESLint Configuration
-
-Uses ESLint 9 flat config format:
-
-- **File**: `eslint.config.mjs` (not `.eslintrc.json`)
-- **Config**: Native Next.js flat config with `eslint-config-next`
-
-## File Structure
-
-```
-lib/
-├── gemini/                    # Gemini Agentic Module
-│   ├── client.ts              # Singleton GoogleGenAI client
-│   ├── agentic.ts             # Agentic workflow (standard + deep)
-│   ├── deep-research-agent.ts # Official Deep Research Agent
-│   ├── streaming.ts           # Vercel AI SDK adapter
-│   ├── citations.ts           # Grounding metadata parsing
-│   ├── safety.ts              # Input safety validation
-│   ├── system-instructions.ts # Agentic system instruction templates
-│   ├── types.ts               # Type definitions
-│   └── index.ts               # Module exports
-├── actions/                   # Server actions (chat save)
-├── auth/                      # Authentication utilities
-├── redis/                     # Redis configuration
-├── supabase/                  # Supabase clients
-├── schema/                    # Zod schemas (chat validation)
-├── config/                    # Model configuration
-├── types/                     # Shared types
-└── utils/                     # Utility functions
+```typescript
+{
+  id: 'gemini-3-flash-preview',
+  name: 'Gemini 3 Flash',
+  thinkingConfig: { thinkingLevel: 'medium', includeThoughts: true }
+}
 ```
 
-## Gemini Features Used
+Model cookie validation via `lib/schema/model.ts` using Zod.
 
-### Model Constants
+## Next.js 16.1 Notes
 
-Exported from `lib/gemini/client.ts`:
+- **Proxy**: `proxy.ts` (not `middleware.ts`)
+- **ESLint**: `eslint.config.mjs` (flat config)
 
-- `GEMINI_3_FLASH` = `'gemini-3-flash-preview'` - Fast, efficient model
-- `GEMINI_3_PRO` = `'gemini-3-pro-preview'` - Advanced reasoning
-- `DEEP_RESEARCH_MODEL` = `'deep-research-pro-preview-12-2025'` - Deep research agent
+## Gemini Constants
 
-### Google Search Grounding
+From `lib/gemini/core.ts`:
 
-Built-in web search that provides:
+- `GEMINI_3_FLASH` = `'gemini-3-flash-preview'`
+- `GEMINI_3_PRO` = `'gemini-3-pro-preview'`
+- `DEEP_RESEARCH_MODEL` = `'deep-research-pro-preview-12-2025'`
 
-- Real-time information
-- Source metadata for reference display
+## Deep Research
 
-### Code Execution
+- `executeDeepResearch()` - Start new research task
+- `askFollowUp()` - Continue with follow-up questions
+- `reconnectToResearch()` - Resume interrupted research tasks
 
-Python code execution for:
+## Error Boundaries
 
-- Mathematical calculations
-- Data processing and analysis
-- Complex computations
+- `ErrorBoundary` - Generic error boundary with retry
+- `ChatErrorBoundary` - Chat-specific with "Start New Chat" option
 
-### Thinking (Gemini 3)
+## Supabase
 
-Internal reasoning for complex tasks:
-
-- `thinkingLevel` controls reasoning depth (minimal, low, medium, high)
-- `includeThoughts` returns thought summaries
-
-### Deep Research Agent
-
-Autonomous research agent (Gemini 3 Pro):
-
-- Multi-step research planning
-- Parallel web searches
-- Fact verification
-- Comprehensive reports
-
-## Supabase Guidelines
-
-When working with Supabase:
-
-- Use Row Level Security (RLS) policies for data access control
-- Create migrations for schema changes
-- Use the server client (`lib/supabase/server.ts`) for server-side operations
-- Use the browser client (`lib/supabase/client.ts`) for client-side operations
+- Server client: `lib/supabase/server.ts`
+- Browser client: `lib/supabase/client.ts`

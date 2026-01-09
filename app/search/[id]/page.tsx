@@ -6,6 +6,7 @@ import { ExtendedCoreMessage, SearchResults } from '@/lib/types'
 import { convertToUIMessages } from '@/lib/utils'
 
 import { Chat } from '@/components/chat'
+import { ChatErrorBoundary } from '@/components/error-boundary'
 
 export const maxDuration = 60
 
@@ -70,5 +71,9 @@ export default async function SearchPage(props: {
     notFound()
   }
 
-  return <Chat key={id} id={id} savedMessages={messages} />
+  return (
+    <ChatErrorBoundary>
+      <Chat key={id} id={id} savedMessages={messages} />
+    </ChatErrorBoundary>
+  )
 }

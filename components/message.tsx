@@ -1,6 +1,6 @@
 'use client'
 
-import { memo, useMemo } from 'react'
+import { AnchorHTMLAttributes, memo, ReactNode, useMemo } from 'react'
 
 import rehypeExternalLinks from 'rehype-external-links'
 import rehypeKatex from 'rehype-katex'
@@ -11,7 +11,29 @@ import { cn } from '@/lib/utils'
 
 import { CodeBlock } from './ui/codeblock'
 import { MemoizedReactMarkdown } from './ui/markdown'
-import { Citing } from './custom-link'
+
+// Inline link component for citations
+function Citing({
+  href,
+  children,
+  className,
+  ...props
+}: AnchorHTMLAttributes<HTMLAnchorElement> & { children?: ReactNode }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={cn(
+        'hover:underline inline-flex items-center gap-1.5',
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </a>
+  )
+}
 
 import 'katex/dist/katex.min.css'
 

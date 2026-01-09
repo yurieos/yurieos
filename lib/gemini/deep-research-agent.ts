@@ -18,7 +18,7 @@
  * Status values: completed, in_progress, requires_action, failed, cancelled
  */
 
-import { DEEP_RESEARCH_MODEL, getGeminiClient } from './client'
+import { DEEP_RESEARCH_MODEL, getGeminiClient } from './core'
 import { getDeepResearchFormatInstructions } from './system-instructions'
 import { DeepResearchOptions, ResearchChunk } from './types'
 
@@ -176,6 +176,172 @@ export async function* executeDeepResearch(
         type: 'error',
         error: error instanceof Error ? error.message : 'Deep research failed'
       }
+    }
+  }
+}
+
+// ============================================
+// Reconnection Support
+// ============================================
+
+/**
+ * Reconnect to an in-progress or completed research task
+ *
+ * Per https://ai.google.dev/gemini-api/docs/deep-research#reconnecting-to-stream:
+ * - Use interactions.get with stream=true and last_event_id to resume streaming
+ * - The interaction ID is acquired from the interaction.start event
+ * - The last event ID tells the server to resume after that specific point
+ *
+ * Use this when:
+ * - Network interruption occurred during a long research task
+ * - Browser was refreshed during research
+ * - User returns to check on a running task
+ *
+ * @param interactionId - The interaction ID from a previous session
+ * @param lastEventId - Optional last event ID for resuming from specific point
+ * @yields ResearchChunk - Streaming chunks of progress and content
+ */
+export async function* reconnectToResearch(
+  interactionId: string,
+  lastEventId?: string
+): AsyncGenerator<ResearchChunk> {
+  const client = getGeminiClient()
+
+  try {
+    yield {
+      type: 'progress',
+      content: 'Reconnecting to research task...',
+      phase: 'searching',
+      metadata: { interactionId, lastEventId }
+    }
+
+    // First check the current status without streaming
+    const interaction = await client.interactions.get(interactionId)
+    const status = interaction.status as string
+
+    // Handle already completed research
+    if (status === 'completed') {
+      yield {
+        type: 'progress',
+        content: 'Research completed. Loading results...',
+        phase: 'complete',
+        metadata: { interactionId }
+      }
+
+      // Extract and emit the final output
+      const outputs = interaction.outputs as
+        | Array<{ type?: string; text?: string }>
+        | undefined
+      const textOutput = outputs?.find(o => o.type === 'text')
+      if (textOutput?.text) {
+        yield { type: 'content', content: textOutput.text }
+      }
+
+      yield {
+        type: 'complete',
+        metadata: { interactionId }
+      }
+      return
+    }
+
+    // Handle failed or cancelled research
+    if (status === 'failed' || status === 'cancelled') {
+      yield {
+        type: 'error',
+        error: `Research task ${status}. Please start a new research.`,
+        metadata: { interactionId }
+      }
+      return
+    }
+
+    // Still in progress - resume streaming
+    // Per docs: Use interactions.get with stream=true and last_event_id
+    yield {
+      type: 'progress',
+      content: 'Research in progress. Resuming stream...',
+      phase: 'synthesizing',
+      metadata: { interactionId }
+    }
+
+    // Resume streaming from last event if provided
+    // Per https://ai.google.dev/gemini-api/docs/deep-research#reconnecting-to-stream
+    const stream = await client.interactions.get(interactionId, {
+      stream: true,
+      ...(lastEventId && { last_event_id: lastEventId })
+    })
+
+    let currentLastEventId: string | undefined = lastEventId
+
+    for await (const chunk of stream) {
+      // Track event ID for potential future reconnection
+      if (chunk.event_id) {
+        currentLastEventId = chunk.event_id
+      }
+
+      // Handle content deltas (same as executeDeepResearch)
+      if (chunk.event_type === 'content.delta') {
+        const delta = chunk.delta as
+          | {
+              type?: string
+              text?: string
+              thought?: string
+              content?: { text?: string }
+            }
+          | undefined
+
+        if (delta?.type === 'text' && delta.text) {
+          yield { type: 'content', content: delta.text }
+        } else if (delta?.type === 'thought' && delta.thought) {
+          yield { type: 'thought', content: delta.thought }
+          yield {
+            type: 'progress',
+            content: delta.thought,
+            phase: 'synthesizing'
+          }
+        } else if (delta?.type === 'thought_summary') {
+          // Per Deep Research docs: chunk.delta.content.text
+          const thoughtText = delta.content?.text
+          if (thoughtText) {
+            yield { type: 'thought', content: thoughtText }
+            yield {
+              type: 'progress',
+              content: thoughtText,
+              phase: 'synthesizing'
+            }
+          }
+        }
+      }
+
+      // Handle errors
+      if (chunk.event_type === 'error') {
+        const errorChunk = chunk as { error?: { message?: string } }
+        yield {
+          type: 'error',
+          error: errorChunk.error?.message || 'Research encountered an error',
+          metadata: { interactionId, lastEventId: currentLastEventId }
+        }
+        return
+      }
+
+      // Handle completion
+      if (chunk.event_type === 'interaction.complete') {
+        yield { type: 'phase', phase: 'complete' }
+      }
+    }
+
+    yield {
+      type: 'complete',
+      metadata: {
+        interactionId,
+        lastEventId: currentLastEventId
+      }
+    }
+  } catch (error) {
+    console.error('[Deep Research] Reconnection failed:', error)
+    yield {
+      type: 'error',
+      error: error instanceof Error ? error.message : 'Reconnection failed',
+      metadata: { interactionId, lastEventId }
     }
   }
 }

@@ -7,11 +7,28 @@ import { toast } from 'sonner'
 
 import { Chat } from '@/lib/types'
 
-import { SidebarGroup, SidebarMenu } from '@/components/ui/sidebar'
+import {
+  SidebarGroup,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuSkeleton
+} from '@/components/ui/sidebar'
 
-import { ChatHistorySkeleton } from './chat-history-skeleton'
 import { ChatMenuItem } from './chat-menu-item'
 import { ClearHistoryAction } from './clear-history-action'
+
+// Skeleton component for loading state
+export function ChatHistorySkeleton() {
+  return (
+    <SidebarMenu>
+      {Array.from({ length: 5 }).map((_, idx) => (
+        <SidebarMenuItem key={idx}>
+          <SidebarMenuSkeleton showIcon={false} />
+        </SidebarMenuItem>
+      ))}
+    </SidebarMenu>
+  )
+}
 
 export function ChatHistoryClient() {
   const [chats, setChats] = useState<Chat[]>([])

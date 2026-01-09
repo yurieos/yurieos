@@ -11,9 +11,20 @@ import {
   SidebarTrigger
 } from '@/components/ui/sidebar'
 
-import { ChatHistorySection } from './sidebar/chat-history-section'
-import { ChatHistorySkeleton } from './sidebar/chat-history-skeleton'
+import {
+  ChatHistoryClient,
+  ChatHistorySkeleton
+} from './sidebar/chat-history-client'
 import { NewChatButton } from './new-chat-button'
+
+// Inlined from chat-history-section.tsx - checks env and renders client
+async function ChatHistorySection() {
+  const enableSaveChatHistory = process.env.ENABLE_SAVE_CHAT_HISTORY === 'true'
+  if (!enableSaveChatHistory) {
+    return null
+  }
+  return <ChatHistoryClient />
+}
 
 export default function AppSidebar() {
   return (

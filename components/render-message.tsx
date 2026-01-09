@@ -2,7 +2,7 @@ import { memo, useMemo } from 'react'
 
 import { ChatRequestOptions, JSONValue, UIMessage } from 'ai'
 
-import { ResearchAnnotation } from '@/lib/types/sources'
+import { ResearchAnnotation } from '@/lib/types'
 
 import { AnswerSection } from './answer-section'
 import { ResearchMode } from './chat'

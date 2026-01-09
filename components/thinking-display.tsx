@@ -4,7 +4,7 @@ import { useMemo } from 'react'
 
 import { UIMessage } from 'ai'
 
-import type { ThoughtStepAnnotation } from '@/lib/types/sources'
+import type { ThoughtStepAnnotation } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 import {

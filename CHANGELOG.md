@@ -1,110 +1,55 @@
 # Changelog
 
-All notable changes to Yurie AI will be documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-## [0.1.0] - 2026-01-06
-
-### Added
-
-- **Dual Search Modes**
-  - Standard Mode with Gemini 3 Flash + Google Search grounding
-  - Deep Research Mode with Gemini Deep Research Agent
-
-- **Gemini-Powered Research**
-  - Google Search Grounding for real-time web search
-  - Configurable thinking levels (minimal, low, medium, high)
-  - Thought summaries for transparent AI reasoning
-  - Deep Research Agent for comprehensive multi-step research
-
-- **Model Support**
-  - Gemini 3 Flash for fast, efficient responses
-  - Gemini 3 Pro for advanced reasoning
-  - Deep Research Agent for autonomous research
-
-- **Modern UI/UX**
-  - Vintage Paper theme with elegant light/dark modes
-  - Responsive mobile-first design
-  - Custom typography (Libre Baskerville, Lora, IBM Plex Mono)
-  - Animated progress for research phases
-  - Chain of Thought display
-
-- **Authentication & Storage**
-  - Optional Supabase authentication (email/password and OAuth)
-  - Redis chat history storage (Upstash)
-  - User preferences persistence
-
-- **Safety Features**
-  - Prompt injection protection
-  - PII redaction
-  - Security headers (HSTS, X-Frame-Options, CSP)
-
-- **Developer Experience**
-  - Next.js 15.3 with App Router
-  - React 19 with Server Components
-  - TypeScript 5.7 with strict mode
-  - Tailwind CSS + shadcn/ui components
-  - Vercel AI SDK 6.0 integration
-  - Bun package manager support
-
-- **API Endpoints**
-  - `POST /api/chat` - Main chat endpoint
-  - `DELETE /api/chat/[id]` - Delete individual chat
-  - `GET /api/chats` - Paginated chat history
-  - `GET /api/config/models` - Model configuration
-
-- **Documentation**
-  - Comprehensive README with setup instructions
-  - CLAUDE.md for AI code assistant guidance
-  - Configuration guide with troubleshooting
-  - Environment variable templates
-
-### Technical Details
-
-- **Framework**: Next.js 16.1.1 (App Router)
-- **Runtime**: React 19 with Server Components
-- **Language**: TypeScript 5.7
-- **Styling**: Tailwind CSS + shadcn/ui
-- **AI SDK**: Vercel AI SDK 6.0
-- **AI Provider**: Google GenAI SDK (@google/genai)
-- **Auth**: Supabase (optional)
-- **Storage**: Upstash Redis (optional)
-- **Package Manager**: Bun 1.2.12
-
----
+Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
 ### Added
 
-- **Error Boundary Components** (`components/error-boundary.tsx`)
-  - Generic `ErrorBoundary` for graceful React error handling
-  - `ChatErrorBoundary` with chat-specific messaging and recovery options
-
-- **New Chat Button** (`components/new-chat-button.tsx`)
-  - Reusable component with header and sidebar variants
-  - Smart navigation handling for fresh chat state
+- **Error Boundaries**: `ErrorBoundary` and `ChatErrorBoundary` components for graceful error handling
+- **New Chat Button**: Reusable component with header and sidebar variants (`components/new-chat-button.tsx`)
+- **Health Check Endpoint**: `/api/health` for deployment verification and monitoring
+- **Deep Research Reconnection**: `reconnectToResearch()` function to resume interrupted research tasks
+- **Model Schema Validation**: Zod-based validation for model cookie parsing (`lib/schema/model.ts`)
 
 ### Changed
 
-- **Gemini Module Refactored** (`lib/gemini/`)
-  - Renamed `research.ts` → `agentic.ts` for clarity
-  - Unified agentic workflow for standard and deep research modes
-  - Added model constants: `GEMINI_3_FLASH`, `GEMINI_3_PRO`, `DEEP_RESEARCH_MODEL`
-  - Improved thought signature preservation for multi-turn conversations
+- **Gemini Module Refactored**: Renamed `research.ts` → `agentic.ts`, consolidated citations and safety into `core.ts`
+- **Thinking Level Default**: Gemini 3 Flash now defaults to `medium` thinking (was `minimal`)
+- **Hooks Consolidated**: All hooks now in `hooks/index.ts` (removed separate files)
+- **Auth Forms Consolidated**: All auth forms now in `components/auth-forms.tsx` (removed separate form files)
+- **Sidebar Simplified**: Removed `chat-history-section.tsx` and `chat-history-skeleton.tsx`
+- **Chat Page**: Wrapped with `ChatErrorBoundary` for graceful error handling
 
-- **Model Configuration**
-  - Gemini 3 Flash default thinking level changed from `minimal` to `medium`
-  - Better balance between speed and reasoning depth
+### Removed
 
-### Planned
+- `lib/gemini/citations.ts` (merged into `core.ts`)
+- `lib/gemini/safety.ts` (merged into `core.ts`)
+- `lib/gemini/client.ts` (merged into `core.ts`)
+- `components/custom-link.tsx`
+- `components/login-form.tsx`, `sign-up-form.tsx`, `forgot-password-form.tsx`, `update-password-form.tsx`
+- `hooks/use-copy-to-clipboard.ts`, `hooks/use-current-user-name.ts`, `hooks/use-mobile.ts`
+- `lib/types/models.ts`, `lib/types/sources.ts` (consolidated into `lib/types/index.ts`)
+- `docs/CONFIGURATION.md` (content moved to README)
 
-- Additional model support
-- Enhanced search capabilities
-- Improved caching strategies
-- Performance optimizations
+---
+
+## [0.1.0] - 2026-01-06
+
+### Added
+
+- **Dual Search Modes**: Standard (Gemini 3 Flash + tools) and Deep Research (Gemini Deep Research Agent)
+- **Gemini Features**: Google Search grounding, Code Execution, configurable thinking levels, thought summaries
+- **Models**: Gemini 3 Flash, Gemini 3 Pro, Deep Research Agent
+- **UI/UX**: Vintage Paper theme, responsive design, Chain of Thought display
+- **Auth & Storage**: Optional Supabase auth, Upstash Redis chat history
+- **Safety**: Prompt injection protection, PII redaction, security headers
+
+### Technical
+
+- Next.js 16.1, React 19, TypeScript 5.7
+- Tailwind CSS + shadcn/ui
+- Vercel AI SDK 6.0, Google GenAI SDK
 
 ---
 

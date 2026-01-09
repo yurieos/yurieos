@@ -8,7 +8,7 @@ import {
 import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 
-import { type Model } from '@/lib/types/models'
+import { type Model } from '@/lib/types'
 
 import { ExtendedCoreMessage } from '../types'
 
@@ -121,7 +121,6 @@ export function convertToUIMessages(
 ): Array<UIMessage> {
   const pendingAnnotations: JSONValue[] = []
   let pendingReasoning: string | undefined = undefined
-  let pendingReasoningTime: number | undefined = undefined
 
   return messages.reduce((chatMessages: Array<UIMessage>, message) => {
     // Handle tool messages
@@ -147,15 +146,13 @@ export function convertToUIMessages(
           'data' in content
         ) {
           if (content.type === 'reasoning') {
-            // If content.data is an object, capture its reasoning and time;
+            // If content.data is an object, capture its reasoning text;
             // otherwise treat it as a simple string.
             if (typeof content.data === 'object' && content.data !== null) {
               const reasoningData = content.data as ReasoningData
               pendingReasoning = reasoningData.reasoningText
-              pendingReasoningTime = reasoningData.time
             } else {
               pendingReasoning = content.data as string
-              pendingReasoningTime = 0
             }
           } else {
             pendingAnnotations.push(content)
@@ -233,7 +230,6 @@ export function convertToUIMessages(
     if (message.role === 'assistant') {
       pendingAnnotations.length = 0
       pendingReasoning = undefined
-      pendingReasoningTime = undefined
     }
 
     return chatMessages

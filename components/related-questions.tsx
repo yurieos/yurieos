@@ -5,7 +5,7 @@ import React from 'react'
 import { JSONValue } from 'ai'
 import { CornerDownRight } from 'lucide-react'
 
-import { RelatedQuestionsAnnotation } from '@/lib/types/sources'
+import { RelatedQuestionsAnnotation } from '@/lib/types'
 
 import { Button } from './ui/button'
 import { Skeleton } from './ui/skeleton'

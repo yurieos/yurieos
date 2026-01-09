@@ -1,4 +1,4 @@
-import { Model } from '@/lib/types/models'
+import { Model } from '@/lib/types'
 
 /**
  * Default model ID - used when no model is selected

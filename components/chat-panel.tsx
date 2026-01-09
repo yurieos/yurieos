@@ -8,7 +8,7 @@ import { ChevronDown, CornerRightUp, Square, Telescope } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 
-import { useCurrentUserName } from '@/hooks/use-current-user-name'
+import { useCurrentUserName } from '@/hooks'
 
 import { Button } from './ui/button'
 import type { ResearchMode } from './chat'

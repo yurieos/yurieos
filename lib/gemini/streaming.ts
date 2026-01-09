@@ -16,10 +16,10 @@ import {
 
 import { saveChat } from '@/lib/actions/chat'
 import { Chat } from '@/lib/types'
-import { ResearchAnnotation } from '@/lib/types/sources'
+import { ResearchAnnotation } from '@/lib/types'
 
 import { process } from './agentic'
-import { processInputSafely } from './safety'
+import { processInputSafely } from './core'
 import {
   ContentPart,
   ConversationTurn,

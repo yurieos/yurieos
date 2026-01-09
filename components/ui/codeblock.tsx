@@ -10,7 +10,7 @@ import { coldarkDark } from 'react-syntax-highlighter/dist/cjs/styles/prism'
 import { generateId } from 'ai'
 import { Check, Copy, Download } from 'lucide-react'
 
-import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard'
+import { useCopyToClipboard } from '@/hooks'
 
 import { Button } from '@/components/ui/button'
 

@@ -10,14 +10,17 @@
  * @see https://ai.google.dev/gemini-api/docs/deep-research
  */
 
-// Client
+// Core (Client + Citations)
 export {
+  deduplicateSources,
   DEEP_RESEARCH_MODEL,
+  extractDomain,
   GEMINI_3_FLASH,
   GEMINI_3_PRO,
   getGeminiClient,
-  isGeminiAvailable
-} from './client'
+  isGeminiAvailable,
+  parseGroundingMetadata
+} from './core'
 
 // Types
 export type {
@@ -45,14 +48,15 @@ export {
   agenticChat,
   deepResearch,
   generateFollowUps,
-  process,
-  // Legacy exports for backwards compatibility
-  research,
-  standardResearch
+  process
 } from './agentic'
 
 // Deep Research Agent (Interactions API)
-export { askFollowUp, executeDeepResearch } from './deep-research-agent'
+export {
+  askFollowUp,
+  executeDeepResearch,
+  reconnectToResearch
+} from './deep-research-agent'
 
 // System Instructions (Agentic Template)
 // @see https://ai.google.dev/gemini-api/docs/prompting-strategies#agentic-si-template
@@ -62,17 +66,10 @@ export {
   getStandardSystemInstruction
 } from './system-instructions'
 
-// Citations
-export {
-  deduplicateSources,
-  extractDomain,
-  parseGroundingMetadata
-} from './citations'
-
 // Streaming (Vercel AI SDK compatible)
 export type { GeminiStreamConfig } from './streaming'
 export { createGeminiStreamResponse } from './streaming'
 
-// Safety
-export type { SafetyResult } from './safety'
-export { processInputSafely } from './safety'
+// Safety (included in core)
+export type { SafetyResult } from './core'
+export { processInputSafely } from './core'

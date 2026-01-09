@@ -5,7 +5,7 @@
  * @see https://ai.google.dev/gemini-api/docs
  */
 
-import { ThinkingConfig } from '@/lib/types/models'
+import { ThinkingConfig } from '@/lib/types'
 export type { ThinkingConfig }
 
 // ============================================
@@ -102,7 +102,7 @@ export interface GroundingSupport {
 }
 
 // Research Phases (re-exported from sources to avoid duplication)
-import type { ResearchPhase } from '@/lib/types/sources'
+import type { ResearchPhase } from '@/lib/types'
 export type { ResearchPhase }
 
 // Content part with optional thought signature (per https://ai.google.dev/gemini-api/docs/thought-signatures)

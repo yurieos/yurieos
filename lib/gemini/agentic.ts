@@ -18,8 +18,13 @@
 
 import { ThinkingLevel } from '@google/genai'
 
-import { deduplicateSources, parseGroundingMetadata } from './citations'
-import { GEMINI_3_FLASH, GEMINI_3_PRO, getGeminiClient } from './client'
+import {
+  deduplicateSources,
+  GEMINI_3_FLASH,
+  GEMINI_3_PRO,
+  getGeminiClient,
+  parseGroundingMetadata
+} from './core'
 import { executeDeepResearch } from './deep-research-agent'
 import {
   getDeepResearchFormatInstructions,
@@ -78,9 +83,6 @@ export async function* process(
     yield* agenticChat(query, config)
   }
 }
-
-// Legacy export for backwards compatibility
-export { process as research }
 
 // ============================================
 // Standard Mode: Agentic AI with Tools
@@ -241,9 +243,6 @@ export async function* agenticChat(
     }
   }
 }
-
-// Legacy export for backwards compatibility
-export { agenticChat as standardResearch }
 
 // ============================================
 // Deep Research Mode: Official Deep Research Agent

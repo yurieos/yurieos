@@ -1,63 +1,12 @@
 import { cookies } from 'next/headers'
 
 import { getCurrentUserId } from '@/lib/auth/get-current-user'
-import { getDefaultModel } from '@/lib/config/models'
 import { createGeminiStreamResponse, isGeminiAvailable } from '@/lib/gemini'
 import { validateChatRequest } from '@/lib/schema/chat'
-import { Model, ThinkingConfig } from '@/lib/types/models'
+import { parseModelFromCookie } from '@/lib/schema/model'
 
 // Extended timeout for deep research
 export const maxDuration = 300
-
-/**
- * Safely parses and validates the model from cookies
- * Falls back to centralized default model from config
- * @see https://ai.google.dev/gemini-api/docs/thinking
- */
-function parseModelFromCookie(modelJson: string | undefined): Model {
-  const defaultModel = getDefaultModel()
-
-  if (!modelJson) {
-    return defaultModel
-  }
-
-  try {
-    const parsed = JSON.parse(modelJson)
-
-    // Validate essential model properties
-    if (
-      typeof parsed.id !== 'string' ||
-      typeof parsed.providerId !== 'string'
-    ) {
-      console.warn('Invalid model structure in cookie, using default')
-      return defaultModel
-    }
-
-    // Parse thinkingConfig if present (Gemini 3 uses thinkingLevel)
-    // Per https://ai.google.dev/gemini-api/docs/gemini-3
-    let thinkingConfig: ThinkingConfig | undefined
-    if (parsed.thinkingConfig && typeof parsed.thinkingConfig === 'object') {
-      thinkingConfig = {
-        thinkingLevel: parsed.thinkingConfig.thinkingLevel,
-        includeThoughts: parsed.thinkingConfig.includeThoughts
-      }
-    }
-
-    return {
-      id: parsed.id,
-      name: parsed.name || parsed.id,
-      provider: parsed.provider || parsed.providerId,
-      providerId: parsed.providerId,
-      enabled: parsed.enabled !== false,
-      toolCallType: parsed.toolCallType || 'native',
-      toolCallModel: parsed.toolCallModel,
-      thinkingConfig
-    }
-  } catch (e) {
-    console.error('Failed to parse selected model from cookie:', e)
-    return defaultModel
-  }
-}
 
 export async function POST(req: Request) {
   try {

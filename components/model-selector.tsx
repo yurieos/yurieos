@@ -6,7 +6,7 @@ import { Check, ChevronsUpDown } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { DEFAULT_MODEL_ID } from '@/lib/config/models'
-import { Model } from '@/lib/types/models'
+import { Model } from '@/lib/types'
 
 import { createModelId } from '../lib/utils'
 
