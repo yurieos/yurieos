@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 import { Search } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -58,6 +60,24 @@ export function EmptyScreen({
               {message.heading}
             </Button>
           ))}
+        </div>
+        {/* Footer links for Google OAuth compliance */}
+        <div className="mt-8 pt-4 border-t border-border/50">
+          <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
+            <Link
+              href="/privacy"
+              className="hover:text-foreground transition-colors"
+            >
+              Privacy Policy
+            </Link>
+            <span className="text-border">·</span>
+            <Link
+              href="/terms"
+              className="hover:text-foreground transition-colors"
+            >
+              Terms of Service
+            </Link>
+          </div>
         </div>
       </div>
     </div>
