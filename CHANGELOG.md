@@ -6,6 +6,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **Legal Pages**: Privacy Policy (`/privacy`) and Terms of Service (`/terms`) for Google OAuth verification
 - **Search Chats Command**: `⌘K` / `Ctrl+K` to search through chat history with grouped results (Today, Yesterday, Previous 7 Days, Older)
 - **Keyboard Shortcuts**: `⌘O` / `Ctrl+O` for new chat, `⌘K` / `Ctrl+K` for search
 - **Error Boundaries**: `ErrorBoundary` and `ChatErrorBoundary` components for graceful error handling
@@ -16,6 +17,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- **Production Domain**: Updated `metadataBase` to `https://www.yurie.ai`
 - **Gemini Module Refactored**: Renamed `research.ts` → `agentic.ts`, consolidated citations and safety into `core.ts`
 - **Thinking Level Default**: Gemini 3 Flash now defaults to `medium` thinking (was `minimal`)
 - **Hooks Consolidated**: All hooks now in `hooks/index.ts` (removed separate files)

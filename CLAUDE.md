@@ -28,6 +28,7 @@ bun format:check  # Check formatting
 
 ```
 app/
+├── (legal)/          # Legal pages (Privacy Policy, Terms of Service)
 ├── api/chat/         # Main chat API (Gemini)
 ├── api/health/       # Health check endpoint
 ├── auth/             # Authentication pages

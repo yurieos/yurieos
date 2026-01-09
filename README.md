@@ -105,6 +105,7 @@ Returns service status for Gemini, Redis, and Supabase.
 
 ```
 app/
+├── (legal)/          # Legal pages (Privacy, Terms)
 ├── api/chat/         # Main chat API (Gemini)
 ├── api/health/       # Health check endpoint
 ├── auth/             # Authentication pages

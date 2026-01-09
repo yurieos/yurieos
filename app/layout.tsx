@@ -38,7 +38,7 @@ const description =
   'A fully open-source AI-powered answer engine with a generative UI.'
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://yurie.sh'),
+  metadataBase: new URL('https://www.yurie.ai'),
   title,
   description,
   openGraph: {

@@ -46,8 +46,9 @@ export async function updateSession(request: NextRequest) {
   const publicPaths = [
     '/', // Root path
     '/auth', // Auth-related pages
-    '/api' // API routes
-    // Add other public paths here if needed
+    '/api', // API routes
+    '/privacy', // Privacy policy
+    '/terms' // Terms of service
   ]
 
   const pathname = request.nextUrl.pathname
