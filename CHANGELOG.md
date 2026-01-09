@@ -6,6 +6,8 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **Search Chats Command**: `⌘K` / `Ctrl+K` to search through chat history with grouped results (Today, Yesterday, Previous 7 Days, Older)
+- **Keyboard Shortcuts**: `⌘O` / `Ctrl+O` for new chat, `⌘K` / `Ctrl+K` for search
 - **Error Boundaries**: `ErrorBoundary` and `ChatErrorBoundary` components for graceful error handling
 - **New Chat Button**: Reusable component with header and sidebar variants (`components/new-chat-button.tsx`)
 - **Health Check Endpoint**: `/api/health` for deployment verification and monitoring

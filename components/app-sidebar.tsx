@@ -16,6 +16,7 @@ import {
   ChatHistorySkeleton
 } from './sidebar/chat-history-client'
 import { NewChatButton } from './new-chat-button'
+import { SearchChatsButton } from './search-chats-button'
 
 // Inlined from chat-history-section.tsx - checks env and renders client
 async function ChatHistorySection() {
@@ -40,6 +41,9 @@ export default function AppSidebar() {
         <SidebarMenu className="pr-2">
           <SidebarMenuItem>
             <NewChatButton variant="sidebar" />
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SearchChatsButton />
           </SidebarMenuItem>
         </SidebarMenu>
         <div className="flex-1 overflow-y-auto">

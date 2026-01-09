@@ -58,7 +58,8 @@ components/
 ├── prompt-kit/       # Chain of thought
 ├── auth-forms.tsx    # All auth forms (login, signup, etc.)
 ├── error-boundary.tsx # Error boundaries
-├── new-chat-button.tsx # Reusable new chat button
+├── new-chat-button.tsx # Reusable new chat button (⌘O)
+├── search-chats-button.tsx # Chat search command palette (⌘K)
 └── ...               # Feature components
 
 hooks/

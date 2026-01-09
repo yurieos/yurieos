@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback } from 'react'
+import { useCallback, useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 
 import { Plus } from 'lucide-react'
@@ -25,21 +25,28 @@ export function NewChatButton({ variant, className }: NewChatButtonProps) {
   const router = useRouter()
   const pathname = usePathname()
 
-  const handleNewChat = useCallback(
-    (e: React.MouseEvent) => {
-      e.preventDefault()
+  const handleNewChat = useCallback(() => {
+    if (pathname === '/') {
+      // Already on home page - force refresh to get new chat ID
+      router.refresh()
+    } else {
+      // Navigate to home and refresh to ensure fresh state
+      router.push('/')
+      router.refresh()
+    }
+  }, [pathname, router])
 
-      if (pathname === '/') {
-        // Already on home page - force refresh to get new chat ID
-        router.refresh()
-      } else {
-        // Navigate to home and refresh to ensure fresh state
-        router.push('/')
-        router.refresh()
+  // Keyboard shortcut: Cmd+O / Ctrl+O
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && !e.shiftKey && e.key === 'o') {
+        e.preventDefault()
+        handleNewChat()
       }
-    },
-    [pathname, router]
-  )
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [handleNewChat])
 
   if (variant === 'header') {
     return (
@@ -56,7 +63,7 @@ export function NewChatButton({ variant, className }: NewChatButtonProps) {
             </Button>
           </TooltipTrigger>
           <TooltipContent side="bottom">
-            <p>New chat</p>
+            <p>New chat ⌘O</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
@@ -68,10 +75,14 @@ export function NewChatButton({ variant, className }: NewChatButtonProps) {
     <SidebarMenuButton asChild>
       <button
         onClick={handleNewChat}
-        className={cn('flex items-center gap-2 w-full', className)}
+        className={cn('group/btn flex items-center gap-2 w-full', className)}
       >
         <Plus size={18} />
-        <span>New chat</span>
+        <span className="flex-1">New chat</span>
+        <kbd className="pointer-events-none inline-flex items-center gap-0.5 text-sm font-medium text-muted-foreground opacity-0 group-hover/btn:opacity-100 transition-opacity">
+          <span className="text-base">⌘</span>
+          <span>O</span>
+        </kbd>
       </button>
     </SidebarMenuButton>
   )

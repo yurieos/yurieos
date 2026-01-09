@@ -19,6 +19,7 @@
 - **Deep Research Mode** — Comprehensive multi-step research with Gemini Deep Research Agent
 - **Thinking Mode** — Configurable reasoning depth (minimal, low, medium, high)
 - **Modern UI** — Vintage Paper theme with light/dark mode
+- **Keyboard Shortcuts** — `⌘K` search, `⌘O` new chat
 - **Optional Auth** — Supabase authentication (email/password, OAuth)
 - **Chat History** — Upstash Redis for persistent conversations
 - **Safety** — Prompt injection protection, PII redaction
@@ -163,6 +164,7 @@ Research takes 5-60 minutes with streaming progress updates. Supports reconnecti
 ### Health Monitoring
 
 The `/api/health` endpoint returns:
+
 - `200 OK` when Gemini is available
 - `503 Service Unavailable` when Gemini is not configured
 
