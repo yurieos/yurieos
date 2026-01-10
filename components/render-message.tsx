@@ -6,6 +6,7 @@ import { ResearchAnnotation } from '@/lib/types'
 
 import { AnswerSection } from './answer-section'
 import { ResearchMode } from './chat'
+import { GeneratedImage } from './generated-image'
 import RelatedQuestions from './related-questions'
 import { ThinkingDisplay } from './thinking-display'
 import { UserMessage } from './user-message'
@@ -32,6 +33,48 @@ interface TextPart {
   text: string
 }
 
+/** Image part from UIMessage */
+interface MessageImagePart {
+  type: 'image'
+  mimeType: string
+  data: string
+}
+
+/** Video part from UIMessage */
+interface MessageVideoPart {
+  type: 'video'
+  mimeType?: string
+  data?: string
+  fileUri?: string
+}
+
+/** Document part from UIMessage */
+interface MessageDocumentPart {
+  type: 'document'
+  mimeType: string
+  data?: string
+  fileUri?: string
+  filename?: string
+}
+
+/** Audio part from UIMessage */
+interface MessageAudioPart {
+  type: 'audio'
+  mimeType: string
+  data?: string
+  fileUri?: string
+  filename?: string
+}
+
+/** Generated image part from UIMessage */
+interface MessageGeneratedImagePart {
+  type: 'generated-image'
+  data: string
+  mimeType: string
+  aspectRatio?: string
+  thoughtSignature?: string
+}
+
 /** Metadata shape for UIMessage with annotations */
 interface MessageMetadata {
   annotations?: ResearchAnnotation[]
@@ -44,6 +87,53 @@ function getTextFromParts(parts: UIMessage['parts']): string {
     .filter((p): p is TextPart => p.type === 'text')
     .map(p => p.text || '')
     .join('')
+}
+
+// Helper to extract image parts from message
+// Uses type assertion since 'image' is a custom part type not in AI SDK
+function getImageParts(parts: UIMessage['parts']): MessageImagePart[] {
+  if (!parts) return []
+  return parts
+    .filter(p => (p as { type: string }).type === 'image')
+    .map(p => p as unknown as MessageImagePart)
+}
+
+// Helper to extract video parts from message
+// Uses type assertion since 'video' is a custom part type not in AI SDK
+function getVideoParts(parts: UIMessage['parts']): MessageVideoPart[] {
+  if (!parts) return []
+  return parts
+    .filter(p => (p as { type: string }).type === 'video')
+    .map(p => p as unknown as MessageVideoPart)
+}
+
+// Helper to extract document parts from message
+// Uses type assertion since 'document' is a custom part type not in AI SDK
+function getDocumentParts(parts: UIMessage['parts']): MessageDocumentPart[] {
+  if (!parts) return []
+  return parts
+    .filter(p => (p as { type: string }).type === 'document')
+    .map(p => p as unknown as MessageDocumentPart)
+}
+
+// Helper to extract audio parts from message
+// Uses type assertion since 'audio' is a custom part type not in AI SDK
+function getAudioParts(parts: UIMessage['parts']): MessageAudioPart[] {
+  if (!parts) return []
+  return parts
+    .filter(p => (p as { type: string }).type === 'audio')
+    .map(p => p as unknown as MessageAudioPart)
+}
+
+// Helper to extract generated image parts from message
+// Uses type assertion since 'generated-image' is a custom part type not in AI SDK
+function getGeneratedImageParts(
+  parts: UIMessage['parts']
+): MessageGeneratedImagePart[] {
+  if (!parts) return []
+  return parts
+    .filter(p => (p as { type: string }).type === 'generated-image')
+    .map(p => p as unknown as MessageGeneratedImagePart)
 }
 
 // Helper to get annotations from message metadata
@@ -110,17 +200,26 @@ export const RenderMessage = memo(function RenderMessage({
 
   // Handle user messages
   if (message.role === 'user') {
+    const userImages = getImageParts(message.parts)
+    const userVideos = getVideoParts(message.parts)
+    const userDocuments = getDocumentParts(message.parts)
+    const userAudios = getAudioParts(message.parts)
     return (
       <UserMessage
         message={getTextFromParts(message.parts)}
         messageId={messageId}
         onUpdateMessage={onUpdateMessage}
+        images={userImages.length > 0 ? userImages : undefined}
+        videos={userVideos.length > 0 ? userVideos : undefined}
+        documents={userDocuments.length > 0 ? userDocuments : undefined}
+        audios={userAudios.length > 0 ? userAudios : undefined}
       />
     )
   }
 
   // For assistant messages
   const textContent = getTextFromParts(message.parts)
+  const generatedImages = getGeneratedImageParts(message.parts)
 
   return (
     <>
@@ -155,6 +254,21 @@ export const RenderMessage = memo(function RenderMessage({
           isLoading={isLoading}
           isAnswerComplete={isAnswerComplete}
         />
+      )}
+
+      {/* Generated Images from AI */}
+      {generatedImages.length > 0 && (
+        <div className="flex flex-wrap gap-4 my-4">
+          {generatedImages.map((img, idx) => (
+            <GeneratedImage
+              key={`gen-img-${messageId}-${idx}`}
+              imageData={img.data}
+              mimeType={img.mimeType}
+              aspectRatio={img.aspectRatio}
+              alt={`AI Generated Image ${idx + 1}`}
+            />
+          ))}
+        </div>
       )}
 
       {relatedQuestions.length > 0 && (

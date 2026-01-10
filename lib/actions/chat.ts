@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 
+import { deleteAttachmentsByChat } from '@/lib/actions/attachments'
 import { getCurrentUserId } from '@/lib/auth/get-current-user'
 import {
   getRedisClient,
@@ -82,6 +83,25 @@ export async function clearChats(): Promise<{ error?: string }> {
     const userKey = getUserChatKey(userId)
     const chats = await redis.zrange(userKey, 0, -1)
     if (!chats.length) return { error: 'No chats to clear' }
+
+    // Delete attachments for all chats (best effort, don't block on failures)
+    // Only delete if userId is not anonymous (authenticated user)
+    if (userId !== 'anonymous') {
+      for (const chatKey of chats) {
+        // Extract chatId from key (format: "chat:{chatId}")
+        const chatId = chatKey.replace('chat:', '')
+        try {
+          await deleteAttachmentsByChat(chatId, userId)
+        } catch (attachmentError) {
+          console.error(
+            `Error deleting attachments for chat ${chatId}:`,
+            attachmentError
+          )
+          // Continue with other chats even if one fails
+        }
+      }
+    }
+
     const pipeline = redis.pipeline()
     for (const chat of chats) {
       pipeline.del(chat)
@@ -106,6 +126,21 @@ export async function deleteChat(
     const chatKey = `chat:${chatId}`
     const data = await redis.hgetall<Record<string, any>>(chatKey)
     if (!data || !Object.keys(data).length) return { error: 'Chat not found' }
+
+    // Delete attachments from Supabase Storage (best effort, don't block on failure)
+    // Only delete if userId is not anonymous (authenticated user)
+    if (userId !== 'anonymous') {
+      try {
+        await deleteAttachmentsByChat(chatId, userId)
+      } catch (attachmentError) {
+        console.error(
+          `Error deleting attachments for chat ${chatId}:`,
+          attachmentError
+        )
+        // Continue with chat deletion even if attachment cleanup fails
+      }
+    }
+
     const pipeline = redis.pipeline()
     pipeline.del(chatKey)
     pipeline.zrem(getUserChatKey(userId), chatKey)

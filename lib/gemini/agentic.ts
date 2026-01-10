@@ -2,44 +2,156 @@
  * Gemini Agentic AI Workflow
  *
  * Two modes of operation:
- * - Standard Mode (Agentic): Gemini 3 Flash with tools (Google Search, Code Execution)
+ * - Standard Mode (Agentic): Gemini 3 Flash with tools (Google Search, URL Context, Code Execution, Function Calling)
  * - Deep Research Mode: Official Deep Research Agent via Interactions API
  *
  * Agentic capabilities:
  * - Google Search grounding for real-time web information
+ * - URL Context for analyzing content from specific URLs
  * - Code Execution for calculations and data processing
+ * - Function Calling for custom tools and external APIs
  * - Thinking with configurable reasoning depth
  *
  * @see https://ai.google.dev/gemini-api/docs/google-search
+ * @see https://ai.google.dev/gemini-api/docs/url-context
  * @see https://ai.google.dev/gemini-api/docs/code-execution
+ * @see https://ai.google.dev/gemini-api/docs/function-calling
  * @see https://ai.google.dev/gemini-api/docs/thinking
  * @see https://ai.google.dev/gemini-api/docs/deep-research
  */
 
-import { ThinkingLevel } from '@google/genai'
+import {
+  FunctionCallingConfigMode,
+  FunctionDeclaration as SDKFunctionDeclaration,
+  ThinkingLevel,
+  Type
+} from '@google/genai'
 
+import { FunctionDeclaration, PropertySchema } from './function-calling/types'
 import {
   deduplicateSources,
   GEMINI_3_FLASH,
   GEMINI_3_PRO,
   getGeminiClient,
-  parseGroundingMetadata
+  parseGroundingMetadata,
+  parseUrlContextMetadata
 } from './core'
 import { executeDeepResearch } from './deep-research-agent'
+import {
+  checkFinishReason,
+  executeFunctionCalls,
+  extractFunctionCalls,
+  functionRegistry
+} from './function-calling'
 import {
   getDeepResearchFormatInstructions,
   getFollowUpPrompt,
   getStandardSystemInstruction
 } from './system-instructions'
 import {
+  AudioPart,
   ContentPart,
   ConversationTurn,
+  DocumentPart,
   GeminiCandidate,
   GroundingSource,
+  ImagePart,
   ResearchChunk,
   ResearchConfig,
-  ThinkingConfig
+  ThinkingConfig,
+  VideoPart
 } from './types'
+
+/**
+ * SDK property schema type for converted properties
+ */
+interface SDKPropertySchema {
+  type: Type
+  description: string
+  enum?: string[]
+  items?: SDKPropertySchema
+  properties?: Record<string, SDKPropertySchema>
+  required?: string[]
+}
+
+/**
+ * Convert our FunctionDeclaration to SDK FunctionDeclaration format
+ * Maps string types to SDK Type enum
+ * Handles nested types including arrays with items
+ */
+function toSDKFunctionDeclaration(
+  fn: FunctionDeclaration
+): SDKFunctionDeclaration {
+  const typeMap: Record<string, Type> = {
+    string: Type.STRING,
+    integer: Type.INTEGER,
+    number: Type.NUMBER,
+    boolean: Type.BOOLEAN,
+    array: Type.ARRAY,
+    object: Type.OBJECT
+  }
+
+  const convertPropertySchema = (prop: PropertySchema): SDKPropertySchema => {
+    const result: SDKPropertySchema = {
+      type: typeMap[prop.type] || Type.STRING,
+      description: prop.description
+    }
+
+    // Add enum if present
+    if (prop.enum) {
+      result.enum = prop.enum
+    }
+
+    // Handle array items - required for array types
+    if (prop.type === 'array' && prop.items) {
+      result.items = convertPropertySchema(prop.items)
+    }
+
+    // Handle nested object properties
+    if (prop.type === 'object' && prop.properties) {
+      const nestedProperties: Record<string, SDKPropertySchema> = {}
+      for (const [key, nestedProp] of Object.entries(prop.properties)) {
+        nestedProperties[key] = convertPropertySchema(nestedProp)
+      }
+      result.properties = nestedProperties
+      if (prop.required) {
+        result.required = prop.required
+      }
+    }
+
+    return result
+  }
+
+  const properties: Record<string, SDKPropertySchema> = {}
+  for (const [key, prop] of Object.entries(fn.parameters.properties)) {
+    properties[key] = convertPropertySchema(prop)
+  }
+
+  return {
+    name: fn.name,
+    description: fn.description,
+    parameters: {
+      type: Type.OBJECT,
+      properties,
+      required: fn.parameters.required
+    }
+  }
+}
+
+/**
+ * Convert our FunctionCallingMode to SDK FunctionCallingConfigMode
+ */
+function toSDKFunctionCallingMode(
+  mode: string
+): FunctionCallingConfigMode | undefined {
+  const modeMap: Record<string, FunctionCallingConfigMode> = {
+    AUTO: FunctionCallingConfigMode.AUTO,
+    ANY: FunctionCallingConfigMode.ANY,
+    NONE: FunctionCallingConfigMode.NONE,
+    VALIDATED: FunctionCallingConfigMode.VALIDATED
+  }
+  return modeMap[mode]
+}
 
 /**
  * Map string thinking level to SDK enum
@@ -93,6 +205,7 @@ export async function* process(
  *
  * Tools enabled:
  * - Google Search grounding: Real-time web search for current information
+ * - URL Context: Analyze content from specific URLs provided in the message
  * - Code Execution: Python code for calculations and data processing
  *
  * Thinking levels per https://ai.google.dev/gemini-api/docs/thinking:
@@ -106,6 +219,11 @@ export async function* process(
  * Per https://ai.google.dev/gemini-api/docs/thought-signatures:
  * - Gemini 3 models return thought signatures for all types of parts
  * - Must pass all signatures back as received for multi-turn
+ *
+ * Per https://ai.google.dev/gemini-api/docs/url-context:
+ * - URL context can be combined with Google Search
+ * - Max 20 URLs per request, 34MB max per URL content
+ * - Cannot be combined with function calling (native tools only)
  */
 export async function* agenticChat(
   query: string,
@@ -127,7 +245,96 @@ export async function* agenticChat(
     yield { type: 'phase', phase: 'searching' }
 
     // Build conversation context if available (preserves thought signatures)
-    const contents = buildContents(query, config.conversationHistory)
+    // Includes multimodal attachments:
+    // - Images per https://ai.google.dev/gemini-api/docs/image-understanding
+    // - Videos per https://ai.google.dev/gemini-api/docs/video-understanding
+    // - Documents per https://ai.google.dev/gemini-api/docs/document-processing
+    // - Audio per https://ai.google.dev/gemini-api/docs/audio
+    const contents = buildContents(
+      query,
+      config.conversationHistory,
+      config.images,
+      config.videos,
+      config.documents,
+      config.audios
+    )
+
+    // Build tools array
+    // Per https://ai.google.dev/gemini-api/docs/google-search
+    // Per https://ai.google.dev/gemini-api/docs/code-execution
+    // Per https://ai.google.dev/gemini-api/docs/function-calling
+    //
+    // IMPORTANT: Multi-tool use (combining native tools with function calling)
+    // is a Live API only feature. For standard API, we must choose one or the other.
+    // See: https://ai.google.dev/gemini-api/docs/function-calling#multi-tool-use
+    //
+    // Note: Code execution does NOT support video, PDF, or audio MIME types
+    // See: https://ai.google.dev/gemini-api/docs/code-execution#io-details
+    const hasVideos = config.videos && config.videos.length > 0
+    const hasDocuments = config.documents && config.documents.length > 0
+    const hasAudios = config.audios && config.audios.length > 0
+
+    // Check if function calling is requested
+    const hasFunctionDeclarations =
+      (config.functions && config.functions.length > 0) ||
+      (config.allowedFunctionNames && config.allowedFunctionNames.length > 0)
+
+    // Get function declarations if available
+    let functionDeclarations: SDKFunctionDeclaration[] = []
+    if (config.functions && config.functions.length > 0) {
+      // Use custom functions from config - convert to SDK format
+      functionDeclarations = config.functions.map(toSDKFunctionDeclaration)
+    } else if (!hasFunctionDeclarations) {
+      // Only use registry functions if no specific function calling config is set
+      // This allows native tools (Google Search, Code Execution) to work by default
+      // Users can explicitly enable function calling by setting functions or allowedFunctionNames
+    }
+
+    // Build tools array - choose between native tools OR function calling
+    // Multi-tool use is Live API only
+    // Per https://ai.google.dev/gemini-api/docs/url-context#combining_with_other_tools
+    // URL context can be combined with Google Search for powerful workflows
+    const tools: Array<{
+      googleSearch?: object
+      urlContext?: object
+      codeExecution?: object
+      functionDeclarations?: SDKFunctionDeclaration[]
+    }> = []
+
+    if (hasFunctionDeclarations && functionDeclarations.length > 0) {
+      // Function calling mode - use ONLY function declarations
+      // Cannot combine with Google Search, URL Context, or Code Execution in standard API
+      tools.push({ functionDeclarations })
+    } else {
+      // Native tools mode - use Google Search, URL Context, and Code Execution
+      // Per https://ai.google.dev/gemini-api/docs/google-search
+      tools.push({ googleSearch: {} }) // Real-time web search grounding
+
+      // Per https://ai.google.dev/gemini-api/docs/url-context
+      // URL Context enables fetching and analyzing content from specific URLs
+      // Best combined with Google Search for broad search + deep URL analysis
+      tools.push({ urlContext: {} })
+
+      // Only enable code execution if no videos, documents, or audio are attached
+      // Code execution only supports: .png, .jpeg, .csv, .xml, .cpp, .java, .py, .js, .ts
+      if (!hasVideos && !hasDocuments && !hasAudios) {
+        tools.push({ codeExecution: {} })
+      }
+    }
+
+    // Configure function calling mode
+    // Per https://ai.google.dev/gemini-api/docs/function-calling#function_calling_modes
+    const toolConfig =
+      hasFunctionDeclarations && config.functionCallingMode
+        ? {
+            functionCallingConfig: {
+              mode: toSDKFunctionCallingMode(config.functionCallingMode),
+              ...(config.allowedFunctionNames && {
+                allowedFunctionNames: config.allowedFunctionNames
+              })
+            }
+          }
+        : undefined
 
     // Stream response with agentic tools and thinking
     // Per https://ai.google.dev/gemini-api/docs/thinking:
@@ -137,21 +344,17 @@ export async function* agenticChat(
       model: modelId,
       contents,
       config: {
-        // Agentic tools
-        // Per https://ai.google.dev/gemini-api/docs/google-search
-        // Per https://ai.google.dev/gemini-api/docs/code-execution
-        tools: [
-          { googleSearch: {} }, // Real-time web search grounding
-          { codeExecution: {} } // Python code execution for calculations
-        ],
+        tools,
+        toolConfig, // Function calling mode configuration
         systemInstruction: getStandardSystemInstruction(),
         thinkingConfig: {
           thinkingLevel,
           includeThoughts
         },
-        // Temperature 0.4 for factual accuracy in responses
-        // Per https://ai.google.dev/gemini-api/docs/text-generation
-        temperature: 0.4
+        // Per Gemini 3 docs: Keep temperature at 1.0 to avoid looping
+        // Lower values may cause looping or degraded performance
+        // https://ai.google.dev/gemini-api/docs/function-calling#best_practices
+        temperature: modelId.includes('gemini-3') ? 1.0 : 0.4
       }
     })
 
@@ -160,6 +363,8 @@ export async function* agenticChat(
     let lastCandidate: GeminiCandidate | null = null
     // Collect all model response parts for thought signature preservation
     const collectedParts: ContentPart[] = []
+    // Track processed function calls to avoid duplicates
+    const processedFunctionCalls = new Set<string>()
 
     yield { type: 'phase', phase: 'synthesizing' }
 
@@ -167,9 +372,45 @@ export async function* agenticChat(
       const candidate = chunk.candidates?.[0]
       if (candidate) {
         lastCandidate = candidate as GeminiCandidate
+
+        // Check finish reason per best practices
+        // Per https://ai.google.dev/gemini-api/docs/function-calling#best_practices
+        const finishCheck = checkFinishReason(candidate)
+        if (!finishCheck.ok && finishCheck.error) {
+          yield { type: 'error', error: finishCheck.error }
+          return
+        }
       }
 
-      // Process each part - handle both text and thoughts
+      // Check for function calls in the response (only when function calling is enabled)
+      // Per https://ai.google.dev/gemini-api/docs/function-calling
+      // Function calling is mutually exclusive with native tools (Google Search, Code Execution)
+      if (hasFunctionDeclarations && functionDeclarations.length > 0) {
+        const functionCalls = extractFunctionCalls(lastCandidate)
+        if (functionCalls.length > 0) {
+          // Filter out already processed function calls
+          const newCalls = functionCalls.filter(call => {
+            const key = `${call.name}:${JSON.stringify(call.args)}`
+            if (processedFunctionCalls.has(key)) return false
+            processedFunctionCalls.add(key)
+            return true
+          })
+
+          if (newCalls.length > 0) {
+            // Emit function calls being made
+            yield { type: 'function-call', functionCalls: newCalls }
+
+            // Execute functions in parallel
+            // Per https://ai.google.dev/gemini-api/docs/function-calling#parallel_function_calling
+            const results = await executeFunctionCalls(newCalls)
+
+            // Emit function results
+            yield { type: 'function-result', functionResults: results }
+          }
+        }
+      }
+
+      // Process each part - handle text, thoughts, and function calls
       for (const part of lastCandidate?.content?.parts || []) {
         // Collect parts with thought signatures for multi-turn preservation
         // Per https://ai.google.dev/gemini-api/docs/thought-signatures
@@ -214,6 +455,16 @@ export async function* agenticChat(
         // Also emit individual sources for annotations
         for (const source of allSources) {
           yield { type: 'source', source }
+        }
+      }
+
+      // Extract URL context metadata if URLs were retrieved
+      // Per https://ai.google.dev/gemini-api/docs/url-context#understanding_the_response
+      const urlContextMetadata = parseUrlContextMetadata(lastCandidate)
+      if (urlContextMetadata && urlContextMetadata.urlMetadata?.length) {
+        yield {
+          type: 'url-context',
+          urlContextMetadata
         }
       }
     }
@@ -281,42 +532,163 @@ export async function* deepResearch(
 // ============================================
 
 /**
- * Build contents array for multi-turn conversations
+ * Build contents array for multi-turn conversations with multimodal support
  *
  * Per https://ai.google.dev/gemini-api/docs/thought-signatures:
  * - Gemini 3 models return thought signatures for all types of parts
  * - We must pass all signatures back as received to maintain reasoning context
  * - Don't concatenate parts with signatures together
  * - Don't merge one part with a signature with another part without a signature
+ *
+ * Per https://ai.google.dev/gemini-api/docs/image-understanding#tips-and-best-practices:
+ * - Place text prompt AFTER image parts in the contents array
+ *
+ * Per https://ai.google.dev/gemini-api/docs/video-understanding#tips-and-best-practices:
+ * - Place text prompt AFTER video parts in the contents array
+ * - Use inline data for videos < 20MB, File API or YouTube URLs for larger/remote videos
+ *
+ * Per https://ai.google.dev/gemini-api/docs/document-processing#best-practices:
+ * - Place text prompt AFTER document parts in the contents array
+ * - Use inline data for documents <= 20MB, File API for larger documents
+ *
+ * Per https://ai.google.dev/gemini-api/docs/audio:
+ * - Place text prompt AFTER audio parts in the contents array
+ * - Use inline data for audio <= 20MB, File API for larger audio
  */
 function buildContents(
   query: string,
-  history?: ConversationTurn[]
+  history?: ConversationTurn[],
+  images?: ImagePart[],
+  videos?: VideoPart[],
+  documents?: DocumentPart[],
+  audios?: AudioPart[]
 ): string | Array<{ role: string; parts: ContentPart[] }> {
-  if (!history || history.length === 0) {
+  // If no history and no media, just return the query string
+  const hasHistory = history && history.length > 0
+  const hasImages = images && images.length > 0
+  const hasVideos = videos && videos.length > 0
+  const hasDocuments = documents && documents.length > 0
+  const hasAudios = audios && audios.length > 0
+
+  if (!hasHistory && !hasImages && !hasVideos && !hasDocuments && !hasAudios) {
     return query
   }
 
-  // Format as multi-turn conversation, preserving thought signatures
-  const contents = history.map(msg => {
-    // If parts are provided, use them directly to preserve thought signatures
-    if (msg.parts && msg.parts.length > 0) {
-      return {
-        role: msg.role,
-        parts: msg.parts
+  const contents: Array<{ role: string; parts: ContentPart[] }> = []
+
+  // Format history as multi-turn conversation, preserving thought signatures
+  if (hasHistory) {
+    for (const msg of history) {
+      // If parts are provided, use them directly to preserve thought signatures
+      if (msg.parts && msg.parts.length > 0) {
+        contents.push({
+          role: msg.role,
+          parts: msg.parts
+        })
+      } else {
+        // Fallback to simple text content (backwards compatibility)
+        contents.push({
+          role: msg.role,
+          parts: [{ text: msg.content || '' }]
+        })
       }
     }
-    // Fallback to simple text content (backwards compatibility)
-    return {
-      role: msg.role,
-      parts: [{ text: msg.content || '' }]
-    }
-  })
+  }
 
-  // Add current query
+  // Build current user message parts
+  // Per Gemini docs: place media BEFORE text (order: images, videos, documents, audio, then text)
+  const userParts: ContentPart[] = []
+
+  // Add image parts first (if any)
+  if (hasImages) {
+    for (const img of images) {
+      userParts.push({
+        inlineData: {
+          mimeType: img.mimeType,
+          data: img.data
+        }
+      })
+    }
+  }
+
+  // Add video parts second (if any)
+  // Per https://ai.google.dev/gemini-api/docs/video-understanding
+  if (hasVideos) {
+    for (const vid of videos) {
+      if (vid.data && vid.mimeType) {
+        // Inline video (base64 data for videos < 20MB)
+        userParts.push({
+          inlineData: {
+            mimeType: vid.mimeType,
+            data: vid.data
+          }
+        })
+      } else if (vid.fileUri) {
+        // File API upload or YouTube URL
+        userParts.push({
+          fileData: {
+            fileUri: vid.fileUri,
+            mimeType: vid.mimeType
+          }
+        })
+      }
+    }
+  }
+
+  // Add document parts third (if any)
+  // Per https://ai.google.dev/gemini-api/docs/document-processing
+  if (hasDocuments) {
+    for (const doc of documents) {
+      if (doc.data && doc.mimeType) {
+        // Inline document (base64 data for documents <= 20MB)
+        userParts.push({
+          inlineData: {
+            mimeType: doc.mimeType,
+            data: doc.data
+          }
+        })
+      } else if (doc.fileUri) {
+        // File API upload for larger documents
+        userParts.push({
+          fileData: {
+            fileUri: doc.fileUri,
+            mimeType: doc.mimeType
+          }
+        })
+      }
+    }
+  }
+
+  // Add audio parts fourth (if any)
+  // Per https://ai.google.dev/gemini-api/docs/audio
+  if (hasAudios) {
+    for (const aud of audios) {
+      if (aud.data && aud.mimeType) {
+        // Inline audio (base64 data for audio <= 20MB)
+        userParts.push({
+          inlineData: {
+            mimeType: aud.mimeType,
+            data: aud.data
+          }
+        })
+      } else if (aud.fileUri) {
+        // File API upload for larger audio
+        userParts.push({
+          fileData: {
+            fileUri: aud.fileUri,
+            mimeType: aud.mimeType
+          }
+        })
+      }
+    }
+  }
+
+  // Add text query after media
+  userParts.push({ text: query })
+
   contents.push({
     role: 'user',
-    parts: [{ text: query }]
+    parts: userParts
   })
 
   return contents

@@ -3,7 +3,7 @@
 import * as React from 'react'
 import { useEffect, useState } from 'react'
 
-import { createClient } from '@/lib/supabase/client'
+import { createClient, isSupabaseConfigured } from '@/lib/supabase/client'
 
 // ============================================
 // useIsMobile
@@ -82,4 +82,37 @@ export const useCurrentUserName = () => {
   }, [])
 
   return name || '?'
+}
+
+// ============================================
+// useIsAuthenticated
+// ============================================
+
+/**
+ * Check if the current user is authenticated
+ * Returns true if user has an active session, false otherwise
+ * Safely returns false if Supabase is not configured
+ */
+export const useIsAuthenticated = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+
+  useEffect(() => {
+    // Skip if Supabase is not configured (default state is already false)
+    if (!isSupabaseConfigured()) {
+      return
+    }
+
+    const checkAuth = async () => {
+      try {
+        const { data } = await createClient().auth.getSession()
+        setIsAuthenticated(!!data.session?.user)
+      } catch {
+        setIsAuthenticated(false)
+      }
+    }
+
+    checkAuth()
+  }, [])
+
+  return isAuthenticated
 }

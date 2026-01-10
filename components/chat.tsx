@@ -6,6 +6,7 @@ import { useChat } from '@ai-sdk/react'
 import { ChatRequestOptions, DefaultChatTransport, UIMessage } from 'ai'
 import { toast } from 'sonner'
 
+import { AudioPart, DocumentPart, ImagePart, VideoPart } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 import { ChatMessages } from './chat-messages'
@@ -245,19 +246,182 @@ export function Chat({
   }
 
   const onSubmit = useCallback(
-    (e: React.FormEvent<HTMLFormElement>) => {
+    (
+      e: React.FormEvent<HTMLFormElement>,
+      images?: ImagePart[],
+      videos?: VideoPart[],
+      documents?: DocumentPart[],
+      audios?: AudioPart[]
+    ) => {
       e.preventDefault()
-      if (!input.trim()) return
+      const hasImages = images && images.length > 0
+      const hasVideos = videos && videos.length > 0
+      const hasDocuments = documents && documents.length > 0
+      const hasAudios = audios && audios.length > 0
+      if (
+        !input.trim() &&
+        !hasImages &&
+        !hasVideos &&
+        !hasDocuments &&
+        !hasAudios
+      )
+        return
 
-      sendMessage({ text: input })
+      // Build parts array with media first (per Gemini best practices)
+      // Order: images, then video, then documents, then audio, then text
+      // @see https://ai.google.dev/gemini-api/docs/image-understanding#tips-and-best-practices
+      // @see https://ai.google.dev/gemini-api/docs/video-understanding#tips-and-best-practices
+      // @see https://ai.google.dev/gemini-api/docs/document-processing#best-practices
+      // @see https://ai.google.dev/gemini-api/docs/audio
+      const parts: Array<
+        | { type: 'text'; text: string }
+        | { type: 'image'; mimeType: string; data: string }
+        | { type: 'video'; mimeType?: string; data?: string; fileUri?: string }
+        | {
+            type: 'document'
+            mimeType: string
+            data?: string
+            fileUri?: string
+          }
+        | { type: 'audio'; mimeType: string; data?: string; fileUri?: string }
+      > = []
+
+      // Add images first
+      if (hasImages) {
+        for (const img of images) {
+          parts.push({
+            type: 'image' as const,
+            mimeType: img.mimeType,
+            data: img.data
+          })
+        }
+      }
+
+      // Add videos second
+      if (hasVideos) {
+        for (const vid of videos) {
+          parts.push({
+            type: 'video' as const,
+            mimeType: vid.mimeType,
+            data: vid.data,
+            fileUri: vid.fileUri
+          })
+        }
+      }
+
+      // Add documents third
+      if (hasDocuments) {
+        for (const doc of documents) {
+          parts.push({
+            type: 'document' as const,
+            mimeType: doc.mimeType,
+            data: doc.data,
+            fileUri: doc.fileUri
+          })
+        }
+      }
+
+      // Add audio fourth
+      if (hasAudios) {
+        for (const aud of audios) {
+          parts.push({
+            type: 'audio' as const,
+            mimeType: aud.mimeType,
+            data: aud.data,
+            fileUri: aud.fileUri
+          })
+        }
+      }
+
+      // Add text last
+      if (input.trim()) {
+        parts.push({ type: 'text' as const, text: input })
+      }
+
+      // Cast to bypass AI SDK's strict type checking for custom media parts
+      sendMessage({ parts } as Parameters<typeof sendMessage>[0])
       setInput('')
     },
     [input, sendMessage]
   )
 
   const handleAppend = useCallback(
-    (msg: { role: string; content: string }) => {
-      sendMessage({ text: msg.content })
+    (msg: {
+      role: string
+      content: string
+      images?: ImagePart[]
+      videos?: VideoPart[]
+      documents?: DocumentPart[]
+      audios?: AudioPart[]
+    }) => {
+      // Build parts array with media first, then text
+      const parts: Array<
+        | { type: 'text'; text: string }
+        | { type: 'image'; mimeType: string; data: string }
+        | { type: 'video'; mimeType?: string; data?: string; fileUri?: string }
+        | {
+            type: 'document'
+            mimeType: string
+            data?: string
+            fileUri?: string
+          }
+        | { type: 'audio'; mimeType: string; data?: string; fileUri?: string }
+      > = []
+
+      // Add images first
+      if (msg.images && msg.images.length > 0) {
+        for (const img of msg.images) {
+          parts.push({
+            type: 'image' as const,
+            mimeType: img.mimeType,
+            data: img.data
+          })
+        }
+      }
+
+      // Add videos second
+      if (msg.videos && msg.videos.length > 0) {
+        for (const vid of msg.videos) {
+          parts.push({
+            type: 'video' as const,
+            mimeType: vid.mimeType,
+            data: vid.data,
+            fileUri: vid.fileUri
+          })
+        }
+      }
+
+      // Add documents third
+      if (msg.documents && msg.documents.length > 0) {
+        for (const doc of msg.documents) {
+          parts.push({
+            type: 'document' as const,
+            mimeType: doc.mimeType,
+            data: doc.data,
+            fileUri: doc.fileUri
+          })
+        }
+      }
+
+      // Add audio fourth
+      if (msg.audios && msg.audios.length > 0) {
+        for (const aud of msg.audios) {
+          parts.push({
+            type: 'audio' as const,
+            mimeType: aud.mimeType,
+            data: aud.data,
+            fileUri: aud.fileUri
+          })
+        }
+      }
+
+      // Add text last
+      if (msg.content) {
+        parts.push({ type: 'text' as const, text: msg.content })
+      }
+
+      // Cast to bypass AI SDK's strict type checking for custom media parts
+      sendMessage({ parts } as Parameters<typeof sendMessage>[0])
     },
     [sendMessage]
   )
@@ -294,6 +458,7 @@ export function Chat({
         scrollContainerRef={scrollContainerRef}
         researchMode={researchMode}
         onResearchModeChange={handleResearchModeChange}
+        chatId={id}
       />
     </div>
   )

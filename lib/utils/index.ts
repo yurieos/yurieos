@@ -171,25 +171,100 @@ export function convertToUIMessages(
       } else if (Array.isArray(message.content)) {
         for (const content of message.content) {
           if (content && typeof content === 'object' && 'type' in content) {
-            if (content.type === 'text' && 'text' in content) {
-              parts.push({ type: 'text', text: String(content.text || '') })
-            } else if (content.type === 'tool-call') {
-              // AI SDK v6 uses 'input' instead of 'args', support both for compatibility
-              if (
-                'toolCallId' in content &&
-                'toolName' in content &&
-                ('args' in content || 'input' in content)
-              ) {
-                // In v6, tool calls are represented as tool-invocation parts
-                const toolCallContent = content as ToolCallContent
-                const toolInput = toolCallContent.args || toolCallContent.input
-                parts.push({
-                  type: `tool-${toolCallContent.toolName}`,
-                  toolCallId: toolCallContent.toolCallId,
-                  state: 'call',
-                  input: toolInput
-                } as unknown as UIMessage['parts'][number])
-              }
+            const contentType = (content as { type: string }).type
+
+            switch (contentType) {
+              case 'text':
+                if ('text' in content) {
+                  parts.push({ type: 'text', text: String(content.text || '') })
+                }
+                break
+
+              case 'image':
+                // Reconstruct image parts from saved data
+                if ('mimeType' in content && 'data' in content) {
+                  parts.push({
+                    type: 'image',
+                    mimeType: String(content.mimeType),
+                    data: String(content.data)
+                  } as unknown as UIMessage['parts'][number])
+                }
+                break
+
+              case 'video':
+                // Reconstruct video parts from saved data
+                if ('data' in content || 'fileUri' in content) {
+                  const videoPart: Record<string, unknown> = { type: 'video' }
+                  if ('mimeType' in content)
+                    videoPart.mimeType = String(content.mimeType)
+                  if ('data' in content) videoPart.data = String(content.data)
+                  if ('fileUri' in content)
+                    videoPart.fileUri = String(content.fileUri)
+                  parts.push(videoPart as unknown as UIMessage['parts'][number])
+                }
+                break
+
+              case 'document':
+                // Reconstruct document parts from saved data
+                if (
+                  'mimeType' in content &&
+                  ('data' in content || 'fileUri' in content)
+                ) {
+                  const docPart: Record<string, unknown> = {
+                    type: 'document',
+                    mimeType: String(content.mimeType)
+                  }
+                  if ('data' in content) docPart.data = String(content.data)
+                  if ('fileUri' in content)
+                    docPart.fileUri = String(content.fileUri)
+                  if ('filename' in content)
+                    docPart.filename = String(content.filename)
+                  parts.push(docPart as unknown as UIMessage['parts'][number])
+                }
+                break
+
+              case 'audio':
+                // Reconstruct audio parts from saved data
+                if (
+                  'mimeType' in content &&
+                  ('data' in content || 'fileUri' in content)
+                ) {
+                  const audioPart: Record<string, unknown> = {
+                    type: 'audio',
+                    mimeType: String(content.mimeType)
+                  }
+                  if ('data' in content) audioPart.data = String(content.data)
+                  if ('fileUri' in content)
+                    audioPart.fileUri = String(content.fileUri)
+                  if ('filename' in content)
+                    audioPart.filename = String(content.filename)
+                  parts.push(audioPart as unknown as UIMessage['parts'][number])
+                }
+                break
+
+              case 'tool-call':
+                // AI SDK v6 uses 'input' instead of 'args', support both for compatibility
+                if (
+                  'toolCallId' in content &&
+                  'toolName' in content &&
+                  ('args' in content || 'input' in content)
+                ) {
+                  // In v6, tool calls are represented as tool-invocation parts
+                  const toolCallContent = content as ToolCallContent
+                  const toolInput =
+                    toolCallContent.args || toolCallContent.input
+                  parts.push({
+                    type: `tool-${toolCallContent.toolName}`,
+                    toolCallId: toolCallContent.toolCallId,
+                    state: 'call',
+                    input: toolInput
+                  } as unknown as UIMessage['parts'][number])
+                }
+                break
+
+              default:
+                // Skip unknown part types
+                break
             }
           }
         }

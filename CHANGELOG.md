@@ -6,6 +6,12 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **Imagine Feature**: AI image generation with Gemini Imagen 3 (`/api/imagine`)
+- **Multimodal Attachments**: Support for images, videos, audio, and documents in chat
+- **Your Stuff Page**: Gallery page (`/stuff`) for saved AI-generated images
+- **Function Calling**: Gemini function calling with calculator and datetime tools
+- **File Upload API**: `/api/attachments` for uploading files to Gemini Files API
+- **Supabase Migrations**: Database schema for user images and attachments storage
 - **Sidebar Icon Mode**: Desktop sidebar now collapses to icon-only mode (3rem) instead of hiding completely
 - **Sidebar Tooltips**: Menu buttons show tooltips when sidebar is collapsed
 - **Mobile Branding**: Bear emoji and "Yurie" text now visible in mobile header
@@ -20,6 +26,10 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- **Chat Panel**: Enhanced with attachment support, imagine modal, and multimodal input
+- **User Message**: Now displays image, video, audio, and document previews
+- **Gemini Agentic**: Extended to support multimodal content and function calling
+- **Streaming**: Added support for image generation and function call responses
 - **Sidebar Redesign**: Changed from `offcanvas` to `icon` collapsible mode for desktop
 - **Sidebar Background**: Now matches main page background color in both light and dark modes
 - **Header Width**: Adjusts for collapsed sidebar icon width on desktop

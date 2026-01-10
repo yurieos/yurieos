@@ -1,5 +1,18 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Increase body size limit for multimodal requests (images, videos, documents)
+  // Per Gemini docs: Supports up to 14 reference images for image generation
+  // @see https://ai.google.dev/gemini-api/docs/image-generation
+  // @see https://ai.google.dev/gemini-api/docs/image-understanding
+  experimental: {
+    // For Route Handlers (API routes) - handles large image/video uploads
+    proxyClientMaxBodySize: '50mb',
+    // For Server Actions
+    serverActions: {
+      bodySizeLimit: '50mb'
+    }
+  },
+
   images: {
     remotePatterns: [
       {

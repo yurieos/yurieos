@@ -10,6 +10,8 @@ import {
   GroundingSource,
   GroundingSupport,
   GroundingSupportItem,
+  UrlContextMetadata,
+  UrlMetadata,
   WebGroundingChunk
 } from './types'
 
@@ -55,6 +57,18 @@ export const GEMINI_3_PRO = 'gemini-3-pro-preview'
 
 /** Deep Research Agent - For comprehensive research tasks */
 export const DEEP_RESEARCH_MODEL = 'deep-research-pro-preview-12-2025'
+
+/** Gemini Image Flash (Nano Banana) - Fast, efficient image generation at 1024px
+ * Optimized for high-volume, low-latency tasks
+ * @see https://ai.google.dev/gemini-api/docs/image-generation
+ */
+export const GEMINI_IMAGE_FLASH = 'gemini-2.5-flash-image'
+
+/** Gemini Image Pro (Nano Banana Pro) - Professional asset production
+ * Features: 4K resolution, text rendering, thinking mode, up to 14 reference images
+ * @see https://ai.google.dev/gemini-api/docs/image-generation
+ */
+export const GEMINI_IMAGE_PRO = 'gemini-3-pro-image-preview'
 
 // ============================================
 // Citation Parsing
@@ -181,4 +195,118 @@ export async function processInputSafely(input: string): Promise<SafetyResult> {
   }
 
   return { blocked, violations, sanitizedInput }
+}
+
+// ============================================
+// URL Context - Utilities
+// @see https://ai.google.dev/gemini-api/docs/url-context
+// ============================================
+
+/**
+ * Maximum number of URLs per request
+ * @see https://ai.google.dev/gemini-api/docs/url-context#limitations
+ */
+export const MAX_URLS_PER_REQUEST = 20
+
+/**
+ * Maximum content size per URL in MB
+ * @see https://ai.google.dev/gemini-api/docs/url-context#limitations
+ */
+export const MAX_URL_CONTENT_SIZE_MB = 34
+
+/**
+ * Regex pattern to extract URLs from text
+ * Matches URLs with http/https protocol
+ */
+const URL_PATTERN =
+  /https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_+.~#?&/=]*)/gi
+
+/**
+ * Parse URL context metadata from Gemini response candidate
+ * @param candidate - The response candidate from Gemini API
+ * @returns Parsed URL context metadata or null if not present
+ * @see https://ai.google.dev/gemini-api/docs/url-context#understanding_the_response
+ */
+export function parseUrlContextMetadata(
+  candidate: GeminiCandidate | null
+): UrlContextMetadata | null {
+  const metadata = candidate?.urlContextMetadata
+
+  if (!metadata || !metadata.urlMetadata) {
+    return null
+  }
+
+  return metadata
+}
+
+/**
+ * Extract URLs from a query string
+ * Best practice: Provide direct URLs to the content you want the model to analyze
+ * @param query - The user query text
+ * @returns Array of extracted URLs
+ * @see https://ai.google.dev/gemini-api/docs/url-context#best_practices
+ */
+export function extractUrlsFromQuery(query: string): string[] {
+  const matches = query.match(URL_PATTERN)
+  if (!matches) {
+    return []
+  }
+
+  // Deduplicate and return unique URLs
+  return [...new Set(matches)]
+}
+
+/**
+ * Validate URL count against the limit
+ * @param urls - Array of URLs to validate
+ * @returns Validation result with any warning message
+ * @see https://ai.google.dev/gemini-api/docs/url-context#limitations
+ */
+export function validateUrlCount(urls: string[]): {
+  valid: boolean
+  count: number
+  warning?: string
+} {
+  const count = urls.length
+
+  if (count > MAX_URLS_PER_REQUEST) {
+    return {
+      valid: false,
+      count,
+      warning: `URL limit exceeded: ${count} URLs provided, maximum is ${MAX_URLS_PER_REQUEST}. Only the first ${MAX_URLS_PER_REQUEST} URLs will be processed.`
+    }
+  }
+
+  return { valid: true, count }
+}
+
+/**
+ * Get summary of URL retrieval results
+ * @param metadata - URL context metadata from response
+ * @returns Summary object with counts and details
+ */
+export function getUrlRetrievalSummary(metadata: UrlContextMetadata | null): {
+  total: number
+  successful: number
+  failed: number
+  unsafe: number
+  urls: Array<{ url: string; success: boolean; status: string }>
+} {
+  if (!metadata?.urlMetadata) {
+    return { total: 0, successful: 0, failed: 0, unsafe: 0, urls: [] }
+  }
+
+  const urls = metadata.urlMetadata.map((m: UrlMetadata) => ({
+    url: m.retrievedUrl,
+    success: m.urlRetrievalStatus === 'URL_RETRIEVAL_STATUS_SUCCESS',
+    status: m.urlRetrievalStatus
+  }))
+
+  return {
+    total: urls.length,
+    successful: urls.filter(u => u.success).length,
+    failed: urls.filter(u => u.status === 'URL_RETRIEVAL_STATUS_ERROR').length,
+    unsafe: urls.filter(u => u.status === 'URL_RETRIEVAL_STATUS_UNSAFE').length,
+    urls
+  }
 }
