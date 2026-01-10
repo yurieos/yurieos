@@ -31,10 +31,7 @@ export async function GET(
 
     if (!result.success) {
       const status = result.error === 'Attachment not found' ? 404 : 400
-      return NextResponse.json(
-        { error: result.error },
-        { status }
-      )
+      return NextResponse.json({ error: result.error }, { status })
     }
 
     return NextResponse.json({

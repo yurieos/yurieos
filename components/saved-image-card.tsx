@@ -131,7 +131,9 @@ export const SavedImageCard = memo(function SavedImageCard({
 
           {/* Actions */}
           <div className="flex items-center justify-between">
-            <span className="text-card-foreground/70 text-[10px]">{formattedDate}</span>
+            <span className="text-card-foreground/70 text-[10px]">
+              {formattedDate}
+            </span>
             <div className="flex gap-1" onClick={e => e.stopPropagation()}>
               <Button
                 type="button"

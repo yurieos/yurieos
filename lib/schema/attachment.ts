@@ -19,12 +19,7 @@ import {
 // ============================================
 
 /** Attachment type categories */
-export const ATTACHMENT_TYPES = [
-  'image',
-  'video',
-  'document',
-  'audio'
-] as const
+export const ATTACHMENT_TYPES = ['image', 'video', 'document', 'audio'] as const
 
 export type AttachmentType = (typeof ATTACHMENT_TYPES)[number]
 
@@ -49,17 +44,35 @@ export const STORAGE_BUCKET = 'user-attachments'
 /**
  * Get attachment type from MIME type
  */
-export function getAttachmentTypeFromMime(mimeType: string): AttachmentType | null {
-  if (SUPPORTED_IMAGE_TYPES.includes(mimeType as (typeof SUPPORTED_IMAGE_TYPES)[number])) {
+export function getAttachmentTypeFromMime(
+  mimeType: string
+): AttachmentType | null {
+  if (
+    SUPPORTED_IMAGE_TYPES.includes(
+      mimeType as (typeof SUPPORTED_IMAGE_TYPES)[number]
+    )
+  ) {
     return 'image'
   }
-  if (SUPPORTED_VIDEO_TYPES.includes(mimeType as (typeof SUPPORTED_VIDEO_TYPES)[number])) {
+  if (
+    SUPPORTED_VIDEO_TYPES.includes(
+      mimeType as (typeof SUPPORTED_VIDEO_TYPES)[number]
+    )
+  ) {
     return 'video'
   }
-  if (SUPPORTED_DOCUMENT_TYPES.includes(mimeType as (typeof SUPPORTED_DOCUMENT_TYPES)[number])) {
+  if (
+    SUPPORTED_DOCUMENT_TYPES.includes(
+      mimeType as (typeof SUPPORTED_DOCUMENT_TYPES)[number]
+    )
+  ) {
     return 'document'
   }
-  if (SUPPORTED_AUDIO_TYPES.includes(mimeType as (typeof SUPPORTED_AUDIO_TYPES)[number])) {
+  if (
+    SUPPORTED_AUDIO_TYPES.includes(
+      mimeType as (typeof SUPPORTED_AUDIO_TYPES)[number]
+    )
+  ) {
     return 'audio'
   }
   return null
@@ -115,7 +128,10 @@ export function isSupportedMimeType(mimeType: string): boolean {
 /**
  * Validate file size against limit for attachment type
  */
-export function isFileSizeValid(size: number, attachmentType: AttachmentType): boolean {
+export function isFileSizeValid(
+  size: number,
+  attachmentType: AttachmentType
+): boolean {
   return size <= FILE_SIZE_LIMITS[attachmentType]
 }
 

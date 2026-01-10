@@ -65,7 +65,9 @@ export default function AppSidebar() {
           className="flex items-center gap-2 h-8 px-2 rounded-md transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:!size-8 group-data-[collapsible=icon]:!p-2 group-data-[collapsible=icon]:justify-center"
         >
           <span className="text-base leading-none">🧸</span>
-          <span className="text-sm group-data-[collapsible=icon]:hidden">Yurie</span>
+          <span className="text-sm group-data-[collapsible=icon]:hidden">
+            Yurie
+          </span>
         </Link>
         <SidebarTrigger className="size-8 group-data-[collapsible=icon]:hidden" />
       </SidebarHeader>

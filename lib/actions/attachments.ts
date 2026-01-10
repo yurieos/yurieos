@@ -101,7 +101,12 @@ export async function uploadAttachment(
 
     // Generate unique ID and storage path
     const attachmentId = crypto.randomUUID()
-    const storagePath = generateStoragePath(user.id, chatId, attachmentId, mimeType)
+    const storagePath = generateStoragePath(
+      user.id,
+      chatId,
+      attachmentId,
+      mimeType
+    )
 
     // Upload to Supabase Storage
     const { error: uploadError } = await supabase.storage
@@ -117,17 +122,19 @@ export async function uploadAttachment(
     }
 
     // Save metadata to database
-    const { error: insertError } = await supabase.from('user_attachments').insert({
-      id: attachmentId,
-      user_id: user.id,
-      chat_id: chatId,
-      message_id: messageId,
-      storage_path: storagePath,
-      filename: filename || null,
-      mime_type: mimeType,
-      file_size: fileSize,
-      attachment_type: attachmentType
-    })
+    const { error: insertError } = await supabase
+      .from('user_attachments')
+      .insert({
+        id: attachmentId,
+        user_id: user.id,
+        chat_id: chatId,
+        message_id: messageId,
+        storage_path: storagePath,
+        filename: filename || null,
+        mime_type: mimeType,
+        file_size: fileSize,
+        attachment_type: attachmentType
+      })
 
     if (insertError) {
       console.error('Database insert error:', insertError)

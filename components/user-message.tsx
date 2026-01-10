@@ -134,9 +134,7 @@ function ImageDisplay({
   const { url, isLoading, error } = useAttachmentUrl(image.attachmentId)
 
   // Determine the source URL
-  const src = image.data
-    ? `data:${image.mimeType};base64,${image.data}`
-    : url
+  const src = image.data ? `data:${image.mimeType};base64,${image.data}` : url
 
   if (isLoading) {
     return (
