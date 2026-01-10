@@ -36,9 +36,9 @@ export const Header: React.FC<HeaderProps> = ({ user }) => {
         'w-full'
       )}
     >
-      {/* Sidebar trigger for mobile or when sidebar is closed */}
+      {/* Sidebar trigger for mobile only */}
       <div className="flex items-center gap-1">
-        {(isMobile || !open) && <SidebarTrigger className="size-8" />}
+        {isMobile && <SidebarTrigger className="size-8" />}
         {isMobile && (
           <Link
             href="/"

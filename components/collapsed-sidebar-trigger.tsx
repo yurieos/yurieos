@@ -1,0 +1,31 @@
+'use client'
+
+import Link from 'next/link'
+
+import { PanelLeft } from 'lucide-react'
+
+import { useSidebar } from '@/components/ui/sidebar'
+
+export function CollapsedSidebarTrigger() {
+  const { toggleSidebar } = useSidebar()
+
+  return (
+    <div className="group/trigger relative hidden group-data-[collapsible=icon]:flex items-center justify-center size-8">
+      {/* Bear emoji - visible by default, hidden on hover */}
+      <Link
+        href="/"
+        className="flex items-center justify-center size-8 rounded-md transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground group-hover/trigger:opacity-0 group-hover/trigger:pointer-events-none"
+      >
+        <span className="text-base leading-none">🧸</span>
+      </Link>
+      {/* Sidebar toggle icon - hidden by default, visible on hover */}
+      <button
+        onClick={toggleSidebar}
+        className="absolute inset-0 flex items-center justify-center size-8 rounded-md transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground opacity-0 group-hover/trigger:opacity-100"
+        aria-label="Toggle Sidebar"
+      >
+        <PanelLeft size={18} />
+      </button>
+    </div>
+  )
+}

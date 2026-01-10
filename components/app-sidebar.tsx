@@ -21,6 +21,7 @@ import {
   ChatHistoryClient,
   ChatHistorySkeleton
 } from './sidebar/chat-history-client'
+import { CollapsedSidebarTrigger } from './collapsed-sidebar-trigger'
 import { NewChatButton } from './new-chat-button'
 import { SearchChatsButton } from './search-chats-button'
 
@@ -60,15 +61,16 @@ export default function AppSidebar() {
   return (
     <Sidebar side="left" variant="sidebar" collapsible="icon">
       <SidebarHeader className="flex flex-row justify-between items-center">
+        {/* Expanded state: show full link with text */}
         <Link
           href="/"
-          className="flex items-center gap-2 h-8 px-2 rounded-md transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:!size-8 group-data-[collapsible=icon]:!p-2 group-data-[collapsible=icon]:justify-center"
+          className="flex items-center gap-2 h-8 px-2 rounded-md transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:hidden"
         >
           <span className="text-base leading-none">🧸</span>
-          <span className="text-sm group-data-[collapsible=icon]:hidden">
-            Yurie
-          </span>
+          <span className="text-sm">Yurie</span>
         </Link>
+        {/* Collapsed state: bear emoji that reveals sidebar toggle on hover */}
+        <CollapsedSidebarTrigger />
         <SidebarTrigger className="size-8 group-data-[collapsible=icon]:hidden" />
       </SidebarHeader>
       <SidebarContent className="flex flex-col px-2 pt-1 pb-4 h-full">
