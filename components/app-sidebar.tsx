@@ -69,7 +69,7 @@ export default function AppSidebar() {
         </Link>
         <SidebarTrigger className="size-8 group-data-[collapsible=icon]:hidden" />
       </SidebarHeader>
-      <SidebarContent className="flex flex-col pl-2 pr-0 pt-1 pb-4 h-full">
+      <SidebarContent className="flex flex-col px-2 pt-1 pb-4 h-full">
         <SidebarMenu>
           <SidebarMenuItem>
             <NewChatButton variant="sidebar" />
