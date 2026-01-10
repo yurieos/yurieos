@@ -6,6 +6,9 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **Sidebar Icon Mode**: Desktop sidebar now collapses to icon-only mode (3rem) instead of hiding completely
+- **Sidebar Tooltips**: Menu buttons show tooltips when sidebar is collapsed
+- **Mobile Branding**: Bear emoji and "Yurie" text now visible in mobile header
 - **Legal Pages**: Privacy Policy (`/privacy`) and Terms of Service (`/terms`) for Google OAuth verification
 - **Search Chats Command**: `⌘K` / `Ctrl+K` to search through chat history with grouped results (Today, Yesterday, Previous 7 Days, Older)
 - **Keyboard Shortcuts**: `⌘O` / `Ctrl+O` for new chat, `⌘K` / `Ctrl+K` for search
@@ -17,6 +20,9 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- **Sidebar Redesign**: Changed from `offcanvas` to `icon` collapsible mode for desktop
+- **Sidebar Background**: Now matches main page background color in both light and dark modes
+- **Header Width**: Adjusts for collapsed sidebar icon width on desktop
 - **Production Domain**: Updated `metadataBase` to `https://www.yurie.ai`
 - **Gemini Module Refactored**: Renamed `research.ts` → `agentic.ts`, consolidated citations and safety into `core.ts`
 - **Thinking Level Default**: Gemini 3 Flash now defaults to `medium` thinking (was `minimal`)

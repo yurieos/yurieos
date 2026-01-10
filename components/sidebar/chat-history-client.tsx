@@ -109,7 +109,7 @@ export function ChatHistoryClient() {
         </div>
       </SidebarGroup>
       {!isCollapsed && (
-        <div className="flex-1 overflow-y-auto mb-2 relative scrollbar-thin pr-2">
+        <div className="flex-1 overflow-y-auto mb-2 relative scrollbar-thin">
           <SidebarMenu>
             {chats.map(
               chat => chat && <ChatMenuItem key={chat.id} chat={chat} />

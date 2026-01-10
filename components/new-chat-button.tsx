@@ -72,7 +72,7 @@ export function NewChatButton({ variant, className }: NewChatButtonProps) {
 
   // Sidebar variant
   return (
-    <SidebarMenuButton asChild>
+    <SidebarMenuButton asChild tooltip="New chat">
       <button
         onClick={handleNewChat}
         className={cn('group/btn flex items-center gap-2 w-full', className)}

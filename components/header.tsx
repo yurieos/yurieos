@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 import { User } from '@supabase/supabase-js'
@@ -29,13 +30,24 @@ export const Header: React.FC<HeaderProps> = ({ user }) => {
     <header
       className={cn(
         'absolute top-0 right-0 p-2 flex justify-between items-center z-10 backdrop-blur bg-background/80 transition-[width] duration-200 ease-linear',
-        open ? 'md:w-[calc(100%-var(--sidebar-width))]' : 'md:w-full',
+        open
+          ? 'md:w-[calc(100%-var(--sidebar-width))]'
+          : 'md:w-[calc(100%-var(--sidebar-width-icon))]',
         'w-full'
       )}
     >
       {/* Sidebar trigger for mobile or when sidebar is closed */}
-      <div className="flex items-center gap-[3px]">
+      <div className="flex items-center gap-1">
         {(isMobile || !open) && <SidebarTrigger className="size-8" />}
+        {isMobile && (
+          <Link
+            href="/"
+            className="flex items-center gap-2 h-8 px-2 rounded-md transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+          >
+            <span className="text-base leading-none">🧸</span>
+            <span className="text-sm">Yurie</span>
+          </Link>
+        )}
         {isOnChatPage && <ModelSelector />}
         {showNewChatButton && <NewChatButton variant="header" />}
       </div>
