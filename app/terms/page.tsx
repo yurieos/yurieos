@@ -17,8 +17,8 @@ export default function TermsOfServicePage() {
             href="/"
             className="inline-flex items-center gap-2 text-muted-foreground/70 hover:text-foreground transition-colors mb-8"
           >
-            <span className="text-2xl">🧸</span>
-            <span className="text-sm font-medium">Yurie</span>
+            <span className="text-xl">🧸</span>
+            <span className="text-xl font-medium">Yurie</span>
           </Link>
           <h1 className="text-3xl font-semibold tracking-tight mb-2">
             Terms of Service

@@ -22,7 +22,8 @@ export const Header: React.FC<HeaderProps> = ({ user }) => {
   const { open, isMobile } = useSidebar()
   const pathname = usePathname()
 
-  const isOnChatPage = pathname !== '/'
+  const isOnChatPage = pathname === '/' || pathname.startsWith('/search')
+  const showNewChatButton = pathname !== '/' && pathname.startsWith('/search')
 
   return (
     <header
@@ -32,11 +33,11 @@ export const Header: React.FC<HeaderProps> = ({ user }) => {
         'w-full'
       )}
     >
-      {/* Sidebar trigger for mobile or when sidebar is closed, plus model selector */}
+      {/* Sidebar trigger for mobile or when sidebar is closed */}
       <div className="flex items-center gap-[3px]">
         {(isMobile || !open) && <SidebarTrigger className="size-8" />}
-        <ModelSelector />
-        {isOnChatPage && <NewChatButton variant="header" />}
+        {isOnChatPage && <ModelSelector />}
+        {showNewChatButton && <NewChatButton variant="header" />}
       </div>
 
       {user ? <UserMenu user={user} /> : <GuestMenu />}

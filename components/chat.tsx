@@ -10,7 +10,6 @@ import { cn } from '@/lib/utils'
 
 import { ChatMessages } from './chat-messages'
 import { ChatPanel } from './chat-panel'
-import { Footer } from './footer'
 
 // Define section structure
 interface ChatSection {
@@ -296,7 +295,6 @@ export function Chat({
         researchMode={researchMode}
         onResearchModeChange={handleResearchModeChange}
       />
-      {messages.length === 0 ? <Footer /> : null}
     </div>
   )
 }
