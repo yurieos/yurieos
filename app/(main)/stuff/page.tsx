@@ -9,7 +9,7 @@ import { StuffGallery } from './stuff-gallery'
 
 export const metadata = {
   title: 'Your Stuff - Yurie',
-  description: 'View and manage your saved AI-generated images'
+  description: 'View and manage your saved AI-generated images and videos'
 }
 
 export default async function StuffPage() {
@@ -19,7 +19,7 @@ export default async function StuffPage() {
     return (
       <NotAvailable
         feature="Your Stuff"
-        description="Image storage requires Supabase to be configured. Please set up your environment variables."
+        description="Media storage requires Supabase to be configured. Please set up your environment variables."
         icon={FolderHeart}
       />
     )
@@ -28,7 +28,7 @@ export default async function StuffPage() {
   return (
     <PageLayout
       title="Your Stuff"
-      description="Your saved AI-generated images"
+      description="Your saved AI-generated images and videos"
       maxWidth="7xl"
     >
       <StuffGallery />
