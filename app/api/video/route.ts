@@ -31,9 +31,9 @@ import {
   VideoGenerationRequestSchema
 } from '@/lib/schema/video'
 
-// Extended timeout for video generation (10 minutes)
-// Per docs: Max latency is 6 minutes during peak hours
-export const maxDuration = 600
+// Extended timeout for video generation (5 minutes - Vercel hobby plan max)
+// Note: Video generation can take up to 6 minutes during peak hours
+export const maxDuration = 300
 
 // ============================================
 // API Route Handler
