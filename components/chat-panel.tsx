@@ -7,7 +7,6 @@ import { UIMessage } from 'ai'
 import {
   ChevronDown,
   CornerRightUp,
-  Image,
   Loader2,
   Paperclip,
   Square,
@@ -52,7 +51,6 @@ import { AudioPreview } from './audio-preview'
 import type { ResearchMode } from './chat'
 import { DocumentPreview } from './document-preview'
 import { EmptyScreen } from './empty-screen'
-import { ImagineModal } from './imagine-modal'
 import { VideoPreview } from './video-preview'
 
 /** All supported file types for the unified file input */
@@ -185,36 +183,6 @@ function DeepResearchToggle({
   )
 }
 
-// Imagine Button Component
-// Opens the Nano Banana image generation modal
-// @see https://ai.google.dev/gemini-api/docs/image-generation
-function ImagineButton({
-  disabled = false,
-  onOpenModal
-}: {
-  disabled?: boolean
-  onOpenModal: () => void
-}) {
-  return (
-    <button
-      type="button"
-      disabled={disabled}
-      onClick={onOpenModal}
-      className={cn(
-        'inline-flex items-center justify-center gap-1.5 h-8 px-2.5 rounded-lg',
-        'text-xs font-medium transition-colors duration-200',
-        'border border-input bg-background',
-        'focus:outline-none focus-visible:ring-1 focus-visible:ring-ring',
-        'disabled:pointer-events-none disabled:opacity-50',
-        'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-      )}
-    >
-      <Image size={14} />
-      <span>Imagine</span>
-    </button>
-  )
-}
-
 interface ChatPanelProps {
   input: string
   handleInputChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
@@ -279,7 +247,6 @@ export function ChatPanel({
     useState<DocumentAttachment | null>(null)
   const [audioAttachment, setAudioAttachment] =
     useState<AudioAttachment | null>(null)
-  const [isImagineModalOpen, setIsImagineModalOpen] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const fullName = useCurrentUserName()
   const firstName = fullName.split(' ')[0]
@@ -908,10 +875,6 @@ export function ChatPanel({
                 onToggle={toggleResearchMode}
                 disabled={isLoading || isToolInvocationInProgress()}
               />
-              <ImagineButton
-                disabled={isLoading || isToolInvocationInProgress()}
-                onOpenModal={() => setIsImagineModalOpen(true)}
-              />
             </div>
             <div className="flex items-center gap-2">
               <Button
@@ -953,28 +916,6 @@ export function ChatPanel({
           />
         )}
       </form>
-
-      {/* Imagine Modal for AI Image Generation */}
-      <ImagineModal
-        open={isImagineModalOpen}
-        onOpenChange={setIsImagineModalOpen}
-        isAuthenticated={isAuthenticated}
-        onImageGenerated={(imageData, mimeType) => {
-          // Add the generated image as an attachment
-          const attachment: ImageAttachment = {
-            id: `gen-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
-            file: new File(
-              [Uint8Array.from(atob(imageData), c => c.charCodeAt(0))],
-              `generated-image-${Date.now()}.${mimeType.split('/')[1]}`,
-              { type: mimeType }
-            ),
-            previewUrl: `data:${mimeType};base64,${imageData}`,
-            mimeType: mimeType as SupportedImageType,
-            base64: imageData
-          }
-          setAttachments(prev => [...prev, attachment])
-        }}
-      />
     </div>
   )
 }

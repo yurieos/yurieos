@@ -13,7 +13,6 @@ import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar'
 import GuestMenu from './guest-menu'
 import { ModelSelector } from './model-selector'
 import { NewChatButton } from './new-chat-button'
-import UserMenu from './user-menu'
 
 interface HeaderProps {
   user: User | null
@@ -29,7 +28,7 @@ export const Header: React.FC<HeaderProps> = ({ user }) => {
   return (
     <header
       className={cn(
-        'absolute top-0 right-0 p-2 flex justify-between items-center z-10 backdrop-blur bg-background/80 transition-[width] duration-200 ease-linear',
+        'absolute top-0 right-0 p-2 flex justify-between items-center z-10 bg-background transition-[width] duration-200 ease-linear',
         open
           ? 'md:w-[calc(100%-var(--sidebar-width))]'
           : 'md:w-[calc(100%-var(--sidebar-width-icon))]',
@@ -52,7 +51,8 @@ export const Header: React.FC<HeaderProps> = ({ user }) => {
         {showNewChatButton && <NewChatButton variant="header" />}
       </div>
 
-      {user ? <UserMenu user={user} /> : <GuestMenu />}
+      {/* Guest menu for non-logged in users (logged in users have avatar in sidebar) */}
+      {!user && <GuestMenu />}
     </header>
   )
 }

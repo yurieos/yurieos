@@ -59,7 +59,7 @@ export function NewChatButton({ variant, className }: NewChatButtonProps) {
               className={cn('size-8 p-0', className)}
               aria-label="New chat"
             >
-              <Plus size={18} />
+              <Plus className="size-4" />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="bottom">
@@ -77,7 +77,7 @@ export function NewChatButton({ variant, className }: NewChatButtonProps) {
         onClick={handleNewChat}
         className={cn('group/btn flex items-center gap-2 w-full', className)}
       >
-        <Plus size={18} />
+        <Plus className="size-4" />
         <span className="flex-1">New chat</span>
         <kbd className="pointer-events-none inline-flex items-center gap-0.5 text-sm font-medium text-muted-foreground opacity-0 group-hover/btn:opacity-100 transition-opacity">
           <span className="text-base">⌘</span>

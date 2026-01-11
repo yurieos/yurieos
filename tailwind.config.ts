@@ -3,7 +3,11 @@ const { fontFamily } = require('tailwindcss/defaultTheme')
 
 const config = {
   darkMode: ['class'],
-  content: ['./components/**/*.{ts,tsx}', './app/**/*.{ts,tsx}'],
+  content: [
+    './components/**/*.{ts,tsx}',
+    './app/**/*.{ts,tsx}',
+    './node_modules/@blocknote/shadcn/dist/**/*.js'
+  ],
   prefix: '',
   theme: {
     container: {

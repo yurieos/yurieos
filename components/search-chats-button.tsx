@@ -105,7 +105,7 @@ export function SearchChatsButton() {
         className="group/btn"
         tooltip="Search chats"
       >
-        <Search size={18} />
+        <Search className="size-4" />
         <span className="flex-1">Search chats</span>
         <kbd className="pointer-events-none inline-flex items-center gap-0.5 text-sm font-medium text-muted-foreground opacity-0 group-hover/btn:opacity-100 transition-opacity">
           <span className="text-base">⌘</span>

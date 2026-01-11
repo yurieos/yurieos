@@ -24,7 +24,7 @@ export default async function MainLayout({
 
   return (
     <SidebarProvider defaultOpen>
-      <AppSidebar />
+      <AppSidebar user={user} />
       <div className="flex flex-col flex-1 min-w-0 overflow-x-hidden">
         <Header user={user} />
         <main className="flex flex-1 min-h-0 min-w-0 overflow-x-hidden">

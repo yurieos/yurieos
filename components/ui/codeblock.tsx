@@ -6,9 +6,14 @@
 import { FC, memo } from 'react'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { coldarkDark } from 'react-syntax-highlighter/dist/cjs/styles/prism'
+import { useTheme } from 'next-themes'
 
 import { generateId } from 'ai'
 import { Check, Copy, Download } from 'lucide-react'
+
+import { cn } from '@/lib/utils'
+import { programmingLanguages } from '@/lib/utils/programming-languages'
+import { vintagePaperLight } from '@/lib/utils/syntax-themes'
 
 import { useCopyToClipboard } from '@/hooks'
 
@@ -19,39 +24,11 @@ interface Props {
   value: string
 }
 
-interface languageMap {
-  [key: string]: string | undefined
-}
-
-export const programmingLanguages: languageMap = {
-  javascript: '.js',
-  python: '.py',
-  java: '.java',
-  c: '.c',
-  cpp: '.cpp',
-  'c++': '.cpp',
-  'c#': '.cs',
-  ruby: '.rb',
-  php: '.php',
-  swift: '.swift',
-  'objective-c': '.m',
-  kotlin: '.kt',
-  typescript: '.ts',
-  go: '.go',
-  perl: '.pl',
-  rust: '.rs',
-  scala: '.scala',
-  haskell: '.hs',
-  lua: '.lua',
-  shell: '.sh',
-  sql: '.sql',
-  html: '.html',
-  css: '.css'
-  // add more file extensions here, make sure the key is same as language prop in CodeBlock.tsx component
-}
-
 const CodeBlock: FC<Props> = memo(({ language, value }) => {
   const { isCopied, copyToClipboard } = useCopyToClipboard({ timeout: 2000 })
+  const { resolvedTheme } = useTheme()
+  const isDark = resolvedTheme === 'dark'
+  const syntaxTheme = isDark ? coldarkDark : vintagePaperLight
 
   const downloadAsFile = () => {
     if (typeof window === 'undefined') {
@@ -85,10 +62,22 @@ const CodeBlock: FC<Props> = memo(({ language, value }) => {
 
   return (
     <div
-      className="relative w-full max-w-full font-mono codeblock bg-card border border-border rounded-lg"
+      className={cn(
+        'relative w-full max-w-full font-mono codeblock rounded-lg',
+        isDark
+          ? 'bg-card border border-border'
+          : 'bg-[#f5f0e6] border border-[#d9d0c3]'
+      )}
       style={{ maxWidth: 'calc(100vw - 2rem)' }}
     >
-      <div className="flex items-center justify-between w-full px-4 py-1 pr-1 bg-muted text-muted-foreground">
+      <div
+        className={cn(
+          'flex items-center justify-between w-full px-4 py-1 pr-1',
+          isDark
+            ? 'bg-muted text-muted-foreground'
+            : 'bg-[#e8e0d4] text-[#6b5d4d]'
+        )}
+      >
         <span className="text-xs lowercase truncate">{language}</span>
         <div className="flex items-center space-x-1 flex-shrink-0">
           <Button
@@ -115,10 +104,12 @@ const CodeBlock: FC<Props> = memo(({ language, value }) => {
           </Button>
         </div>
       </div>
-      <div className="overflow-x-auto">
+      <div
+        className={cn('overflow-x-auto', isDark ? 'bg-card' : 'bg-[#f5f0e6]')}
+      >
         <SyntaxHighlighter
           language={language}
-          style={coldarkDark}
+          style={syntaxTheme}
           PreTag="div"
           showLineNumbers
           customStyle={{
@@ -130,7 +121,8 @@ const CodeBlock: FC<Props> = memo(({ language, value }) => {
           lineNumberStyle={{
             userSelect: 'none',
             minWidth: '2em',
-            paddingRight: '0.5em'
+            paddingRight: '0.5em',
+            color: isDark ? '#6b5d4d' : '#b8a892'
           }}
           codeTagProps={{
             style: {

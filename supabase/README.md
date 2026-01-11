@@ -1,6 +1,6 @@
-# Supabase Setup for Your Stuff Feature
+# Supabase Setup
 
-This directory contains SQL migrations for the "Your Stuff" image storage feature.
+This directory contains SQL migrations for Yurie's database features.
 
 ## Prerequisites
 
@@ -16,11 +16,19 @@ This directory contains SQL migrations for the "Your Stuff" image storage featur
 Go to **Supabase Dashboard > SQL Editor** and run the migrations in order:
 
 1. `migrations/001_user_images.sql` - Creates the `user_images` table with RLS policies
-2. `migrations/002_user_images_storage.sql` - Creates storage policies
+2. `migrations/002_user_images_storage.sql` - Creates storage policies for images
+3. `migrations/004_user_attachments.sql` - Creates the `user_attachments` table
+4. `migrations/005_user_attachments_storage.sql` - Creates storage policies for attachments
+5. `migrations/006_notes.sql` - Creates notes tables (`notes`, `note_blocks`, etc.)
+6. `migrations/007_notes_storage.sql` - Creates storage policies for note attachments
+7. `migrations/008_notes_folders.sql` - Adds folder support to notes
+8. `migrations/009_fix_function_search_path.sql` - Security fix for database functions
 
-### 2. Create Storage Bucket
+### 2. Create Storage Buckets
 
-Go to **Supabase Dashboard > Storage** and create a new bucket:
+Go to **Supabase Dashboard > Storage** and create the following buckets:
+
+#### user-images bucket
 
 | Setting            | Value                                   |
 | ------------------ | --------------------------------------- |
@@ -29,9 +37,27 @@ Go to **Supabase Dashboard > Storage** and create a new bucket:
 | Allowed MIME types | `image/png`, `image/jpeg`, `image/webp` |
 | Max file size      | 5MB                                     |
 
+#### user-attachments bucket
+
+| Setting            | Value                                                        |
+| ------------------ | ------------------------------------------------------------ |
+| Name               | `user-attachments`                                           |
+| Public             | No (private)                                                 |
+| Allowed MIME types | `image/*`, `application/pdf`, `text/*`, `video/*`, `audio/*` |
+| Max file size      | 10MB                                                         |
+
+#### note-attachments bucket
+
+| Setting            | Value                                                        |
+| ------------------ | ------------------------------------------------------------ |
+| Name               | `note-attachments`                                           |
+| Public             | No (private)                                                 |
+| Allowed MIME types | `image/*`, `application/pdf`, `text/*`, `video/*`, `audio/*` |
+| Max file size      | 10MB                                                         |
+
 ### 3. Apply Storage Policies
 
-After creating the bucket, go to **Storage > user-images > Policies** and apply the policies from `migrations/002_user_images_storage.sql`.
+After creating buckets, go to **Storage > [bucket-name] > Policies** and apply the policies from the corresponding storage migration files.
 
 ## Schema Overview
 
@@ -48,11 +74,34 @@ After creating the bucket, go to **Storage > user-images > Policies** and apply 
 | `mime_type`    | TEXT        | MIME type (default: "image/png")    |
 | `created_at`   | TIMESTAMPTZ | Creation timestamp                  |
 
-### Storage Structure
+### Table: `notes`
 
-Images are stored at: `user-images/{user_id}/{image_id}.{extension}`
+| Column        | Type        | Description                 |
+| ------------- | ----------- | --------------------------- |
+| `id`          | UUID        | Primary key                 |
+| `user_id`     | UUID        | Foreign key to `auth.users` |
+| `parent_id`   | UUID        | Parent note (for hierarchy) |
+| `title`       | TEXT        | Note title                  |
+| `icon`        | TEXT        | Emoji or icon identifier    |
+| `cover_image` | TEXT        | Storage path for cover      |
+| `is_favorite` | BOOLEAN     | Favorited by user           |
+| `is_archived` | BOOLEAN     | Soft-deleted                |
+| `is_folder`   | BOOLEAN     | Is a folder (not a note)    |
+| `position`    | INTEGER     | Order among siblings        |
+| `created_at`  | TIMESTAMPTZ | Creation timestamp          |
+| `updated_at`  | TIMESTAMPTZ | Last update timestamp       |
 
-Example: `user-images/abc123-def456/img789.png`
+### Table: `note_blocks`
+
+| Column       | Type        | Description                           |
+| ------------ | ----------- | ------------------------------------- |
+| `id`         | UUID        | Primary key                           |
+| `note_id`    | UUID        | Foreign key to `notes`                |
+| `type`       | TEXT        | Block type (paragraph, heading, etc.) |
+| `content`    | JSONB       | Block content                         |
+| `position`   | INTEGER     | Order within note                     |
+| `created_at` | TIMESTAMPTZ | Creation timestamp                    |
+| `updated_at` | TIMESTAMPTZ | Last update timestamp                 |
 
 ## Security
 

@@ -20,19 +20,26 @@ bun format:check  # Check formatting
 - **Next.js 16.1** with App Router and React 19
 - **Google GenAI SDK** - Gemini API client
 - **Vercel AI SDK 6.0** - Streaming primitives
-- **Supabase** - Authentication (optional)
+- **Supabase** - Authentication + Storage (optional)
 - **Upstash Redis** - Chat history (optional)
+- **BlockNote** - Rich text editor for Notes
 - **Tailwind CSS + shadcn/ui** - Styling
 
 ### Core Structure
 
 ```
 app/
+├── (main)/           # Main app routes (with sidebar)
+│   ├── imagine/      # AI image generation
+│   ├── notes/        # Notes feature (Apple Notes style)
+│   ├── search/       # Chat conversation pages
+│   └── stuff/        # User's saved images
 ├── (legal)/          # Legal pages (Privacy Policy, Terms of Service)
-├── api/chat/         # Main chat API (Gemini)
-├── api/health/       # Health check endpoint
-├── auth/             # Authentication pages
-└── search/           # Chat conversation pages
+├── api/
+│   ├── chat/         # Main chat API (Gemini)
+│   ├── health/       # Health check endpoint
+│   └── notes/        # Notes CRUD API
+└── auth/             # Authentication pages
 
 lib/
 ├── gemini/           # Gemini Agentic Module
@@ -45,16 +52,25 @@ lib/
 │   └── index.ts
 ├── schema/           # Zod validation schemas
 │   ├── chat.ts       # Chat message schemas
+│   ├── notes.ts      # Notes validation schemas
 │   └── model.ts      # Model cookie validation
 ├── supabase/         # Supabase clients
 ├── redis/            # Redis config
 ├── actions/          # Server actions
+│   ├── notes.ts      # Notes CRUD operations
+│   └── note-uploads.ts # Note file uploads
 ├── config/           # Model config
 ├── types/            # Shared types
+│   ├── notes.ts      # Note types + transformers
+│   └── notes-errors.ts # Error handling
 └── utils/            # Utilities
 
 components/
 ├── ui/               # shadcn/ui components
+├── notes/            # Notes editor components
+│   ├── note-editor.tsx # BlockNote editor
+│   ├── note-header.tsx # Note header with icon/title
+│   └── quick-switcher.tsx # ⌘K note switcher
 ├── sidebar/          # Chat history
 ├── prompt-kit/       # Chain of thought
 ├── auth-forms.tsx    # All auth forms (login, signup, etc.)
@@ -64,7 +80,8 @@ components/
 └── ...               # Feature components
 
 hooks/
-└── index.ts          # All hooks (useIsMobile, useCopyToClipboard, etc.)
+├── index.ts          # All hooks (useIsMobile, useCopyToClipboard, etc.)
+└── use-optimistic-notes.ts # Optimistic updates for notes
 ```
 
 ### Operation Modes
@@ -170,3 +187,37 @@ From `lib/gemini/core.ts`:
 
 - Server client: `lib/supabase/server.ts`
 - Browser client: `lib/supabase/client.ts`
+- Migrations: `supabase/migrations/` (run in Supabase SQL Editor)
+
+## Notes Feature
+
+The Notes feature provides Apple Notes-style note-taking with BlockNote editor.
+
+### Key Files
+
+- `app/(main)/notes/` - Notes pages
+- `components/notes/` - Editor components
+- `lib/actions/notes.ts` - Server actions for CRUD
+- `lib/types/notes.ts` - Types + row transformers
+- `lib/schema/notes.ts` - Zod validation
+
+### Tables (Supabase)
+
+- `notes` - Note metadata (title, icon, hierarchy)
+- `note_blocks` - Block content (JSONB)
+- `note-attachments` bucket - File uploads
+
+### Usage
+
+```typescript
+// Server actions
+import {
+  getNotes,
+  createNote,
+  updateNote,
+  deleteNote
+} from '@/lib/actions/notes'
+
+// Hooks for optimistic updates
+import { useOptimisticNotes } from '@/hooks'
+```
