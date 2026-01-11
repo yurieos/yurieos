@@ -6,9 +6,7 @@ import { useChat } from '@ai-sdk/react'
 import { ChatRequestOptions, DefaultChatTransport, UIMessage } from 'ai'
 import { toast } from 'sonner'
 
-import { getNotes } from '@/lib/actions/notes'
 import { AudioPart, DocumentPart, ImagePart, VideoPart } from '@/lib/types'
-import type { Note } from '@/lib/types/notes'
 import { cn } from '@/lib/utils'
 import { buildMessageParts, hasMediaContent } from '@/lib/utils/media-parts'
 
@@ -54,10 +52,6 @@ export function Chat({
   const [input, setInput] = useState('')
   const [researchMode, setResearchMode] = useState<ResearchMode>('standard')
 
-  // Notes state for the picker
-  const [notes, setNotes] = useState<Note[]>([])
-  const [favorites, setFavorites] = useState<Note[]>([])
-
   // Initialize research mode from cookie on mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -65,20 +59,6 @@ export function Chat({
       setResearchMode(savedMode)
     }
   }, [])
-
-  // Fetch notes for the picker (lazy load)
-  const fetchNotes = useCallback(async () => {
-    const result = await getNotes()
-    if (!result.error) {
-      setNotes(result.notes)
-      setFavorites(result.favorites)
-    }
-  }, [])
-
-  // Fetch notes on mount (only if authenticated - notes require auth)
-  useEffect(() => {
-    fetchNotes()
-  }, [fetchNotes])
 
   // Update cookie when research mode changes
   const handleResearchModeChange = useCallback((mode: ResearchMode) => {
@@ -272,20 +252,12 @@ export function Chat({
       images?: ImagePart[],
       videos?: VideoPart[],
       documents?: DocumentPart[],
-      audios?: AudioPart[],
-      notesContext?: string
+      audios?: AudioPart[]
     ) => {
       e.preventDefault()
 
-      // Prepend notes context to text if provided
-      // Per Gemini best practices: context first, query at the end
-      // @see https://ai.google.dev/gemini-api/docs/long-context
-      const messageText = notesContext
-        ? `${notesContext}\n\n${input}`
-        : input
-
       const mediaInput = {
-        text: messageText,
+        text: input,
         images,
         videos,
         documents,
@@ -359,8 +331,6 @@ export function Chat({
         researchMode={researchMode}
         onResearchModeChange={handleResearchModeChange}
         chatId={id}
-        notes={notes}
-        favorites={favorites}
       />
     </div>
   )

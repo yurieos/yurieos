@@ -116,9 +116,3 @@ export const useIsAuthenticated = () => {
 
   return isAuthenticated
 }
-
-// ============================================
-// Re-export specialized hooks
-// ============================================
-
-export { useOptimisticNotes } from './use-optimistic-notes'

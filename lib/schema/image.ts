@@ -20,7 +20,7 @@ export const SaveImageSchema = z.object({
 
   /** MIME type of the image */
   mimeType: z.enum(['image/png', 'image/jpeg', 'image/webp'], {
-    errorMap: () => ({ message: 'Invalid image type' })
+    message: 'Invalid image type'
   }),
 
   /** Original generation prompt */

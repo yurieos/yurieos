@@ -1,20 +1,18 @@
 'use client'
 
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import TextareaAutosize from 'react-textarea-autosize'
 
 import { Copy, Loader2, Pencil } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { cn } from '@/lib/utils'
-import { parseNotesContext } from '@/lib/utils/notes-to-context'
 
 import { Button } from './ui/button'
 import { Skeleton } from './ui/skeleton'
 import { AudioDisplay } from './audio-preview'
 import { CollapsibleMessage } from './collapsible-message'
 import { DocumentDisplay } from './document-preview'
-import { NotesContextBadge } from './notes-context-badge'
 import { VideoDisplay } from './video-preview'
 
 /** Image part from message */
@@ -269,15 +267,9 @@ export const UserMessage: React.FC<UserMessageProps> = ({
   const hasDocuments = documents && documents.length > 0
   const hasAudios = audios && audios.length > 0
 
-  // Parse notes context from message
-  const parsedMessage = useMemo(() => parseNotesContext(message), [message])
-  const displayMessage = parsedMessage.userMessage
-  const hasNotesContext = parsedMessage.hasNotesContext
-
   const handleEditClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation()
-    // Edit the full message (including context) but only show user part
-    setEditedContent(displayMessage)
+    setEditedContent(message)
     setIsEditing(true)
   }
 
@@ -291,38 +283,24 @@ export const UserMessage: React.FC<UserMessageProps> = ({
     setIsEditing(false)
 
     try {
-      // When saving, preserve the notes context if it existed
-      const newContent = hasNotesContext
-        ? `${parsedMessage.rawContext}\n\n${editedContent}`
-        : editedContent
-      await onUpdateMessage(messageId, newContent)
+      await onUpdateMessage(messageId, editedContent)
     } catch (error) {
       console.error('Failed to save message:', error)
     }
   }
 
   const handleCopyClick = async () => {
-    // Copy only the user's message, not the notes context
-    await navigator.clipboard.writeText(displayMessage)
+    await navigator.clipboard.writeText(message)
     toast.success('Message copied to clipboard')
   }
 
   const hasAttachments = hasImages || hasVideos || hasDocuments || hasAudios
-  const hasContextOrAttachments = hasNotesContext || hasAttachments
 
   return (
     <div className="flex flex-col items-end gap-2 group">
-      {/* Attachments and notes context (separate from text bubble) */}
-      {!isEditing && hasContextOrAttachments && (
+      {/* Attachments (separate from text bubble) */}
+      {!isEditing && hasAttachments && (
         <div className="flex flex-col items-end gap-2 max-w-[85%]">
-          {/* Notes context badges */}
-          {hasNotesContext && (
-            <NotesContextBadge
-              notes={parsedMessage.notes}
-              className="mb-0 justify-end"
-            />
-          )}
-
           {/* Media attachments */}
           {hasImages && (
             <div
@@ -436,7 +414,7 @@ export const UserMessage: React.FC<UserMessageProps> = ({
               </div>
             ) : (
               <div className="min-w-0 break-words">
-                {displayMessage && <div>{displayMessage}</div>}
+                {message && <div>{message}</div>}
               </div>
             )}
           </div>

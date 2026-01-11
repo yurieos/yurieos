@@ -3,11 +3,7 @@ const { fontFamily } = require('tailwindcss/defaultTheme')
 
 const config = {
   darkMode: ['class'],
-  content: [
-    './components/**/*.{ts,tsx}',
-    './app/**/*.{ts,tsx}',
-    './node_modules/@blocknote/shadcn/dist/**/*.js'
-  ],
+  content: ['./components/**/*.{ts,tsx}', './app/**/*.{ts,tsx}'],
   prefix: '',
   theme: {
     container: {
@@ -125,7 +121,11 @@ const config = {
       }
     }
   },
-  plugins: [require('tailwindcss-animate'), require('@tailwindcss/typography')]
+  plugins: [
+    require('tailwindcss-animate'),
+    require('@tailwindcss/typography'),
+    require('tailwind-scrollbar-hide')
+  ]
 } satisfies Config
 
 export default config

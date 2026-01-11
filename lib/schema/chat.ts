@@ -64,7 +64,7 @@ const PropertySchema: z.ZodType<unknown> = z.lazy(() =>
     description: z.string(),
     enum: z.array(z.string()).optional(),
     items: PropertySchema.optional(),
-    properties: z.record(PropertySchema).optional(),
+    properties: z.record(z.string(), PropertySchema).optional(),
     required: z.array(z.string()).optional()
   })
 )
@@ -85,6 +85,7 @@ const FunctionDeclarationSchema = z.object({
   parameters: z.object({
     type: z.literal('object'),
     properties: z.record(
+      z.string(),
       z.object({
         type: z.enum([
           'string',
@@ -167,7 +168,7 @@ const UIMessageSchema = z.object({
     .max(MAX_PARTS_PER_MESSAGE, 'Too many parts per message')
     .optional(),
   // Allow metadata to be flexible since it contains annotations
-  metadata: z.record(z.unknown()).optional()
+  metadata: z.record(z.string(), z.unknown()).optional()
 })
 
 /**
@@ -241,7 +242,7 @@ export function validateChatRequest(
 
   if (!result.success) {
     // Provide user-friendly error messages
-    const errors = result.error.errors.map(e => {
+    const errors = result.error.issues.map(e => {
       const path = e.path.join('.')
       return path ? `${path}: ${e.message}` : e.message
     })

@@ -469,3 +469,192 @@ export interface ImageConversationTurn {
   /** Reference images (user) or generated images (model) */
   images?: ReferenceImage[] | GeneratedImagePart[]
 }
+
+// ============================================
+// Video Generation Types (Veo 3.1)
+// @see https://ai.google.dev/gemini-api/docs/video
+// ============================================
+
+/**
+ * Supported aspect ratios for video generation
+ * @see https://ai.google.dev/gemini-api/docs/video#parameters
+ */
+export const VIDEO_ASPECT_RATIOS = ['16:9', '9:16'] as const
+
+export type VideoAspectRatio = (typeof VIDEO_ASPECT_RATIOS)[number]
+
+/**
+ * Supported output resolutions for Veo 3.1
+ * Note: 1080p only supports 8s duration
+ * @see https://ai.google.dev/gemini-api/docs/video#parameters
+ */
+export const VIDEO_RESOLUTIONS = ['720p', '1080p'] as const
+
+export type VideoResolution = (typeof VIDEO_RESOLUTIONS)[number]
+
+/**
+ * Supported video durations in seconds
+ * Note: Must be "8" when using extension, interpolation, or reference images
+ * @see https://ai.google.dev/gemini-api/docs/video#parameters
+ */
+export const VIDEO_DURATIONS = ['4', '6', '8'] as const
+
+export type VideoDuration = (typeof VIDEO_DURATIONS)[number]
+
+/**
+ * Person generation control for video
+ * Regional restrictions apply (EU/UK/CH/MENA: allow_adult only)
+ * @see https://ai.google.dev/gemini-api/docs/video#limitations
+ */
+export type VideoPersonGeneration = 'allow_all' | 'allow_adult' | 'dont_allow'
+
+/**
+ * Video generation modes
+ */
+export type VideoGenerationMode =
+  | 'text-to-video'
+  | 'image-to-video'
+  | 'interpolation'
+  | 'reference'
+  | 'extend'
+
+/**
+ * Configuration for video generation requests
+ * @see https://ai.google.dev/gemini-api/docs/video#parameters
+ */
+export interface VideoGenerationConfig {
+  /**
+   * Output aspect ratio
+   * @default '16:9'
+   */
+  aspectRatio?: VideoAspectRatio
+
+  /**
+   * Output resolution
+   * Note: 1080p only supports 8s duration
+   * Note: 720p only for video extension
+   * @default '720p'
+   */
+  resolution?: VideoResolution
+
+  /**
+   * Video duration in seconds
+   * Must be "8" when using extension, interpolation, or reference images
+   * @default '8'
+   */
+  durationSeconds?: VideoDuration
+
+  /**
+   * Text describing what NOT to include in the video
+   * Use descriptive language, not "no" or "don't"
+   * Example: "cartoon, drawing, low quality" instead of "no cartoon"
+   */
+  negativePrompt?: string
+
+  /**
+   * Controls generation of people
+   * Regional restrictions: EU/UK/CH/MENA only allow 'allow_adult'
+   * - Text-to-video & Extension: 'allow_all' only
+   * - Image-to-video, Interpolation, Reference: 'allow_adult' only
+   * @default depends on mode
+   */
+  personGeneration?: VideoPersonGeneration
+
+  /**
+   * Seed for slightly improved determinism (not guaranteed)
+   * Available for Veo 3 models
+   */
+  seed?: number
+
+  /**
+   * Use the Fast model (veo-3.1-fast-generate-preview) for speed
+   * Ideal for rapid prototyping and A/B testing
+   * @default false (uses standard model)
+   */
+  useFastModel?: boolean
+}
+
+/**
+ * Reference image for video generation (Veo 3.1 only)
+ * Used to guide video content with up to 3 asset images
+ * @see https://ai.google.dev/gemini-api/docs/video#use-reference-images
+ */
+export interface VideoReferenceImage {
+  /** The image data */
+  image: ReferenceImage
+  /** Reference type - 'asset' for style/content guidance */
+  referenceType: 'asset'
+}
+
+/**
+ * Generated video from Veo API
+ */
+export interface GeneratedVideo {
+  /** Video file info with URI */
+  video: {
+    /** URI for downloading the video */
+    uri: string
+    /** Video bytes after download */
+    videoBytes?: Uint8Array
+  }
+}
+
+/**
+ * Video generation operation state
+ */
+export interface VideoOperation {
+  /** Operation name for polling */
+  name: string
+  /** Whether the operation is complete */
+  done: boolean
+  /** Response when done */
+  response?: {
+    generatedVideos: GeneratedVideo[]
+  }
+  /** Error if failed */
+  error?: {
+    code: number
+    message: string
+  }
+}
+
+/**
+ * Streaming chunk for video generation progress
+ */
+export interface VideoGenerationChunk {
+  type: 'video-starting' | 'video-progress' | 'video-complete' | 'video-error'
+  /** Status message for progress display */
+  status?: string
+  /** Estimated progress percentage (0-100) */
+  progress?: number
+  /** Generated video data (for video-complete) */
+  videoData?: {
+    /** Base64 encoded video data */
+    data: string
+    /** MIME type (video/mp4) */
+    mimeType: string
+  }
+  /** Video URI for streaming playback */
+  videoUri?: string
+  /** Error message (for video-error) */
+  error?: string
+  /** Safety block info */
+  blocked?: boolean
+  blockReason?: string
+}
+
+/**
+ * Video generation result from Veo
+ */
+export interface VideoGenerationResult {
+  /** Generated video data (base64) */
+  videoData?: string
+  /** Video MIME type */
+  mimeType: string
+  /** Video URI for streaming */
+  videoUri?: string
+  /** Whether the generation was blocked by safety filters */
+  blocked?: boolean
+  /** Block reason if blocked */
+  blockReason?: string
+}

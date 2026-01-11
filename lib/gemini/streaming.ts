@@ -26,7 +26,6 @@ import {
   ThinkingConfig,
   VideoPart
 } from '@/lib/types'
-import { parseNotesContext } from '@/lib/utils/notes-to-context'
 
 import { process } from './agentic'
 import { processInputSafely } from './core'
@@ -843,9 +842,7 @@ async function saveChatWithAnnotations(params: {
     ...(Object.keys(metadata).length > 0 ? { metadata } : {})
   }
 
-  // Strip notes context from title (user sees clean query in history)
-  const { userMessage: cleanQuery } = parseNotesContext(query)
-  const title = cleanQuery.trim().slice(0, 100) || 'New chat'
+  const title = query.trim().slice(0, 100) || 'New chat'
   const chat: Chat = {
     id: chatId,
     title,

@@ -4,7 +4,7 @@ import * as React from 'react'
 
 import * as AlertDialogPrimitive from '@radix-ui/react-alert-dialog'
 
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/utils/index'
 
 import { buttonVariants } from '@/components/ui/button'
 
@@ -53,7 +53,7 @@ const AlertDialogHeader = ({
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
-      'flex flex-col space-y-1.5 text-center sm:text-left',
+      'flex flex-col space-y-2 text-center sm:text-left',
       className
     )}
     {...props}
@@ -81,10 +81,7 @@ const AlertDialogTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <AlertDialogPrimitive.Title
     ref={ref}
-    className={cn(
-      'text-lg font-semibold leading-none tracking-tight',
-      className
-    )}
+    className={cn('text-lg font-semibold', className)}
     {...props}
   />
 ))

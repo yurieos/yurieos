@@ -50,6 +50,8 @@ export type {
   GeminiResponsePart,
   // Image generation types
   GeneratedImagePart,
+  // Video generation types
+  GeneratedVideo,
   GroundingMetadata,
   GroundingSegment,
   GroundingSource,
@@ -68,11 +70,28 @@ export type {
   UrlContextMetadata,
   UrlMetadata,
   UrlRetrievalStatus,
+  VideoAspectRatio,
+  VideoDuration,
+  VideoGenerationChunk,
+  VideoGenerationConfig,
+  VideoGenerationMode,
+  VideoGenerationResult,
+  VideoOperation,
+  VideoPersonGeneration,
+  VideoReferenceImage,
+  VideoResolution,
   WebGroundingChunk
 } from './types'
 
 // Image generation constants
 export { IMAGE_ASPECT_RATIOS, IMAGE_SIZES } from './types'
+
+// Video generation constants
+export {
+  VIDEO_ASPECT_RATIOS,
+  VIDEO_DURATIONS,
+  VIDEO_RESOLUTIONS
+} from './types'
 
 // Agentic workflow
 export {
@@ -147,6 +166,25 @@ export {
   validateAspectRatio,
   validateImageSize
 } from './image-generation'
+
+// Video Generation (Veo 3.1)
+// @see https://ai.google.dev/gemini-api/docs/video
+export {
+  downloadVideo,
+  extendVideo,
+  generateVideo,
+  generateVideoFromImage,
+  generateVideoWithInterpolation,
+  generateVideoWithReferences,
+  MAX_INPUT_VIDEO_DURATION,
+  MAX_OUTPUT_VIDEO_DURATION,
+  MAX_POLL_DURATION_MS,
+  MAX_VIDEO_REFERENCE_IMAGES,
+  POLL_INTERVAL_MS,
+  validateVideoConfig,
+  VEO_3_1,
+  VEO_3_1_FAST
+} from './video-generation'
 
 // Initialize built-in functions on module load
 import { registerBuiltInFunctions } from './function-calling'

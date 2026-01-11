@@ -14,7 +14,6 @@ import {
 import { toast } from 'sonner'
 
 import { AudioPart, DocumentPart, ImagePart, VideoPart } from '@/lib/types'
-import type { Note } from '@/lib/types/notes'
 import { cn } from '@/lib/utils'
 
 import { useCurrentUserName, useIsAuthenticated } from '@/hooks'
@@ -23,11 +22,7 @@ import {
   ALL_SUPPORTED_TYPES,
   DeepResearchToggle,
   ImagePreview,
-  NotesContextButton,
-  NotesContextPreview,
-  NotesPickerDialog,
-  useAttachments,
-  useNotesContext
+  useAttachments
 } from './chat/index'
 import { Button } from './ui/button'
 import { AudioPreview } from './audio-preview'
@@ -50,8 +45,7 @@ interface ChatPanelProps {
     images?: ImagePart[],
     videos?: VideoPart[],
     documents?: DocumentPart[],
-    audios?: AudioPart[],
-    notesContext?: string
+    audios?: AudioPart[]
   ) => void
   isLoading: boolean
   messages: UIMessage[]
@@ -71,10 +65,6 @@ interface ChatPanelProps {
   researchMode?: ResearchMode
   onResearchModeChange?: (mode: ResearchMode) => void
   chatId?: string
-  /** Notes for the picker dialog */
-  notes?: Note[]
-  /** Favorite notes for the picker dialog */
-  favorites?: Note[]
 }
 
 export function ChatPanel({
@@ -90,12 +80,9 @@ export function ChatPanel({
   scrollContainerRef,
   researchMode = 'standard',
   onResearchModeChange,
-  chatId,
-  notes = [],
-  favorites = []
+  chatId
 }: ChatPanelProps) {
   const [showEmptyScreen, setShowEmptyScreen] = useState(false)
-  const [notesPickerOpen, setNotesPickerOpen] = useState(false)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const isFirstRender = useRef(true)
@@ -126,18 +113,6 @@ export function ChatPanel({
     getDocumentParts,
     getAudioParts
   } = useAttachments({ isAuthenticated })
-
-  // Use the notes context hook
-  const {
-    selectedNotes,
-    hasNotesContext,
-    selectedCount,
-    toggleNote,
-    removeNote,
-    clearNotes,
-    getNotesContextText,
-    getEstimatedTokens
-  } = useNotesContext()
 
   const handleCompositionStart = () => setIsComposing(true)
 
@@ -183,24 +158,6 @@ export function ChatPanel({
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [isLoading, isToolInvocationInProgress, toggleResearchMode])
 
-  // Keyboard shortcut for notes picker (Cmd+Shift+N / Ctrl+Shift+N)
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (
-        (e.metaKey || e.ctrlKey) &&
-        e.shiftKey &&
-        e.key.toLowerCase() === 'n'
-      ) {
-        e.preventDefault()
-        if (isAuthenticated && !isLoading && !isToolInvocationInProgress()) {
-          setNotesPickerOpen(prev => !prev)
-        }
-      }
-    }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isAuthenticated, isLoading, isToolInvocationInProgress])
-
   // Submit query on mount if provided
   useEffect(() => {
     if (isFirstRender.current && query && query.trim().length > 0) {
@@ -224,13 +181,13 @@ export function ChatPanel({
   const onFormSubmit = useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault()
-      if (!input.trim() && !hasAttachments && !hasNotesContext) return
+      if (!input.trim() && !hasAttachments) return
 
       const messageId = `msg-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
       const currentChatId = chatId || `chat-${Date.now()}`
 
       const hasAttachmentsToUpload = isAuthenticated && hasAttachments
-      if (hasAttachmentsToUpload || hasNotesContext) {
+      if (hasAttachmentsToUpload) {
         setIsUploading(true)
       }
 
@@ -250,14 +207,8 @@ export function ChatPanel({
           ? await getAudioParts(currentChatId, messageId)
           : undefined
 
-        // Get notes context (fetches content and formats)
-        const notesContext = hasNotesContext
-          ? await getNotesContextText()
-          : undefined
-
-        handleSubmit(e, images, videos, documents, audios, notesContext)
+        handleSubmit(e, images, videos, documents, audios)
         clearAttachments()
-        clearNotes()
       } catch (error) {
         console.error('Error preparing message:', error)
         toast.error('Failed to prepare message')
@@ -268,7 +219,6 @@ export function ChatPanel({
     [
       input,
       hasAttachments,
-      hasNotesContext,
       chatId,
       isAuthenticated,
       attachments.length,
@@ -279,14 +229,12 @@ export function ChatPanel({
       getVideoParts,
       getDocumentParts,
       getAudioParts,
-      getNotesContextText,
       handleSubmit,
-      clearAttachments,
-      clearNotes
+      clearAttachments
     ]
   )
 
-  const hasContent = input.trim().length > 0 || hasAttachments || hasNotesContext
+  const hasContent = input.trim().length > 0 || hasAttachments
 
   return (
     <div
@@ -341,46 +289,36 @@ export function ChatPanel({
         )}
 
         <div className="relative flex flex-col w-full gap-2 bg-muted rounded-lg border border-input">
-          {/* Media and notes context previews */}
-          {(hasAttachments || hasNotesContext) && (
+          {/* Media previews */}
+          {hasAttachments && (
             <div className="flex flex-col gap-2 p-3 pb-0">
-              {/* Notes context preview */}
-              {hasNotesContext && (
-                <NotesContextPreview
-                  notes={selectedNotes}
-                  onRemove={removeNote}
-                />
-              )}
-              {/* Media attachments */}
-              {hasAttachments && (
-                <div className="flex flex-wrap gap-2">
-                  {attachments.map(attachment => (
-                    <ImagePreview
-                      key={attachment.id}
-                      attachment={attachment}
-                      onRemove={removeAttachment}
-                    />
-                  ))}
-                  {videoAttachment && (
-                    <VideoPreview
-                      attachment={videoAttachment}
-                      onRemove={removeVideoAttachment}
-                    />
-                  )}
-                  {documentAttachment && (
-                    <DocumentPreview
-                      attachment={documentAttachment}
-                      onRemove={removeDocumentAttachment}
-                    />
-                  )}
-                  {audioAttachment && (
-                    <AudioPreview
-                      attachment={audioAttachment}
-                      onRemove={removeAudioAttachment}
-                    />
-                  )}
-                </div>
-              )}
+              <div className="flex flex-wrap gap-2">
+                {attachments.map(attachment => (
+                  <ImagePreview
+                    key={attachment.id}
+                    attachment={attachment}
+                    onRemove={removeAttachment}
+                  />
+                ))}
+                {videoAttachment && (
+                  <VideoPreview
+                    attachment={videoAttachment}
+                    onRemove={removeVideoAttachment}
+                  />
+                )}
+                {documentAttachment && (
+                  <DocumentPreview
+                    attachment={documentAttachment}
+                    onRemove={removeDocumentAttachment}
+                  />
+                )}
+                {audioAttachment && (
+                  <AudioPreview
+                    attachment={audioAttachment}
+                    onRemove={removeAudioAttachment}
+                  />
+                )}
+              </div>
             </div>
           )}
 
@@ -441,15 +379,6 @@ export function ChatPanel({
               >
                 <Paperclip size={14} />
               </Button>
-              {/* Notes context button - only for authenticated users */}
-              {isAuthenticated && (
-                <NotesContextButton
-                  hasContext={hasNotesContext}
-                  selectedCount={selectedCount}
-                  onClick={() => setNotesPickerOpen(true)}
-                  disabled={isLoading || isToolInvocationInProgress()}
-                />
-              )}
               <DeepResearchToggle
                 isActive={isDeepResearch}
                 onToggle={toggleResearchMode}
@@ -493,20 +422,6 @@ export function ChatPanel({
           />
         )}
       </form>
-
-      {/* Notes picker dialog */}
-      {isAuthenticated && (
-        <NotesPickerDialog
-          open={notesPickerOpen}
-          onOpenChange={setNotesPickerOpen}
-          notes={notes}
-          favorites={favorites}
-          selectedIds={selectedNotes.map(n => n.id)}
-          onToggleNote={toggleNote}
-          onClearAll={clearNotes}
-          estimatedTokens={getEstimatedTokens()}
-        />
-      )}
     </div>
   )
 }

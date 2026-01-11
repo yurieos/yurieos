@@ -128,7 +128,7 @@ export async function POST(req: Request) {
 
     const validation = SaveImageSchema.safeParse(body)
     if (!validation.success) {
-      const errors = validation.error.errors
+      const errors = validation.error.issues
         .map(e => `${e.path.join('.')}: ${e.message}`)
         .join('; ')
       return Response.json({ error: errors }, { status: 400 })

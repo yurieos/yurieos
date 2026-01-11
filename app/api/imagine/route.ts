@@ -102,7 +102,7 @@ export async function POST(req: Request) {
     // Validate request
     const validation = ImagineRequestSchema.safeParse(body)
     if (!validation.success) {
-      const errors = validation.error.errors.map(e => {
+      const errors = validation.error.issues.map(e => {
         const path = e.path.join('.')
         return path ? `${path}: ${e.message}` : e.message
       })

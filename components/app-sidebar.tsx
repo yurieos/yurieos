@@ -2,7 +2,7 @@ import { Suspense } from 'react'
 import Link from 'next/link'
 
 import { User } from '@supabase/supabase-js'
-import { FileText, FolderHeart, ImageIcon } from 'lucide-react'
+import { FolderHeart, ImageIcon } from 'lucide-react'
 
 import {
   Sidebar,
@@ -62,13 +62,6 @@ export default function AppSidebar({ user }: AppSidebarProps) {
           <SidebarMenuItem>
             <SearchChatsButton />
           </SidebarMenuItem>
-          <Suspense fallback={null}>
-            <AuthenticatedSidebarLink
-              href="/notes"
-              icon={FileText}
-              label="Notes"
-            />
-          </Suspense>
           <Suspense fallback={null}>
             <AuthenticatedSidebarLink
               href="/imagine"
