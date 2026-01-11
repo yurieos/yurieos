@@ -27,6 +27,14 @@ import {
   Type
 } from '@google/genai'
 
+import {
+  AudioPart,
+  DocumentPart,
+  ImagePart,
+  ThinkingConfig,
+  VideoPart
+} from '@/lib/types'
+
 import { FunctionDeclaration, PropertySchema } from './function-calling/types'
 import {
   deduplicateSources,
@@ -49,17 +57,12 @@ import {
   getStandardSystemInstruction
 } from './system-instructions'
 import {
-  AudioPart,
   ContentPart,
   ConversationTurn,
-  DocumentPart,
   GeminiCandidate,
   GroundingSource,
-  ImagePart,
   ResearchChunk,
-  ResearchConfig,
-  ThinkingConfig,
-  VideoPart
+  ResearchConfig
 } from './types'
 
 /**

@@ -10,7 +10,14 @@ const nextConfig = {
     // For Server Actions
     serverActions: {
       bodySizeLimit: '50mb'
-    }
+    },
+    // Optimize package imports - tree-shake unused exports
+    optimizePackageImports: [
+      'lucide-react',
+      'date-fns',
+      '@radix-ui/react-icons',
+      'react-syntax-highlighter'
+    ]
   },
 
   images: {
@@ -20,6 +27,12 @@ const nextConfig = {
         hostname: 'lh3.googleusercontent.com',
         port: '',
         pathname: '/a/**' // Google user content often follows this pattern
+      },
+      {
+        protocol: 'https',
+        hostname: 'i.ytimg.com',
+        port: '',
+        pathname: '/vi/**' // YouTube video thumbnails
       }
     ]
   },

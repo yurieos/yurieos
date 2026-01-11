@@ -23,6 +23,19 @@ import {
   handleSupabaseError,
   NotesErrorCode
 } from '@/lib/types/notes-errors'
+import { logger } from '@/lib/utils/logger'
+
+// ============================================
+// Query Constants
+// ============================================
+
+/** Columns to select for note queries - matches NoteRow interface */
+const NOTE_COLUMNS =
+  'id, user_id, parent_id, title, icon, cover_image, is_favorite, is_archived, is_folder, position, created_at, updated_at'
+
+/** Columns to select for note block queries - matches NoteBlockRow interface */
+const BLOCK_COLUMNS =
+  'id, note_id, type, content, position, created_at, updated_at'
 
 // ============================================
 // Notes CRUD Operations
@@ -59,7 +72,7 @@ export async function getNotes(): Promise<{
     // Get all non-archived notes
     const { data: notesData, error } = await supabase
       .from('notes')
-      .select('*')
+      .select(NOTE_COLUMNS)
       .eq('user_id', userId)
       .eq('is_archived', false)
       .eq('is_folder', false)
@@ -110,7 +123,7 @@ export async function getArchivedNotes(): Promise<{
 
     const { data: notesData, error } = await supabase
       .from('notes')
-      .select('*')
+      .select(NOTE_COLUMNS)
       .eq('user_id', userId)
       .eq('is_archived', true)
       .order('updated_at', { ascending: false })
@@ -151,7 +164,7 @@ export async function getNote(noteId: string): Promise<{
     // Get note
     const { data: noteData, error: noteError } = await supabase
       .from('notes')
-      .select('*')
+      .select(NOTE_COLUMNS)
       .eq('id', noteId)
       .eq('user_id', userId)
       .single()
@@ -168,12 +181,12 @@ export async function getNote(noteId: string): Promise<{
     // Get blocks
     const { data: blocksData, error: blocksError } = await supabase
       .from('note_blocks')
-      .select('*')
+      .select(BLOCK_COLUMNS)
       .eq('note_id', noteId)
       .order('position', { ascending: true })
 
     if (blocksError) {
-      console.error('Error fetching blocks:', blocksError)
+      logger.error('Notes', blocksError, { noteId })
     }
 
     const note = transformNoteRow(noteData as NoteRow)
@@ -372,6 +385,159 @@ export async function deleteNote(
   } catch (error) {
     return { success: false, error: handleSupabaseError(error) }
   }
+}
+
+// ============================================
+// Context Operations (for AI Chat)
+// ============================================
+
+/** Maximum number of notes that can be fetched for context */
+const MAX_NOTES_FOR_CONTEXT = 10
+
+/**
+ * Note context item returned by getNotesForContext
+ */
+export interface NoteContextData {
+  id: string
+  title: string
+  icon: string | null
+  content: string
+  updatedAt: Date
+}
+
+/**
+ * Get multiple notes with their content for AI context injection
+ * Optimized for batch fetching with content extraction
+ *
+ * @param noteIds - Array of note IDs to fetch (max 10)
+ * @returns Notes with plain text content extracted from blocks
+ */
+export async function getNotesForContext(noteIds: string[]): Promise<{
+  notes: NoteContextData[]
+  error?: string
+}> {
+  if (!isSupabaseConfigured()) {
+    return { notes: [], error: getErrorMessage(NotesErrorCode.NOT_CONFIGURED) }
+  }
+
+  if (noteIds.length === 0) {
+    return { notes: [] }
+  }
+
+  // Enforce limit
+  const limitedIds = noteIds.slice(0, MAX_NOTES_FOR_CONTEXT)
+
+  try {
+    const userId = await getCurrentUserId()
+    if (userId === 'anonymous') {
+      return { notes: [], error: getErrorMessage(NotesErrorCode.AUTH_REQUIRED) }
+    }
+
+    const supabase = await createClient()
+
+    // Batch fetch notes
+    const { data: notesData, error: notesError } = await supabase
+      .from('notes')
+      .select(NOTE_COLUMNS)
+      .in('id', limitedIds)
+      .eq('user_id', userId)
+
+    if (notesError) {
+      return { notes: [], error: handleSupabaseError(notesError) }
+    }
+
+    if (!notesData || notesData.length === 0) {
+      return { notes: [] }
+    }
+
+    // Batch fetch blocks for all notes
+    const { data: blocksData, error: blocksError } = await supabase
+      .from('note_blocks')
+      .select(BLOCK_COLUMNS)
+      .in('note_id', limitedIds)
+      .order('position', { ascending: true })
+
+    if (blocksError) {
+      logger.error('Notes', blocksError, { noteIds: limitedIds })
+    }
+
+    // Group blocks by note ID
+    const blocksByNoteId = new Map<string, NoteBlockRow[]>()
+    for (const block of (blocksData as NoteBlockRow[]) || []) {
+      const existing = blocksByNoteId.get(block.note_id) || []
+      existing.push(block)
+      blocksByNoteId.set(block.note_id, existing)
+    }
+
+    // Transform notes with content
+    const notes: NoteContextData[] = (notesData as NoteRow[]).map(noteRow => {
+      const note = transformNoteRow(noteRow)
+      const blocks = blocksByNoteId.get(note.id) || []
+
+      // Extract plain text from blocks
+      const content = extractPlainTextFromBlockRows(blocks)
+
+      return {
+        id: note.id,
+        title: note.title,
+        icon: note.icon,
+        content,
+        updatedAt: note.updatedAt
+      }
+    })
+
+    // Maintain original order from noteIds
+    const orderedNotes = limitedIds
+      .map(id => notes.find(n => n.id === id))
+      .filter((n): n is NoteContextData => n !== undefined)
+
+    return { notes: orderedNotes }
+  } catch (error) {
+    return { notes: [], error: handleSupabaseError(error) }
+  }
+}
+
+/**
+ * Extract plain text from block rows (server-side version)
+ * Similar to getPlainTextFromBlocks but works with NoteBlockRow
+ */
+function extractPlainTextFromBlockRows(blocks: NoteBlockRow[]): string {
+  const textParts: string[] = []
+
+  function extractTextFromContent(content: Record<string, unknown>) {
+    // Handle BlockNote content structure
+    if (Array.isArray(content.content)) {
+      for (const item of content.content) {
+        if (typeof item === 'string') {
+          textParts.push(item)
+        } else if (
+          typeof item === 'object' &&
+          item !== null &&
+          'text' in item &&
+          typeof (item as { text: unknown }).text === 'string'
+        ) {
+          textParts.push((item as { text: string }).text)
+        }
+      }
+    }
+
+    // Handle nested children
+    if (Array.isArray(content.children)) {
+      for (const child of content.children) {
+        if (typeof child === 'object' && child !== null) {
+          extractTextFromContent(child as Record<string, unknown>)
+        }
+      }
+    }
+  }
+
+  for (const block of blocks) {
+    if (block.content && typeof block.content === 'object') {
+      extractTextFromContent(block.content)
+    }
+  }
+
+  return textParts.join(' ').trim()
 }
 
 // ============================================

@@ -1,7 +1,9 @@
-import { redirect } from 'next/navigation'
+import { FolderHeart } from 'lucide-react'
 
-import { getCurrentUser } from '@/lib/auth/get-current-user'
-import { isSupabaseConfigured } from '@/lib/supabase/server'
+import { checkProtectedAccess } from '@/lib/utils/protected-page'
+
+import { NotAvailable } from '@/components/not-available'
+import { PageLayout } from '@/components/page-layout'
 
 import { StuffGallery } from './stuff-gallery'
 
@@ -11,37 +13,25 @@ export const metadata = {
 }
 
 export default async function StuffPage() {
-  // Check if Supabase is configured
-  if (!isSupabaseConfigured()) {
+  const access = await checkProtectedAccess('/stuff')
+
+  if (access.status === 'not-configured') {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8">
-        <div className="text-center max-w-md">
-          <h1 className="text-2xl font-semibold mb-2">Not Available</h1>
-          <p className="text-muted-foreground">
-            Image storage is not configured. Please set up Supabase to enable
-            this feature.
-          </p>
-        </div>
-      </div>
+      <NotAvailable
+        feature="Your Stuff"
+        description="Image storage requires Supabase to be configured. Please set up your environment variables."
+        icon={FolderHeart}
+      />
     )
   }
 
-  // Check authentication
-  const user = await getCurrentUser()
-
-  if (!user) {
-    redirect('/auth/login?redirect=/stuff')
-  }
-
   return (
-    <div className="flex-1 flex flex-col w-full max-w-7xl mx-auto px-4 sm:px-6 pt-16 pb-8">
-      <div className="mb-6">
-        <h1 className="text-xl font-semibold mb-0.5">Your Stuff</h1>
-        <p className="text-sm text-muted-foreground">
-          Your saved AI-generated images
-        </p>
-      </div>
+    <PageLayout
+      title="Your Stuff"
+      description="Your saved AI-generated images"
+      maxWidth="7xl"
+    >
       <StuffGallery />
-    </div>
+    </PageLayout>
   )
 }

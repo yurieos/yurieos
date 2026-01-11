@@ -12,19 +12,14 @@ import type { SavedImage } from '@/lib/schema/image'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 
+import { EmptyState } from '@/components/empty-state'
 import { SavedImageCard } from '@/components/saved-image-card'
-
-// ============================================
-// Skeleton Loading Component
-// ============================================
 
 function GallerySkeleton() {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
       {Array.from({ length: 12 }).map((_, i) => (
-        <div key={i} className="aspect-square rounded-lg overflow-hidden">
-          <Skeleton className="w-full h-full" />
-        </div>
+        <Skeleton key={i} className="aspect-square rounded-lg" />
       ))}
     </div>
   )
@@ -109,21 +104,19 @@ export function StuffGallery() {
     return <GallerySkeleton />
   }
 
-  // Empty state
+  // Empty state - using shared EmptyState component
   if (images.length === 0) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center text-center py-20">
-        <div className="size-14 rounded-full bg-muted flex items-center justify-center mb-4">
-          <ImageOff className="size-7 text-muted-foreground" />
-        </div>
-        <h2 className="text-base font-medium mb-1">No saved images yet</h2>
-        <p className="text-muted-foreground text-sm max-w-xs mb-5">
-          Generate images and save them here to build your collection.
-        </p>
-        <Button variant="outline" size="sm" asChild>
-          <Link href="/">Start creating</Link>
-        </Button>
-      </div>
+      <EmptyState
+        icon={ImageOff}
+        title="No saved images yet"
+        description="Generate images and save them here to build your collection."
+        action={
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/">Start creating</Link>
+          </Button>
+        }
+      />
     )
   }
 

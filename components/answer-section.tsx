@@ -1,5 +1,7 @@
 'use client'
 
+import { memo } from 'react'
+
 import { ChatRequestOptions } from 'ai'
 
 import { CollapsibleMessage } from './collapsible-message'
@@ -22,7 +24,7 @@ export type AnswerSectionProps = {
   isAnswerComplete?: boolean
 }
 
-export function AnswerSection({
+export const AnswerSection = memo(function AnswerSection({
   content,
   isOpen,
   onOpenChange,
@@ -66,4 +68,4 @@ export function AnswerSection({
       {message}
     </CollapsibleMessage>
   )
-}
+})

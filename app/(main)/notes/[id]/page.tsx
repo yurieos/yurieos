@@ -1,8 +1,11 @@
-import { notFound, redirect } from 'next/navigation'
+import { notFound } from 'next/navigation'
+
+import { FileText } from 'lucide-react'
 
 import { getNote } from '@/lib/actions/notes'
-import { getCurrentUser } from '@/lib/auth/get-current-user'
-import { isSupabaseConfigured } from '@/lib/supabase/server'
+import { checkProtectedAccess } from '@/lib/utils/protected-page'
+
+import { NotAvailable } from '@/components/not-available'
 
 import { NoteEditorClient } from './note-editor-client'
 
@@ -24,28 +27,18 @@ export async function generateMetadata({ params }: NotePageProps) {
 
 export default async function NotePage({ params }: NotePageProps) {
   const { id } = await params
+  const access = await checkProtectedAccess(`/notes/${id}`)
 
-  // Check if Supabase is configured
-  if (!isSupabaseConfigured()) {
+  if (access.status === 'not-configured') {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8">
-        <div className="text-center max-w-md">
-          <h1 className="text-2xl font-semibold mb-2">Not Available</h1>
-          <p className="text-muted-foreground">
-            Notes require Supabase to be configured.
-          </p>
-        </div>
-      </div>
+      <NotAvailable
+        feature="Notes"
+        description="Notes require Supabase to be configured."
+        icon={FileText}
+      />
     )
   }
 
-  // Check authentication
-  const user = await getCurrentUser()
-  if (!user) {
-    redirect(`/auth/login?redirect=/notes/${id}`)
-  }
-
-  // Fetch the note
   const { note, error } = await getNote(id)
 
   if (error || !note) {

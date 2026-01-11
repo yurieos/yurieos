@@ -103,15 +103,28 @@ const FunctionDeclarationSchema = z.object({
   })
 })
 
+// ============================================
+// Validation Constants
+// ============================================
+
+/** Maximum length for text parts in messages (approx 100k tokens at 4 chars/token) */
+const MAX_TEXT_LENGTH = 400_000
+
+/** Maximum number of messages per request */
+const MAX_MESSAGES_PER_REQUEST = 100
+
+/** Maximum number of parts per message */
+const MAX_PARTS_PER_MESSAGE = 20
+
 /**
  * Schema for message parts in UIMessage
  * Supports text, images, videos, documents, audio, tool calls, and other AI SDK v6 part types
  */
 const MessagePartSchema = z.union([
-  // Text part
+  // Text part with length limit
   z.object({
     type: z.literal('text'),
-    text: z.string()
+    text: z.string().max(MAX_TEXT_LENGTH, 'Text content too long')
   }),
   // Image part (for Gemini multimodal)
   ImagePartSchema,
@@ -147,9 +160,12 @@ const MessagePartSchema = z.union([
  * Validates the essential fields while allowing metadata flexibility
  */
 const UIMessageSchema = z.object({
-  id: z.string(),
+  id: z.string().min(1).max(100),
   role: z.enum(['user', 'assistant', 'system']),
-  parts: z.array(MessagePartSchema).optional(),
+  parts: z
+    .array(MessagePartSchema)
+    .max(MAX_PARTS_PER_MESSAGE, 'Too many parts per message')
+    .optional(),
   // Allow metadata to be flexible since it contains annotations
   metadata: z.record(z.unknown()).optional()
 })
@@ -160,13 +176,16 @@ const UIMessageSchema = z.object({
  * @see https://ai.google.dev/gemini-api/docs/function-calling
  */
 const ChatRequestSchema = z.object({
-  id: z.string().min(1, 'Chat ID is required'),
-  messages: z.array(UIMessageSchema).min(1, 'At least one message is required'),
+  id: z.string().min(1, 'Chat ID is required').max(100),
+  messages: z
+    .array(UIMessageSchema)
+    .min(1, 'At least one message is required')
+    .max(MAX_MESSAGES_PER_REQUEST, 'Too many messages in request'),
   mode: z.enum(['standard', 'deep-research']).default('standard'),
   // Function calling options
-  functions: z.array(FunctionDeclarationSchema).optional(),
+  functions: z.array(FunctionDeclarationSchema).max(20).optional(),
   functionCallingMode: z.enum(['AUTO', 'ANY', 'NONE', 'VALIDATED']).optional(),
-  allowedFunctionNames: z.array(z.string()).optional()
+  allowedFunctionNames: z.array(z.string().max(100)).max(20).optional()
 })
 
 /**

@@ -19,7 +19,7 @@ const MODELS: Model[] = [
     providerId: 'google',
     enabled: true,
     toolCallType: 'native',
-    thinkingConfig: { thinkingLevel: 'medium', includeThoughts: true }
+    thinkingConfig: { thinkingLevel: 'minimal', includeThoughts: false }
   },
   {
     id: 'gemini-3-pro-preview',

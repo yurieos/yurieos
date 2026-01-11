@@ -7,24 +7,26 @@ import { toast } from 'sonner'
 
 import { Chat } from '@/lib/types'
 
-import {
-  SidebarGroup,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuSkeleton
-} from '@/components/ui/sidebar'
+import { SidebarGroup, SidebarMenu } from '@/components/ui/sidebar'
+import { Skeleton } from '@/components/ui/skeleton'
 
 import { ChatMenuItem } from './chat-menu-item'
 import { ClearHistoryAction } from './clear-history-action'
 
-// Skeleton component for loading state
+function ChatItemSkeleton({ width }: { width: number }) {
+  return (
+    <div className="flex flex-col gap-1 p-2 rounded-md">
+      <Skeleton className="h-3 rounded" style={{ width }} />
+      <Skeleton className="h-2.5 w-20 rounded" />
+    </div>
+  )
+}
+
 export function ChatHistorySkeleton() {
   return (
     <SidebarMenu>
-      {Array.from({ length: 5 }).map((_, idx) => (
-        <SidebarMenuItem key={idx}>
-          <SidebarMenuSkeleton showIcon={false} />
-        </SidebarMenuItem>
+      {[140, 100, 160, 120, 150].map((width, i) => (
+        <ChatItemSkeleton key={i} width={width} />
       ))}
     </SidebarMenu>
   )

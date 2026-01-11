@@ -32,7 +32,10 @@ export {
   validateUrlCount
 } from './core'
 
-// Types
+// Types from @/lib/types (re-exported for convenience)
+export type { ThinkingConfig } from '@/lib/types'
+
+// Types from ./types
 export type {
   ContentPart,
   ConversationTurn,
@@ -62,7 +65,6 @@ export type {
   ResearchChunk,
   ResearchConfig,
   ResearchPhase,
-  ThinkingConfig,
   UrlContextMetadata,
   UrlMetadata,
   UrlRetrievalStatus,

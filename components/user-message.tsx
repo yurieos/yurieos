@@ -7,12 +7,14 @@ import { Copy, Loader2, Pencil } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { cn } from '@/lib/utils'
+import { parseNotesContext } from '@/lib/utils/notes-to-context'
 
 import { Button } from './ui/button'
 import { Skeleton } from './ui/skeleton'
 import { AudioDisplay } from './audio-preview'
 import { CollapsibleMessage } from './collapsible-message'
 import { DocumentDisplay } from './document-preview'
+import { NotesContextBadge } from './notes-context-badge'
 import { VideoDisplay } from './video-preview'
 
 /** Image part from message */
@@ -267,9 +269,15 @@ export const UserMessage: React.FC<UserMessageProps> = ({
   const hasDocuments = documents && documents.length > 0
   const hasAudios = audios && audios.length > 0
 
+  // Parse notes context from message
+  const parsedMessage = useMemo(() => parseNotesContext(message), [message])
+  const displayMessage = parsedMessage.userMessage
+  const hasNotesContext = parsedMessage.hasNotesContext
+
   const handleEditClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation()
-    setEditedContent(message)
+    // Edit the full message (including context) but only show user part
+    setEditedContent(displayMessage)
     setIsEditing(true)
   }
 
@@ -283,130 +291,157 @@ export const UserMessage: React.FC<UserMessageProps> = ({
     setIsEditing(false)
 
     try {
-      await onUpdateMessage(messageId, editedContent)
+      // When saving, preserve the notes context if it existed
+      const newContent = hasNotesContext
+        ? `${parsedMessage.rawContext}\n\n${editedContent}`
+        : editedContent
+      await onUpdateMessage(messageId, newContent)
     } catch (error) {
       console.error('Failed to save message:', error)
     }
   }
 
   const handleCopyClick = async () => {
-    await navigator.clipboard.writeText(message)
+    // Copy only the user's message, not the notes context
+    await navigator.clipboard.writeText(displayMessage)
     toast.success('Message copied to clipboard')
   }
 
+  const hasAttachments = hasImages || hasVideos || hasDocuments || hasAudios
+  const hasContextOrAttachments = hasNotesContext || hasAttachments
+
   return (
-    <div className="flex items-center justify-end gap-[3px] group">
-      {!isEditing && (
-        <>
-          <Button
-            variant="ghost"
-            size="icon"
-            className={cn(
-              'rounded-full size-8 shrink-0 transition-opacity',
-              'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100'
-            )}
-            onClick={handleEditClick}
-          >
-            <Pencil className="size-3.5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className={cn(
-              'rounded-full size-8 shrink-0 transition-opacity',
-              'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100'
-            )}
-            onClick={handleCopyClick}
-          >
-            <Copy className="size-3.5" />
-          </Button>
-        </>
-      )}
-      <CollapsibleMessage role="user">
-        <div className="min-w-0 break-words outline-none relative" tabIndex={0}>
-          {isEditing ? (
-            <div className="flex flex-col gap-2">
-              <TextareaAutosize
-                value={editedContent}
-                onChange={e => setEditedContent(e.target.value)}
-                autoFocus
-                className="resize-none flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                minRows={2}
-                maxRows={10}
-              />
-              <div className="flex justify-end gap-2">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={handleCancelClick}
-                >
-                  Cancel
-                </Button>
-                <Button size="sm" onClick={handleSaveClick}>
-                  Save
-                </Button>
-              </div>
+    <div className="flex flex-col items-end gap-2 group">
+      {/* Attachments and notes context (separate from text bubble) */}
+      {!isEditing && hasContextOrAttachments && (
+        <div className="flex flex-col items-end gap-2 max-w-[85%]">
+          {/* Notes context badges */}
+          {hasNotesContext && (
+            <NotesContextBadge
+              notes={parsedMessage.notes}
+              className="mb-0 justify-end"
+            />
+          )}
+
+          {/* Media attachments */}
+          {hasImages && (
+            <div
+              className={cn(
+                'flex flex-wrap gap-2 justify-end',
+                images.length === 1 ? 'max-w-xs' : ''
+              )}
+            >
+              {images.map((img, idx) => (
+                <ImageDisplay
+                  key={img.attachmentId || idx}
+                  image={img}
+                  index={idx}
+                  totalImages={images.length}
+                />
+              ))}
             </div>
-          ) : (
-            <div className="min-w-0 break-words">
-              {/* Image grid */}
-              {hasImages && (
-                <div
-                  className={cn(
-                    'flex flex-wrap gap-2 mb-2',
-                    images.length === 1 ? 'max-w-xs' : ''
-                  )}
-                >
-                  {images.map((img, idx) => (
-                    <ImageDisplay
-                      key={img.attachmentId || idx}
-                      image={img}
-                      index={idx}
-                      totalImages={images.length}
-                    />
-                  ))}
-                </div>
-              )}
-              {/* Video display */}
-              {hasVideos && (
-                <div className="mb-2">
-                  {videos.map((vid, idx) => (
-                    <VideoDisplayWithAttachment
-                      key={vid.attachmentId || idx}
-                      video={vid}
-                    />
-                  ))}
-                </div>
-              )}
-              {/* Document display */}
-              {hasDocuments && (
-                <div className="mb-2 flex flex-wrap gap-2">
-                  {documents.map((doc, idx) => (
-                    <DocumentDisplay
-                      key={doc.attachmentId || idx}
-                      mimeType={doc.mimeType}
-                      filename={doc.filename}
-                    />
-                  ))}
-                </div>
-              )}
-              {/* Audio display */}
-              {hasAudios && (
-                <div className="mb-2 flex flex-wrap gap-2">
-                  {audios.map((aud, idx) => (
-                    <AudioDisplayWithAttachment
-                      key={aud.attachmentId || idx}
-                      audio={aud}
-                    />
-                  ))}
-                </div>
-              )}
-              {/* Text content */}
-              {message && <div>{message}</div>}
+          )}
+
+          {hasVideos && (
+            <div className="flex flex-wrap gap-2 justify-end">
+              {videos.map((vid, idx) => (
+                <VideoDisplayWithAttachment
+                  key={vid.attachmentId || idx}
+                  video={vid}
+                />
+              ))}
+            </div>
+          )}
+
+          {hasDocuments && (
+            <div className="flex flex-wrap gap-2 justify-end">
+              {documents.map((doc, idx) => (
+                <DocumentDisplay
+                  key={doc.attachmentId || idx}
+                  mimeType={doc.mimeType}
+                  filename={doc.filename}
+                />
+              ))}
+            </div>
+          )}
+
+          {hasAudios && (
+            <div className="flex flex-wrap gap-2 justify-end">
+              {audios.map((aud, idx) => (
+                <AudioDisplayWithAttachment
+                  key={aud.attachmentId || idx}
+                  audio={aud}
+                />
+              ))}
             </div>
           )}
         </div>
-      </CollapsibleMessage>
+      )}
+
+      {/* Text message bubble */}
+      <div className="flex items-center justify-end gap-[3px]">
+        {!isEditing && (
+          <>
+            <Button
+              variant="ghost"
+              size="icon"
+              className={cn(
+                'rounded-full size-8 shrink-0 transition-opacity',
+                'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100'
+              )}
+              onClick={handleEditClick}
+            >
+              <Pencil className="size-3.5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className={cn(
+                'rounded-full size-8 shrink-0 transition-opacity',
+                'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100'
+              )}
+              onClick={handleCopyClick}
+            >
+              <Copy className="size-3.5" />
+            </Button>
+          </>
+        )}
+        <CollapsibleMessage role="user">
+          <div
+            className="min-w-0 break-words outline-none relative"
+            tabIndex={0}
+          >
+            {isEditing ? (
+              <div className="flex flex-col gap-2">
+                <TextareaAutosize
+                  value={editedContent}
+                  onChange={e => setEditedContent(e.target.value)}
+                  autoFocus
+                  className="resize-none flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                  minRows={2}
+                  maxRows={10}
+                />
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={handleCancelClick}
+                  >
+                    Cancel
+                  </Button>
+                  <Button size="sm" onClick={handleSaveClick}>
+                    Save
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="min-w-0 break-words">
+                {displayMessage && <div>{displayMessage}</div>}
+              </div>
+            )}
+          </div>
+        </CollapsibleMessage>
+      </div>
     </div>
   )
 }

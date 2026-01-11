@@ -4,21 +4,18 @@ import Link from 'next/link'
 import { User } from '@supabase/supabase-js'
 import { FileText, FolderHeart, ImageIcon } from 'lucide-react'
 
-import { getCurrentUser } from '@/lib/auth/get-current-user'
-import { isSupabaseConfigured } from '@/lib/supabase/server'
-
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
   SidebarTrigger
 } from '@/components/ui/sidebar'
 
+import { AuthenticatedSidebarLink } from './sidebar/auth-link'
 import {
   ChatHistoryClient,
   ChatHistorySkeleton
@@ -35,75 +32,6 @@ async function ChatHistorySection() {
     return null
   }
   return <ChatHistoryClient />
-}
-
-// Notes link - only shown for authenticated users when Supabase is configured
-async function NotesLink() {
-  if (!isSupabaseConfigured()) {
-    return null
-  }
-
-  const user = await getCurrentUser()
-  if (!user) {
-    return null
-  }
-
-  return (
-    <SidebarMenuItem>
-      <SidebarMenuButton asChild tooltip="Notes">
-        <Link href="/notes" className="flex items-center gap-2">
-          <FileText className="size-4" />
-          <span>Notes</span>
-        </Link>
-      </SidebarMenuButton>
-    </SidebarMenuItem>
-  )
-}
-
-// Your Stuff link - only shown for authenticated users when Supabase is configured
-async function YourStuffLink() {
-  if (!isSupabaseConfigured()) {
-    return null
-  }
-
-  const user = await getCurrentUser()
-  if (!user) {
-    return null
-  }
-
-  return (
-    <SidebarMenuItem>
-      <SidebarMenuButton asChild tooltip="Your stuff">
-        <Link href="/stuff" className="flex items-center gap-2">
-          <FolderHeart className="size-4" />
-          <span>Your stuff</span>
-        </Link>
-      </SidebarMenuButton>
-    </SidebarMenuItem>
-  )
-}
-
-// Imagine link - only shown for authenticated users when Supabase is configured
-async function ImagineLink() {
-  if (!isSupabaseConfigured()) {
-    return null
-  }
-
-  const user = await getCurrentUser()
-  if (!user) {
-    return null
-  }
-
-  return (
-    <SidebarMenuItem>
-      <SidebarMenuButton asChild tooltip="Imagine">
-        <Link href="/imagine" className="flex items-center gap-2">
-          <ImageIcon className="size-4" />
-          <span>Imagine</span>
-        </Link>
-      </SidebarMenuButton>
-    </SidebarMenuItem>
-  )
 }
 
 interface AppSidebarProps {
@@ -135,13 +63,25 @@ export default function AppSidebar({ user }: AppSidebarProps) {
             <SearchChatsButton />
           </SidebarMenuItem>
           <Suspense fallback={null}>
-            <NotesLink />
+            <AuthenticatedSidebarLink
+              href="/notes"
+              icon={FileText}
+              label="Notes"
+            />
           </Suspense>
           <Suspense fallback={null}>
-            <ImagineLink />
+            <AuthenticatedSidebarLink
+              href="/imagine"
+              icon={ImageIcon}
+              label="Imagine"
+            />
           </Suspense>
           <Suspense fallback={null}>
-            <YourStuffLink />
+            <AuthenticatedSidebarLink
+              href="/stuff"
+              icon={FolderHeart}
+              label="Your stuff"
+            />
           </Suspense>
         </SidebarMenu>
         <div className="flex-1 overflow-y-auto group-data-[collapsible=icon]:hidden">

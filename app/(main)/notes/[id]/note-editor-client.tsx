@@ -121,7 +121,7 @@ export function NoteEditorClient({ note: initialNote }: NoteEditorClientProps) {
   return (
     <div className="flex-1 flex flex-col w-full overflow-y-auto">
       {/* Header with breadcrumb */}
-      <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-sm">
+      <div className="sticky top-0 z-20 bg-background">
         <div className="flex items-center justify-between h-12">
           <NoteBreadcrumb note={note} />
 
@@ -178,7 +178,7 @@ export function NoteEditorClient({ note: initialNote }: NoteEditorClientProps) {
         <NoteHeader note={note} onUpdate={handleNoteUpdate} />
 
         {/* Editor */}
-        <div className="max-w-7xl mx-auto pb-40 px-4 sm:px-8 lg:px-12">
+        <div className="max-w-7xl mx-auto pb-40 mx-0 px-0 sm:mx-auto sm:px-8 lg:px-12">
           <EditorErrorBoundary>
             <NoteEditor
               ref={editorRef}

@@ -6,6 +6,16 @@
 import { z } from 'zod'
 
 // ============================================
+// Validation Constants
+// ============================================
+
+/** Maximum number of blocks per note */
+const MAX_BLOCKS_PER_NOTE = 1000
+
+/** Maximum size of block content JSON (1MB) */
+const MAX_BLOCK_CONTENT_SIZE = 1_000_000
+
+// ============================================
 // Block Type Schema
 // ============================================
 
@@ -48,29 +58,39 @@ export const UpdateNoteSchema = z.object({
 // Block Schemas
 // ============================================
 
-export const BlockContentSchema = z.record(z.unknown())
+/**
+ * Block content schema with size validation
+ * Validates JSON object and ensures reasonable size limits
+ */
+export const BlockContentSchema = z
+  .record(z.unknown())
+  .refine(content => JSON.stringify(content).length <= MAX_BLOCK_CONTENT_SIZE, {
+    message: 'Block content exceeds maximum size'
+  })
 
 export const CreateBlockSchema = z.object({
   type: BlockTypeSchema,
   content: BlockContentSchema,
-  position: z.number().int().min(0).optional()
+  position: z.number().int().min(0).max(MAX_BLOCKS_PER_NOTE).optional()
 })
 
 export const UpdateBlockSchema = z.object({
   type: BlockTypeSchema.optional(),
   content: BlockContentSchema.optional(),
-  position: z.number().int().min(0).optional()
+  position: z.number().int().min(0).max(MAX_BLOCKS_PER_NOTE).optional()
 })
 
 export const SaveBlocksSchema = z.object({
-  blocks: z.array(
-    z.object({
-      id: z.string().uuid().optional(),
-      type: BlockTypeSchema,
-      content: BlockContentSchema,
-      position: z.number().int().min(0)
-    })
-  )
+  blocks: z
+    .array(
+      z.object({
+        id: z.string().uuid().optional(),
+        type: BlockTypeSchema,
+        content: BlockContentSchema,
+        position: z.number().int().min(0).max(MAX_BLOCKS_PER_NOTE)
+      })
+    )
+    .max(MAX_BLOCKS_PER_NOTE, 'Too many blocks per note')
 })
 
 // ============================================

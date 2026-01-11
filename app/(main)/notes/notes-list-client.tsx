@@ -7,7 +7,7 @@ import { FileText, Loader2, Plus, Sparkles, Star } from 'lucide-react'
 
 import { createNote } from '@/lib/actions/notes'
 import type { Note } from '@/lib/types/notes'
-import { cn } from '@/lib/utils'
+import { cn, listItemStyles } from '@/lib/utils'
 import { formatRelativeTimeShort } from '@/lib/utils/format-time'
 import { sortNotesByUpdated } from '@/lib/utils/notes-helpers'
 
@@ -30,11 +30,7 @@ function NoteItem({ note }: { note: Note }) {
   return (
     <a
       href={`/notes/${note.id}`}
-      className={cn(
-        'flex items-center gap-3 py-3 px-3 rounded-xl',
-        'hover:bg-accent/50 active:bg-accent/70',
-        'transition-colors group'
-      )}
+      className={cn(listItemStyles.base, 'gap-3 group')}
     >
       <span className="text-xl shrink-0 leading-none select-none">
         {note.icon || <FileText className="size-5 text-muted-foreground/50" />}
@@ -60,28 +56,40 @@ function NoteItem({ note }: { note: Note }) {
 }
 
 // ============================================
-// Skeleton Loading Component
+// Skeleton Loading Component (with staggered animation)
 // ============================================
+
+function NoteItemSkeleton({ index, width }: { index: number; width: number }) {
+  return (
+    <div
+      className={cn(listItemStyles.skeleton, 'gap-3 note-item-stagger')}
+      style={{
+        animationDelay: `${index * 50}ms`,
+        opacity: 0
+      }}
+    >
+      <Skeleton className="size-5 rounded" />
+      <div className="flex-1 space-y-1.5">
+        <Skeleton className="h-4 rounded" style={{ width }} />
+        <Skeleton className="h-3 w-16 rounded" />
+      </div>
+    </div>
+  )
+}
 
 export function NotesListSkeleton() {
   return (
-    <div className="flex-1 flex flex-col w-full max-w-2xl mx-auto px-4 pt-16 pb-8 animate-pulse">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <Skeleton className="h-8 w-24 mb-2" />
-          <Skeleton className="h-4 w-48" />
+    <div className="flex-1 flex flex-col w-full max-w-3xl mx-auto px-4 sm:px-6 pt-16 pb-8 animate-fade-in">
+      <div className="flex items-center justify-between mb-6">
+        <div className="space-y-2">
+          <Skeleton className="h-8 w-24 rounded-md" />
+          <Skeleton className="h-4 w-48 rounded-md" />
         </div>
         <Skeleton className="h-9 w-24 rounded-full" />
       </div>
       <div className="space-y-1">
-        {[1, 2, 3, 4, 5].map(i => (
-          <div key={i} className="flex items-center gap-3 py-3 px-3 rounded-xl">
-            <Skeleton className="size-5 rounded" />
-            <div className="flex-1 space-y-1.5">
-              <Skeleton className="h-4 w-3/4" />
-              <Skeleton className="h-3 w-16" />
-            </div>
-          </div>
+        {[180, 140, 200, 160, 190].map((width, i) => (
+          <NoteItemSkeleton key={i} index={i} width={width} />
         ))}
       </div>
     </div>
@@ -170,11 +178,11 @@ export function NotesListClient({ notes, favorites }: NotesListClientProps) {
   }
 
   return (
-    <div className="flex-1 flex flex-col w-full max-w-2xl mx-auto px-4 pt-16 pb-8">
+    <div className="flex-1 flex flex-col w-full max-w-3xl mx-auto px-4 sm:px-6 pt-16 pb-8">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="heading-greeting mb-1">Notes</h1>
+          <h1 className="text-xl font-semibold mb-0.5">Notes</h1>
           <p className="text-sm text-muted-foreground">
             {allNotes.length} {allNotes.length === 1 ? 'note' : 'notes'}
           </p>

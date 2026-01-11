@@ -126,7 +126,7 @@ export function NoteHeader({ note, onUpdate }: NoteHeaderProps) {
 
   return (
     <TooltipProvider delayDuration={0}>
-      <div className="max-w-7xl mx-auto pt-4 pb-4 px-4 sm:px-8 lg:px-12">
+      <div className="max-w-7xl mx-auto pt-4 pb-4 px-6 sm:px-8 lg:px-12">
         {/* Icon */}
         {note.icon && (
           <Popover open={iconOpen} onOpenChange={setIconOpen}>

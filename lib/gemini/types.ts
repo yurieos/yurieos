@@ -5,7 +5,7 @@
  * @see https://ai.google.dev/gemini-api/docs
  */
 
-import {
+import type {
   AudioPart,
   DocumentPart,
   ImagePart,
@@ -16,17 +16,6 @@ import {
   ThinkingConfig,
   VideoPart
 } from '@/lib/types'
-export type {
-  AudioPart,
-  DocumentPart,
-  ImagePart,
-  SupportedAudioType,
-  SupportedDocumentType,
-  SupportedImageType,
-  SupportedVideoType,
-  ThinkingConfig,
-  VideoPart
-}
 
 // Function Calling Types
 // @see https://ai.google.dev/gemini-api/docs/function-calling

@@ -6,8 +6,11 @@ import { useChat } from '@ai-sdk/react'
 import { ChatRequestOptions, DefaultChatTransport, UIMessage } from 'ai'
 import { toast } from 'sonner'
 
+import { getNotes } from '@/lib/actions/notes'
 import { AudioPart, DocumentPart, ImagePart, VideoPart } from '@/lib/types'
+import type { Note } from '@/lib/types/notes'
 import { cn } from '@/lib/utils'
+import { buildMessageParts, hasMediaContent } from '@/lib/utils/media-parts'
 
 import { ChatMessages } from './chat-messages'
 import { ChatPanel } from './chat-panel'
@@ -51,6 +54,10 @@ export function Chat({
   const [input, setInput] = useState('')
   const [researchMode, setResearchMode] = useState<ResearchMode>('standard')
 
+  // Notes state for the picker
+  const [notes, setNotes] = useState<Note[]>([])
+  const [favorites, setFavorites] = useState<Note[]>([])
+
   // Initialize research mode from cookie on mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -58,6 +65,20 @@ export function Chat({
       setResearchMode(savedMode)
     }
   }, [])
+
+  // Fetch notes for the picker (lazy load)
+  const fetchNotes = useCallback(async () => {
+    const result = await getNotes()
+    if (!result.error) {
+      setNotes(result.notes)
+      setFavorites(result.favorites)
+    }
+  }, [])
+
+  // Fetch notes on mount (only if authenticated - notes require auth)
+  useEffect(() => {
+    fetchNotes()
+  }, [fetchNotes])
 
   // Update cookie when research mode changes
   const handleResearchModeChange = useCallback((mode: ResearchMode) => {
@@ -251,92 +272,29 @@ export function Chat({
       images?: ImagePart[],
       videos?: VideoPart[],
       documents?: DocumentPart[],
-      audios?: AudioPart[]
+      audios?: AudioPart[],
+      notesContext?: string
     ) => {
       e.preventDefault()
-      const hasImages = images && images.length > 0
-      const hasVideos = videos && videos.length > 0
-      const hasDocuments = documents && documents.length > 0
-      const hasAudios = audios && audios.length > 0
-      if (
-        !input.trim() &&
-        !hasImages &&
-        !hasVideos &&
-        !hasDocuments &&
-        !hasAudios
-      )
-        return
 
-      // Build parts array with media first (per Gemini best practices)
-      // Order: images, then video, then documents, then audio, then text
-      // @see https://ai.google.dev/gemini-api/docs/image-understanding#tips-and-best-practices
-      // @see https://ai.google.dev/gemini-api/docs/video-understanding#tips-and-best-practices
-      // @see https://ai.google.dev/gemini-api/docs/document-processing#best-practices
-      // @see https://ai.google.dev/gemini-api/docs/audio
-      const parts: Array<
-        | { type: 'text'; text: string }
-        | { type: 'image'; mimeType: string; data: string }
-        | { type: 'video'; mimeType?: string; data?: string; fileUri?: string }
-        | {
-            type: 'document'
-            mimeType: string
-            data?: string
-            fileUri?: string
-          }
-        | { type: 'audio'; mimeType: string; data?: string; fileUri?: string }
-      > = []
+      // Prepend notes context to text if provided
+      // Per Gemini best practices: context first, query at the end
+      // @see https://ai.google.dev/gemini-api/docs/long-context
+      const messageText = notesContext
+        ? `${notesContext}\n\n${input}`
+        : input
 
-      // Add images first
-      if (hasImages) {
-        for (const img of images) {
-          parts.push({
-            type: 'image' as const,
-            mimeType: img.mimeType,
-            data: img.data
-          })
-        }
+      const mediaInput = {
+        text: messageText,
+        images,
+        videos,
+        documents,
+        audios
       }
 
-      // Add videos second
-      if (hasVideos) {
-        for (const vid of videos) {
-          parts.push({
-            type: 'video' as const,
-            mimeType: vid.mimeType,
-            data: vid.data,
-            fileUri: vid.fileUri
-          })
-        }
-      }
+      if (!hasMediaContent(mediaInput)) return
 
-      // Add documents third
-      if (hasDocuments) {
-        for (const doc of documents) {
-          parts.push({
-            type: 'document' as const,
-            mimeType: doc.mimeType,
-            data: doc.data,
-            fileUri: doc.fileUri
-          })
-        }
-      }
-
-      // Add audio fourth
-      if (hasAudios) {
-        for (const aud of audios) {
-          parts.push({
-            type: 'audio' as const,
-            mimeType: aud.mimeType,
-            data: aud.data,
-            fileUri: aud.fileUri
-          })
-        }
-      }
-
-      // Add text last
-      if (input.trim()) {
-        parts.push({ type: 'text' as const, text: input })
-      }
+      const parts = buildMessageParts(mediaInput)
 
       // Cast to bypass AI SDK's strict type checking for custom media parts
       sendMessage({ parts } as Parameters<typeof sendMessage>[0])
@@ -354,71 +312,13 @@ export function Chat({
       documents?: DocumentPart[]
       audios?: AudioPart[]
     }) => {
-      // Build parts array with media first, then text
-      const parts: Array<
-        | { type: 'text'; text: string }
-        | { type: 'image'; mimeType: string; data: string }
-        | { type: 'video'; mimeType?: string; data?: string; fileUri?: string }
-        | {
-            type: 'document'
-            mimeType: string
-            data?: string
-            fileUri?: string
-          }
-        | { type: 'audio'; mimeType: string; data?: string; fileUri?: string }
-      > = []
-
-      // Add images first
-      if (msg.images && msg.images.length > 0) {
-        for (const img of msg.images) {
-          parts.push({
-            type: 'image' as const,
-            mimeType: img.mimeType,
-            data: img.data
-          })
-        }
-      }
-
-      // Add videos second
-      if (msg.videos && msg.videos.length > 0) {
-        for (const vid of msg.videos) {
-          parts.push({
-            type: 'video' as const,
-            mimeType: vid.mimeType,
-            data: vid.data,
-            fileUri: vid.fileUri
-          })
-        }
-      }
-
-      // Add documents third
-      if (msg.documents && msg.documents.length > 0) {
-        for (const doc of msg.documents) {
-          parts.push({
-            type: 'document' as const,
-            mimeType: doc.mimeType,
-            data: doc.data,
-            fileUri: doc.fileUri
-          })
-        }
-      }
-
-      // Add audio fourth
-      if (msg.audios && msg.audios.length > 0) {
-        for (const aud of msg.audios) {
-          parts.push({
-            type: 'audio' as const,
-            mimeType: aud.mimeType,
-            data: aud.data,
-            fileUri: aud.fileUri
-          })
-        }
-      }
-
-      // Add text last
-      if (msg.content) {
-        parts.push({ type: 'text' as const, text: msg.content })
-      }
+      const parts = buildMessageParts({
+        text: msg.content,
+        images: msg.images,
+        videos: msg.videos,
+        documents: msg.documents,
+        audios: msg.audios
+      })
 
       // Cast to bypass AI SDK's strict type checking for custom media parts
       sendMessage({ parts } as Parameters<typeof sendMessage>[0])
@@ -459,6 +359,8 @@ export function Chat({
         researchMode={researchMode}
         onResearchModeChange={handleResearchModeChange}
         chatId={id}
+        notes={notes}
+        favorites={favorites}
       />
     </div>
   )

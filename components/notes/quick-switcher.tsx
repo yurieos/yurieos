@@ -120,7 +120,7 @@ export function QuickSwitcher({
                   key={note.id}
                   value={`${note.title}-${note.id}`}
                   onSelect={() => handleSelect(note.id)}
-                  className="flex items-center gap-2 py-2.5"
+                  className="flex items-center gap-2 p-2 rounded-md"
                 >
                   {note.icon ? (
                     <span className="text-base">{note.icon}</span>
@@ -145,7 +145,7 @@ export function QuickSwitcher({
             <CommandGroup heading="Actions">
               <CommandItem
                 onSelect={handleCreateNote}
-                className="flex items-center gap-2 py-2.5"
+                className="flex items-center gap-2 p-2 rounded-md"
               >
                 <Plus className="size-4 text-muted-foreground" />
                 <span>Create new note</span>

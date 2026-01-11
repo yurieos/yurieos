@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 
 import { ChatRequestOptions, UIMessage } from 'ai'
 
@@ -42,32 +42,48 @@ export function ChatMessages({
 }: ChatMessagesProps) {
   const [openStates, setOpenStates] = useState<Record<string, boolean>>({})
 
-  if (!sections.length) return null
+  // Memoize flattened messages array
+  const allMessages = useMemo(
+    () =>
+      sections.flatMap(section => [
+        section.userMessage,
+        ...section.assistantMessages
+      ]),
+    [sections]
+  )
 
-  const allMessages = sections.flatMap(section => [
-    section.userMessage,
-    ...section.assistantMessages
-  ])
-  const lastUserIndex =
-    allMessages.length -
-    1 -
-    [...allMessages].reverse().findIndex(msg => msg.role === 'user')
+  // Memoize last user index computation
+  const lastUserIndex = useMemo(() => {
+    if (allMessages.length === 0) return -1
+    return (
+      allMessages.length -
+      1 -
+      [...allMessages].reverse().findIndex(msg => msg.role === 'user')
+    )
+  }, [allMessages])
 
-  const getIsOpen = (id: string) => {
-    if (id.includes('call')) {
-      return openStates[id] ?? true
-    }
-    const baseId = id.endsWith('-related') ? id.slice(0, -8) : id
-    const index = allMessages.findIndex(msg => msg.id === baseId)
-    return openStates[id] ?? index >= lastUserIndex
-  }
+  // Memoize getIsOpen callback
+  const getIsOpen = useCallback(
+    (id: string) => {
+      if (id.includes('call')) {
+        return openStates[id] ?? true
+      }
+      const baseId = id.endsWith('-related') ? id.slice(0, -8) : id
+      const index = allMessages.findIndex(msg => msg.id === baseId)
+      return openStates[id] ?? index >= lastUserIndex
+    },
+    [openStates, allMessages, lastUserIndex]
+  )
 
-  const handleOpenChange = (id: string, open: boolean) => {
+  // Memoize handleOpenChange callback
+  const handleOpenChange = useCallback((id: string, open: boolean) => {
     setOpenStates(prev => ({
       ...prev,
       [id]: open
     }))
-  }
+  }, [])
+
+  if (!sections.length) return null
 
   return (
     <div

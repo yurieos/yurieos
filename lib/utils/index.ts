@@ -16,6 +16,21 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+// ============================================
+// Standardized List Item Styles
+// ============================================
+
+/**
+ * Unified list item styles for consistency across the app.
+ * Matches the sidebar history list styling pattern.
+ */
+export const listItemStyles = {
+  /** Base list item with hover/active states */
+  base: 'flex items-center gap-2 p-2 rounded-md hover:bg-accent hover:text-accent-foreground active:bg-accent active:text-accent-foreground transition-colors',
+  /** Skeleton list item container */
+  skeleton: 'flex items-center gap-2 p-2 rounded-md'
+} as const
+
 export function createModelId(model: Model): string {
   return `${model.providerId}:${model.id}`
 }

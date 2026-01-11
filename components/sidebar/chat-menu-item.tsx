@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { memo, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 
@@ -56,7 +56,11 @@ function formatDate(date: Date | string) {
   })
 }
 
-export function ChatMenuItem({ chat }: { chat: Chat }) {
+export const ChatMenuItem = memo(function ChatMenuItem({
+  chat
+}: {
+  chat: Chat
+}) {
   const pathname = usePathname()
   const isActive = pathname === chat.path
   const router = useRouter()
@@ -149,4 +153,4 @@ export function ChatMenuItem({ chat }: { chat: Chat }) {
       </DropdownMenu>
     </SidebarMenuItem>
   )
-}
+})
