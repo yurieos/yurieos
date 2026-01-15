@@ -1,16 +1,20 @@
 'use client'
 
-import { AnchorHTMLAttributes, memo, ReactNode, useMemo } from 'react'
+import { AnchorHTMLAttributes, lazy, memo, ReactNode, Suspense, useMemo } from 'react'
 
 import rehypeExternalLinks from 'rehype-external-links'
-import rehypeKatex from 'rehype-katex'
 import remarkGfm from 'remark-gfm'
-import remarkMath from 'remark-math'
 
 import { cn } from '@/lib/utils'
 
-import { CodeBlock } from './ui/codeblock'
 import { MemoizedReactMarkdown } from './ui/markdown'
+
+const LazyCodeBlock = lazy(() =>
+  import('./ui/codeblock').then(mod => ({ default: mod.CodeBlock }))
+)
+const LazyLatexMarkdown = lazy(() =>
+  import('./latex-markdown').then(mod => ({ default: mod.LatexMarkdown }))
+)
 
 // Inline link component for citations
 function Citing({
@@ -34,8 +38,6 @@ function Citing({
     </a>
   )
 }
-
-import 'katex/dist/katex.min.css'
 
 // Strip <think>...</think> tags from LLM output (common in reasoning models)
 const stripThinkTags = (content: string) => {
@@ -75,18 +77,26 @@ export const BotMessage = memo(function BotMessage({
   if (containsLaTeX) {
     return (
       <div className={cn(proseClassName, className)}>
-        <MemoizedReactMarkdown
-          rehypePlugins={[
-            [rehypeExternalLinks, { target: '_blank' }],
-            [rehypeKatex]
-          ]}
-          remarkPlugins={[remarkGfm, remarkMath]}
-          components={{
-            a: Citing
-          }}
+        <Suspense
+          fallback={
+            <MemoizedReactMarkdown
+              rehypePlugins={[[rehypeExternalLinks, { target: '_blank' }]]}
+              remarkPlugins={[remarkGfm]}
+              components={{
+                a: Citing
+              }}
+            >
+              {processedData}
+            </MemoizedReactMarkdown>
+          }
         >
-          {processedData}
-        </MemoizedReactMarkdown>
+          <LazyLatexMarkdown
+            content={processedData}
+            components={{
+              a: Citing
+            }}
+          />
+        </Suspense>
       </div>
     )
   }
@@ -113,6 +123,7 @@ export const BotMessage = memo(function BotMessage({
 
             const match = /language-(\w+)/.exec(className || '')
             const codeString = String(children)
+            const codeValue = codeString.replace(/\n$/, '')
 
             // Detect inline code: no language class AND no newlines in content
             const isInline = !match && !codeString.includes('\n')
@@ -126,11 +137,19 @@ export const BotMessage = memo(function BotMessage({
             }
 
             return (
-              <CodeBlock
-                key={`codeblock-${codeString.slice(0, 50)}`}
-                language={(match && match[1]) || ''}
-                value={codeString.replace(/\n$/, '')}
-              />
+              <Suspense
+                fallback={
+                  <pre className="w-full max-w-full overflow-x-auto rounded-lg border bg-muted/60 p-4 text-xs">
+                    <code>{codeValue}</code>
+                  </pre>
+                }
+              >
+                <LazyCodeBlock
+                  key={`codeblock-${codeValue.slice(0, 50)}`}
+                  language={(match && match[1]) || ''}
+                  value={codeValue}
+                />
+              </Suspense>
             )
           },
           a: Citing
