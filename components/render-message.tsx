@@ -1,4 +1,4 @@
-import { memo, useMemo } from 'react'
+import { lazy, memo, Suspense, useMemo } from 'react'
 
 import { ChatRequestOptions, JSONValue, UIMessage } from 'ai'
 
@@ -6,10 +6,17 @@ import { ResearchAnnotation } from '@/lib/types'
 
 import { AnswerSection } from './answer-section'
 import { ResearchMode } from './chat'
-import { GeneratedImage } from './generated-image'
-import RelatedQuestions from './related-questions'
-import { ThinkingDisplay } from './thinking-display'
 import { UserMessage } from './user-message'
+
+const LazyGeneratedImage = lazy(() =>
+  import('./generated-image').then(mod => ({ default: mod.GeneratedImage }))
+)
+const LazyRelatedQuestions = lazy(() =>
+  import('./related-questions').then(mod => ({ default: mod.default }))
+)
+const LazyThinkingDisplay = lazy(() =>
+  import('./thinking-display').then(mod => ({ default: mod.ThinkingDisplay }))
+)
 
 interface RenderMessageProps {
   message: UIMessage
@@ -208,7 +215,12 @@ export const RenderMessage = memo(function RenderMessage({
       {/* Chain of Thought - Display Gemini's thinking process */}
       {/* Per https://ai.google.dev/gemini-api/docs/thinking - thought summaries provide insights */}
       {hasThoughtSteps && (
-        <ThinkingDisplay message={message} className="mb-4 animate-fade-in" />
+        <Suspense fallback={null}>
+          <LazyThinkingDisplay
+            message={message}
+            className="mb-4 animate-fade-in"
+          />
+        </Suspense>
       )}
 
       {/* Regular answer content - citations are inline markdown links */}
@@ -227,27 +239,43 @@ export const RenderMessage = memo(function RenderMessage({
       {/* Generated Images from AI */}
       {generatedImages.length > 0 && (
         <div className="flex flex-wrap gap-4 my-4">
-          {generatedImages.map((img, idx) => (
-            <GeneratedImage
-              key={`gen-img-${messageId}-${idx}`}
-              imageData={img.data}
-              mimeType={img.mimeType}
-              aspectRatio={img.aspectRatio}
-              alt={`AI Generated Image ${idx + 1}`}
-            />
-          ))}
+          {generatedImages.map((img, idx) => {
+            const dataUrl = `data:${img.mimeType};base64,${img.data}`
+            return (
+              <Suspense
+                key={`gen-img-${messageId}-${idx}`}
+                fallback={
+                  <img
+                    src={dataUrl}
+                    alt={`AI Generated Image ${idx + 1}`}
+                    className="w-full max-w-md h-auto object-contain rounded-lg border bg-muted/50"
+                    loading="lazy"
+                  />
+                }
+              >
+                <LazyGeneratedImage
+                  imageData={img.data}
+                  mimeType={img.mimeType}
+                  aspectRatio={img.aspectRatio}
+                  alt={`AI Generated Image ${idx + 1}`}
+                />
+              </Suspense>
+            )
+          })}
         </div>
       )}
 
       {relatedQuestions.length > 0 && (
-        <RelatedQuestions
-          annotations={relatedQuestions as unknown as JSONValue[]}
-          onQuerySelect={onQuerySelect}
-          isOpen={getIsOpen(`${messageId}-related`)}
-          onOpenChange={open => onOpenChange(`${messageId}-related`, open)}
-          chatId={chatId || ''}
-          isLoading={isLoading}
-        />
+        <Suspense fallback={null}>
+          <LazyRelatedQuestions
+            annotations={relatedQuestions as unknown as JSONValue[]}
+            onQuerySelect={onQuerySelect}
+            isOpen={getIsOpen(`${messageId}-related`)}
+            onOpenChange={open => onOpenChange(`${messageId}-related`, open)}
+            chatId={chatId || ''}
+            isLoading={isLoading}
+          />
+        </Suspense>
       )}
     </>
   )
