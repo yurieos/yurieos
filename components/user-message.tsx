@@ -161,6 +161,7 @@ function ImageDisplay({
   }
 
   return (
+    // eslint-disable-next-line @next/next/no-img-element -- Base64 data URL or Supabase signed URL, Next.js Image cannot optimize
     <img
       src={src!}
       alt={image.filename || `Attachment ${index + 1}`}

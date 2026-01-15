@@ -20,6 +20,7 @@ export const ImagePreview = memo(function ImagePreview({
 }: ImagePreviewProps) {
   return (
     <div className="relative group">
+      {/* eslint-disable-next-line @next/next/no-img-element -- Blob/data URL preview, Next.js Image cannot optimize */}
       <img
         src={attachment.previewUrl}
         alt="Attachment preview"

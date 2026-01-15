@@ -690,6 +690,7 @@ export function ImagineClient() {
               <div className="relative p-2 bg-gradient-to-b from-muted/80 to-muted/40 rounded-lg shadow-sm">
                 <div className="relative rounded overflow-hidden ring-1 ring-border/50 shadow-inner">
                   {mediaType === 'image' && generatedImage ? (
+                    // eslint-disable-next-line @next/next/no-img-element -- Base64 data URL, Next.js Image cannot optimize
                     <img
                       src={`data:${generatedImage.mimeType};base64,${generatedImage.data}`}
                       alt="Generated"
@@ -812,6 +813,7 @@ export function ImagineClient() {
               />
               {firstFrameImage ? (
                 <div className="relative group">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- Blob URL preview, Next.js Image cannot optimize */}
                   <img
                     src={firstFrameImage.previewUrl}
                     alt="First frame"
@@ -855,6 +857,7 @@ export function ImagineClient() {
                 />
                 {lastFrameImage ? (
                   <div className="relative group">
+                    {/* eslint-disable-next-line @next/next/no-img-element -- Blob URL preview, Next.js Image cannot optimize */}
                     <img
                       src={lastFrameImage.previewUrl}
                       alt="Last frame"
@@ -901,6 +904,7 @@ export function ImagineClient() {
           <div className="flex items-center gap-2">
             {referenceImages.map(img => (
               <div key={img.id} className="relative group">
+                {/* eslint-disable-next-line @next/next/no-img-element -- Blob URL preview, Next.js Image cannot optimize */}
                 <img
                   src={img.previewUrl}
                   alt="Reference"

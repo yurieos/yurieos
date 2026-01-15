@@ -31,25 +31,45 @@ app/
 ├── (main)/           # Main app routes (with sidebar)
 │   ├── imagine/      # AI image generation
 │   ├── search/       # Chat conversation pages
-│   └── stuff/        # User's saved images
+│   └── stuff/        # User's saved images/videos
+├── (auth)/           # Authentication routes
 ├── (legal)/          # Legal pages (Privacy Policy, Terms of Service)
-├── api/
-│   ├── chat/         # Main chat API (Gemini)
-│   └── health/       # Health check endpoint
-└── auth/             # Authentication pages
+└── api/
+    ├── chat/         # Main chat streaming API
+    ├── imagine/      # Image generation API
+    ├── video/        # Video generation API
+    ├── attachments/  # File upload API (Gemini Files API)
+    ├── stuff/images/ # Saved images CRUD
+    ├── chats/        # Chat list API
+    ├── config/models/# Models configuration API
+    └── health/       # Health check endpoint
 
 lib/
-├── gemini/           # Gemini Agentic Module
-│   ├── core.ts       # Client, citations, safety
-│   ├── agentic.ts    # Agentic workflow
-│   ├── deep-research-agent.ts
+├── gemini/           # Gemini AI Module
+│   ├── core.ts       # Client singleton, citations, safety, URL context
+│   ├── agentic.ts    # Agentic workflow with tools
+│   ├── constants.ts  # Centralized API constants and limits
+│   ├── errors.ts     # Typed error classes (GeminiError, etc.)
+│   ├── retry.ts      # Exponential backoff retry logic
+│   ├── tokens.ts     # Token estimation utilities
+│   ├── files.ts      # Gemini Files API (video uploads)
 │   ├── streaming.ts  # Vercel AI SDK adapter
+│   ├── image-generation.ts  # Imagen 3 Pro/Flash
+│   ├── video-generation.ts  # Veo 3.1 video generation
+│   ├── deep-research-agent.ts
 │   ├── system-instructions.ts
+│   ├── function-calling/     # Function calling module
+│   │   ├── executor.ts
+│   │   ├── registry.ts
+│   │   └── functions/
 │   ├── types.ts
 │   └── index.ts
 ├── schema/           # Zod validation schemas
 │   ├── chat.ts       # Chat message schemas
-│   └── model.ts      # Model cookie validation
+│   ├── model.ts      # Model cookie validation
+│   ├── attachment.ts # Attachment schemas
+│   ├── image.ts      # Image generation schemas
+│   └── video.ts      # Video generation schemas
 ├── supabase/         # Supabase clients
 ├── redis/            # Redis config
 ├── actions/          # Server actions
@@ -60,6 +80,7 @@ lib/
 components/
 ├── ui/               # shadcn/ui components
 ├── sidebar/          # Chat history
+├── chat/             # Chat-specific components
 ├── prompt-kit/       # Chain of thought
 ├── auth-forms.tsx    # All auth forms (login, signup, etc.)
 ├── error-boundary.tsx # Error boundaries
@@ -140,7 +161,12 @@ Models in `lib/config/models.ts`:
 {
   id: 'gemini-3-flash-preview',
   name: 'Gemini 3 Flash',
-  thinkingConfig: { thinkingLevel: 'medium', includeThoughts: true }
+  thinkingConfig: { thinkingLevel: 'minimal', includeThoughts: false }
+}
+{
+  id: 'gemini-3-pro-preview',
+  name: 'Gemini 3 Pro',
+  thinkingConfig: { thinkingLevel: 'high', includeThoughts: true }
 }
 ```
 
@@ -153,17 +179,68 @@ Model cookie validation via `lib/schema/model.ts` using Zod.
 
 ## Gemini Constants
 
-From `lib/gemini/core.ts`:
+From `lib/gemini/constants.ts`:
 
 - `GEMINI_3_FLASH` = `'gemini-3-flash-preview'`
 - `GEMINI_3_PRO` = `'gemini-3-pro-preview'`
+- `GEMINI_IMAGE_FLASH` = `'gemini-3-flash-image-preview'`
+- `GEMINI_IMAGE_PRO` = `'gemini-3-pro-image-preview'`
 - `DEEP_RESEARCH_MODEL` = `'deep-research-pro-preview-12-2025'`
+- `VEO_3_1` = `'veo-3.1-generate-preview'`
+- `VEO_3_1_FAST` = `'veo-3.1-fast-generate-preview'`
+
+Also exports `LIMITS`, `TIMING`, `DEFAULTS`, `SUPPORTED_FORMATS` constants.
 
 ## Deep Research
 
 - `executeDeepResearch()` - Start new research task
 - `askFollowUp()` - Continue with follow-up questions
 - `reconnectToResearch()` - Resume interrupted research tasks
+
+## Image Generation
+
+- `generateImage()` - Generate image from text prompt
+- `generateImageStream()` - Streaming image generation
+- `editImage()` - Edit existing image with prompt
+- `refineImage()` - Refine/upscale image
+
+## Video Generation
+
+- `generateVideo()` - Text-to-video generation
+- `generateVideoFromImage()` - Image-to-video (first frame)
+- `generateVideoWithInterpolation()` - First+last frame interpolation
+- `extendVideo()` - Extend existing video
+
+## Error Handling
+
+Typed error classes in `lib/gemini/errors.ts`:
+
+- `GeminiError` - Base error class
+- `GeminiSafetyError` - Content blocked by safety filters
+- `GeminiRateLimitError` - Rate limit exceeded (retryable)
+- `GeminiQuotaError` - Quota exceeded
+- `GeminiAuthError` - Invalid/missing API key
+- `GeminiTimeoutError` - Request timeout (retryable)
+- `GeminiNetworkError` - Network issues (retryable)
+
+Utilities: `isRetryableError()`, `parseGeminiError()`, `getUserFriendlyMessage()`
+
+## Retry Logic
+
+From `lib/gemini/retry.ts`:
+
+- `withGeminiRetry()` - Wrap async functions with exponential backoff
+- `withGeminiRetryStream()` - Retry for streaming responses
+- Configurable: `maxRetries`, `baseDelayMs`, `maxDelayMs`, `jitterFactor`
+
+## Token Estimation
+
+From `lib/gemini/tokens.ts`:
+
+- `estimateTokenCount()` - Estimate tokens for text
+- `estimateMessageTokens()` - Estimate tokens for message with attachments
+- `checkTokenLimits()` - Validate against model limits
+- `truncateToTokenLimit()` - Truncate conversation history
 
 ## Error Boundaries
 

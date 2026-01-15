@@ -13,8 +13,10 @@
  */
 
 // Core (Client + Citations + URL Context)
+export type { UrlValidationResult } from './core'
 export {
   deduplicateSources,
+  deduplicateUrls,
   DEEP_RESEARCH_MODEL,
   extractDomain,
   extractUrlsFromQuery,
@@ -25,10 +27,13 @@ export {
   getGeminiClient,
   getUrlRetrievalSummary,
   isGeminiAvailable,
+  isUrlLikelyAccessible,
   MAX_URL_CONTENT_SIZE_MB,
   MAX_URLS_PER_REQUEST,
   parseGroundingMetadata,
   parseUrlContextMetadata,
+  processUrls,
+  validateUrl,
   validateUrlCount
 } from './core'
 
@@ -123,6 +128,60 @@ export { createGeminiStreamResponse } from './streaming'
 // Safety (included in core)
 export type { SafetyResult } from './core'
 export { processInputSafely } from './core'
+
+// Error Types and Utilities
+// @see https://ai.google.dev/gemini-api/docs/troubleshooting
+export {
+  GeminiAuthError,
+  GeminiError,
+  GeminiModelError,
+  GeminiNetworkError,
+  GeminiQuotaError,
+  GeminiRateLimitError,
+  GeminiRecitationError,
+  GeminiSafetyError,
+  GeminiTimeoutError,
+  GeminiTokenLimitError,
+  GeminiValidationError,
+  getUserFriendlyMessage,
+  isRateLimitError,
+  isRetryableError,
+  isSafetyError,
+  parseGeminiError
+} from './errors'
+
+// Retry Logic
+export type { RetryConfig } from './retry'
+export {
+  createRetryWrapper,
+  withGeminiRetry,
+  withGeminiRetryStream
+} from './retry'
+
+// Centralized Constants
+// @see https://ai.google.dev/gemini-api/docs
+export {
+  DEFAULTS,
+  FINISH_REASONS,
+  FUNCTION_CALLING_MODES,
+  LIMITS,
+  MODALITIES,
+  SUPPORTED_FORMATS,
+  THINKING_LEVELS,
+  TIMING
+} from './constants'
+
+// Token Estimation
+// @see https://ai.google.dev/gemini-api/docs/tokens
+export type { TokenLimitResult } from './tokens'
+export {
+  checkTokenLimits,
+  estimateMessageTokens,
+  estimateTokenCount,
+  estimateTotalTokens,
+  getTokenSummary,
+  truncateToTokenLimit
+} from './tokens'
 
 // File API (for large video uploads)
 // @see https://ai.google.dev/gemini-api/docs/files

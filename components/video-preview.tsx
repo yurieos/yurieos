@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 
 import { Loader2, Video, X, Youtube } from 'lucide-react'
 
@@ -80,11 +81,14 @@ function VideoPreviewInner({
           // YouTube thumbnail
           <>
             {youtubeThumbnail && !thumbnailError ? (
-              <img
+              <Image
                 src={youtubeThumbnail}
                 alt="YouTube video thumbnail"
+                width={320}
+                height={180}
                 className="h-full w-full object-cover"
                 onError={() => setThumbnailError(true)}
+                unoptimized={false}
               />
             ) : (
               // Fallback when thumbnail fails to load

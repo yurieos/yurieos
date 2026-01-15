@@ -14,13 +14,58 @@
  * - Agent uses maximum reasoning depth internally
  * - Reconnection support for long-running tasks
  * - Follow-up question support via previous_interaction_id
+ * - Keep-alive heartbeat to prevent connection timeouts
  *
  * Status values: completed, in_progress, requires_action, failed, cancelled
  */
 
+import { logger } from '@/lib/utils/logger'
+
+import { TIMING } from './constants'
 import { DEEP_RESEARCH_MODEL, getGeminiClient } from './core'
 import { getDeepResearchFormatInstructions } from './system-instructions'
 import { DeepResearchOptions, ResearchChunk } from './types'
+
+// ============================================
+// Keep-Alive Utilities
+// ============================================
+
+/**
+ * Creates an async iterator with heartbeat support
+ * Yields heartbeats when no data is received within the interval
+ * Prevents connection timeouts during long-running deep research tasks
+ */
+async function* withHeartbeat<T>(
+  stream: AsyncIterable<T>,
+  heartbeatIntervalMs: number = TIMING.DEEP_RESEARCH_HEARTBEAT_MS
+): AsyncGenerator<{ type: 'data'; data: T } | { type: 'heartbeat' }> {
+  const iterator = stream[Symbol.asyncIterator]()
+  let done = false
+
+  while (!done) {
+    // Race between getting next chunk and heartbeat timeout
+    const timeoutPromise = new Promise<{ type: 'heartbeat' }>(resolve => {
+      setTimeout(() => resolve({ type: 'heartbeat' }), heartbeatIntervalMs)
+    })
+
+    const nextPromise = iterator.next().then(result => {
+      if (result.done) {
+        done = true
+        return null
+      }
+      return { type: 'data' as const, data: result.value }
+    })
+
+    const result = await Promise.race([nextPromise, timeoutPromise])
+
+    if (result === null) {
+      // Stream ended
+      break
+    }
+
+    yield result
+  }
+}
 
 // ============================================
 // Main Deep Research Execution
@@ -80,7 +125,23 @@ export async function* executeDeepResearch(
 
     yield { type: 'phase', phase: 'searching' }
 
-    for await (const chunk of stream) {
+    // Wrap stream with heartbeat to prevent connection timeouts
+    // Deep research can take 5-60 minutes with long gaps between events
+    for await (const wrappedChunk of withHeartbeat(stream)) {
+      // Handle heartbeat - send keep-alive progress to prevent connection timeout
+      if (wrappedChunk.type === 'heartbeat') {
+        yield {
+          type: 'progress',
+          content: 'Research in progress...',
+          phase: 'synthesizing',
+          metadata: interactionId ? { interactionId } : undefined
+        }
+        continue
+      }
+
+      // Extract actual chunk data
+      const chunk = wrappedChunk.data
+
       // Capture interaction ID for reconnection/follow-ups
       // Per docs: Watch for event: interaction.start to get the interaction ID
       if (chunk.event_type === 'interaction.start') {
@@ -162,7 +223,7 @@ export async function* executeDeepResearch(
       }
     }
   } catch (error) {
-    console.error('[Deep Research Agent] Error:', error)
+    logger.error('Gemini/DeepResearch', error)
 
     // If we have an interaction ID, include it for potential reconnection
     if (interactionId) {
@@ -272,7 +333,22 @@ export async function* reconnectToResearch(
 
     let currentLastEventId: string | undefined = lastEventId
 
-    for await (const chunk of stream) {
+    // Wrap stream with heartbeat to prevent connection timeouts
+    for await (const wrappedChunk of withHeartbeat(stream)) {
+      // Handle heartbeat - send keep-alive progress
+      if (wrappedChunk.type === 'heartbeat') {
+        yield {
+          type: 'progress',
+          content: 'Research in progress...',
+          phase: 'synthesizing',
+          metadata: { interactionId, lastEventId: currentLastEventId }
+        }
+        continue
+      }
+
+      // Extract actual chunk data
+      const chunk = wrappedChunk.data
+
       // Track event ID for potential future reconnection
       if (chunk.event_id) {
         currentLastEventId = chunk.event_id
@@ -337,7 +413,7 @@ export async function* reconnectToResearch(
       }
     }
   } catch (error) {
-    console.error('[Deep Research] Reconnection failed:', error)
+    logger.error('Gemini/DeepResearch', error, { action: 'reconnection' })
     yield {
       type: 'error',
       error: error instanceof Error ? error.message : 'Reconnection failed',
@@ -399,7 +475,7 @@ export async function* askFollowUp(
       }
     }
   } catch (error) {
-    console.error('[Deep Research Agent] Follow-up error:', error)
+    logger.error('Gemini/DeepResearch', error, { action: 'follow-up' })
     yield {
       type: 'error',
       error: error instanceof Error ? error.message : 'Follow-up failed'

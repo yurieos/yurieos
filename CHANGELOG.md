@@ -6,12 +6,17 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **AI Video Generation**: Veo 3.1 video generation (`/api/video`) with text-to-video, image-to-video, frame interpolation, and video extension
 - **Imagine Feature**: AI image generation with Gemini Imagen 3 (`/api/imagine`)
 - **Multimodal Attachments**: Support for images, videos, audio, and documents in chat
-- **Your Stuff Page**: Gallery page (`/stuff`) for saved AI-generated images
+- **Your Stuff Page**: Gallery page (`/stuff`) for saved AI-generated images and videos
 - **Function Calling**: Gemini function calling with calculator and datetime tools
 - **File Upload API**: `/api/attachments` for uploading files to Gemini Files API
-- **Supabase Migrations**: Database schema for user images and attachments storage
+- **Typed Error Classes**: `GeminiError` hierarchy in `lib/gemini/errors.ts` with `GeminiSafetyError`, `GeminiRateLimitError`, `GeminiQuotaError`, `GeminiAuthError`, `GeminiTimeoutError`, `GeminiNetworkError`, `GeminiRecitationError`, `GeminiTokenLimitError`
+- **Retry Logic**: `withGeminiRetry()` in `lib/gemini/retry.ts` with exponential backoff and jitter
+- **Token Estimation**: `lib/gemini/tokens.ts` with `estimateTokenCount()`, `checkTokenLimits()`, `truncateToTokenLimit()`
+- **Centralized Constants**: `lib/gemini/constants.ts` with `LIMITS`, `TIMING`, `DEFAULTS`, `SUPPORTED_FORMATS`, `THINKING_LEVELS`
+- **Supabase Migrations**: Database schema for user images, videos, and attachments storage
 - **Sidebar Icon Mode**: Desktop sidebar now collapses to icon-only mode (3rem) instead of hiding completely
 - **Sidebar Tooltips**: Menu buttons show tooltips when sidebar is collapsed
 - **Mobile Branding**: Bear emoji and "Yurie" text now visible in mobile header
@@ -29,13 +34,15 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Chat Panel**: Enhanced with attachment support, imagine modal, and multimodal input
 - **User Message**: Now displays image, video, audio, and document previews
 - **Gemini Agentic**: Extended to support multimodal content and function calling
-- **Streaming**: Added support for image generation and function call responses
+- **Streaming**: Added support for image generation, video generation, and function call responses
 - **Sidebar Redesign**: Changed from `offcanvas` to `icon` collapsible mode for desktop
 - **Sidebar Background**: Now matches main page background color in both light and dark modes
 - **Header Width**: Adjusts for collapsed sidebar icon width on desktop
 - **Production Domain**: Updated `metadataBase` to `https://www.yurie.ai`
-- **Gemini Module Refactored**: Renamed `research.ts` → `agentic.ts`, consolidated citations and safety into `core.ts`
-- **Thinking Level Default**: Gemini 3 Flash now defaults to `medium` thinking (was `minimal`)
+- **Gemini Module Refactored**: Split into `core.ts`, `constants.ts`, `errors.ts`, `retry.ts`, `tokens.ts`
+- **Thinking Level Default**: Gemini 3 Flash uses `minimal` thinking, Gemini 3 Pro uses `high` thinking
+- **Error Handling**: All API calls now use typed errors with `parseGeminiError()` and `getUserFriendlyMessage()`
+- **Retry Behavior**: Transient errors automatically retried with exponential backoff via `withGeminiRetry()`
 - **Hooks Consolidated**: All hooks now in `hooks/index.ts` (removed separate files)
 - **Auth Forms Consolidated**: All auth forms now in `components/auth-forms.tsx` (removed separate form files)
 - **Sidebar Simplified**: Removed `chat-history-section.tsx` and `chat-history-skeleton.tsx`

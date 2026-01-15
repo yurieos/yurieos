@@ -310,3 +310,181 @@ export function getUrlRetrievalSummary(metadata: UrlContextMetadata | null): {
     urls
   }
 }
+
+// ============================================
+// Enhanced URL Validation and Processing
+// ============================================
+
+/**
+ * URL validation result
+ */
+export interface UrlValidationResult {
+  /** Whether the URL is valid */
+  valid: boolean
+  /** The normalized URL (cleaned up) */
+  normalizedUrl?: string
+  /** Error message if invalid */
+  error?: string
+}
+
+/**
+ * Blocked URL patterns (domains that shouldn't be accessed)
+ */
+const BLOCKED_URL_PATTERNS = [
+  /^localhost/i,
+  /^127\.0\.0\.1/,
+  /^192\.168\./,
+  /^10\./,
+  /^172\.(1[6-9]|2[0-9]|3[0-1])\./,
+  /^0\.0\.0\.0/,
+  /\.local$/i,
+  /\.internal$/i
+]
+
+/**
+ * Validate a single URL
+ *
+ * @param url - URL to validate
+ * @returns Validation result
+ *
+ * @example
+ * ```ts
+ * const result = validateUrl('https://example.com')
+ * if (result.valid) {
+ *   console.log('Valid URL:', result.normalizedUrl)
+ * }
+ * ```
+ */
+export function validateUrl(url: string): UrlValidationResult {
+  try {
+    const parsed = new URL(url)
+
+    // Check protocol
+    if (!['http:', 'https:'].includes(parsed.protocol)) {
+      return { valid: false, error: 'Only HTTP/HTTPS URLs are supported' }
+    }
+
+    // Check for blocked patterns (private networks, localhost)
+    const host = parsed.hostname.toLowerCase()
+    for (const pattern of BLOCKED_URL_PATTERNS) {
+      if (pattern.test(host)) {
+        return { valid: false, error: 'Private/local URLs are not supported' }
+      }
+    }
+
+    // Normalize the URL (remove trailing slashes, lowercase hostname)
+    const normalizedUrl = parsed.href.replace(/\/+$/, '')
+
+    return { valid: true, normalizedUrl }
+  } catch {
+    return { valid: false, error: 'Invalid URL format' }
+  }
+}
+
+/**
+ * Process and validate a list of URLs
+ *
+ * Validates, deduplicates, and truncates URLs to the maximum allowed.
+ *
+ * @param urls - Array of URLs to process
+ * @returns Processed URLs with validation results
+ *
+ * @example
+ * ```ts
+ * const result = processUrls(['https://example.com', 'invalid-url'])
+ * console.log(`Valid: ${result.valid.length}, Invalid: ${result.invalid.length}`)
+ * ```
+ */
+export function processUrls(urls: string[]): {
+  /** Valid, deduplicated URLs ready to use */
+  valid: string[]
+  /** Invalid URLs with error messages */
+  invalid: Array<{ url: string; error: string }>
+  /** Whether any URLs were truncated due to limit */
+  truncated: boolean
+  /** Original count before processing */
+  originalCount: number
+} {
+  const result = {
+    valid: [] as string[],
+    invalid: [] as Array<{ url: string; error: string }>,
+    truncated: false,
+    originalCount: urls.length
+  }
+
+  // Track seen URLs for deduplication (case-insensitive)
+  const seen = new Set<string>()
+
+  for (const url of urls) {
+    // Skip if we've hit the limit
+    if (result.valid.length >= MAX_URLS_PER_REQUEST) {
+      result.truncated = true
+      break
+    }
+
+    const validation = validateUrl(url)
+
+    if (validation.valid && validation.normalizedUrl) {
+      // Check for duplicates (case-insensitive)
+      const lowerUrl = validation.normalizedUrl.toLowerCase()
+      if (!seen.has(lowerUrl)) {
+        seen.add(lowerUrl)
+        result.valid.push(validation.normalizedUrl)
+      }
+    } else {
+      result.invalid.push({ url, error: validation.error || 'Invalid URL' })
+    }
+  }
+
+  return result
+}
+
+/**
+ * Deduplicate URLs while preserving order
+ *
+ * @param urls - Array of URLs to deduplicate
+ * @returns Deduplicated array of URLs
+ */
+export function deduplicateUrls(urls: string[]): string[] {
+  const seen = new Set<string>()
+  return urls.filter(url => {
+    const normalized = url.toLowerCase()
+    if (seen.has(normalized)) return false
+    seen.add(normalized)
+    return true
+  })
+}
+
+/**
+ * Check if a URL is likely accessible (basic heuristics)
+ *
+ * Note: This doesn't actually fetch the URL, just checks basic patterns.
+ * For actual accessibility, the Gemini API will report retrieval status.
+ *
+ * @param url - URL to check
+ * @returns Whether the URL appears accessible
+ */
+export function isUrlLikelyAccessible(url: string): boolean {
+  const validation = validateUrl(url)
+  if (!validation.valid) return false
+
+  // Check for common patterns that suggest non-accessible content
+  const lowerUrl = url.toLowerCase()
+
+  // Login/auth pages
+  if (/\/(login|signin|auth|oauth|sso|logout)\b/i.test(lowerUrl)) {
+    return false
+  }
+
+  // Admin/internal pages
+  if (/\/(admin|internal|private|dashboard)\b/i.test(lowerUrl)) {
+    return false
+  }
+
+  // File types that might not be text content
+  if (/\.(exe|dmg|zip|tar|gz|rar|7z|iso)\b/i.test(lowerUrl)) {
+    return false
+  }
+
+  return true
+}

@@ -19,6 +19,8 @@ Go to **Supabase Dashboard > SQL Editor** and run the migrations in order:
 2. `migrations/002_user_images_storage.sql` - Creates storage policies for images
 3. `migrations/004_user_attachments.sql` - Creates the `user_attachments` table
 4. `migrations/005_user_attachments_storage.sql` - Creates storage policies for attachments
+5. `migrations/010_user_videos.sql` - Creates the `user_videos` table with RLS policies
+6. `migrations/011_user_videos_storage.sql` - Creates storage policies for videos
 
 ### 2. Create Storage Buckets
 
@@ -41,6 +43,15 @@ Go to **Supabase Dashboard > Storage** and create the following buckets:
 | Public             | No (private)                                                 |
 | Allowed MIME types | `image/*`, `application/pdf`, `text/*`, `video/*`, `audio/*` |
 | Max file size      | 100MB                                                        |
+
+#### user-videos bucket
+
+| Setting            | Value                     |
+| ------------------ | ------------------------- |
+| Name               | `user-videos`             |
+| Public             | No (private)              |
+| Allowed MIME types | `video/mp4`, `video/webm` |
+| Max file size      | 500MB                     |
 
 ### 3. Apply Storage Policies
 
@@ -75,6 +86,21 @@ After creating buckets, go to **Storage > [bucket-name] > Policies** and apply t
 | `file_size`       | BIGINT      | File size in bytes                  |
 | `attachment_type` | TEXT        | Type: image, video, document, audio |
 | `created_at`      | TIMESTAMPTZ | Creation timestamp                  |
+
+### Table: `user_videos`
+
+| Column             | Type        | Description                               |
+| ------------------ | ----------- | ----------------------------------------- |
+| `id`               | UUID        | Primary key                               |
+| `user_id`          | UUID        | Foreign key to `auth.users`               |
+| `storage_path`     | TEXT        | Path in storage bucket                    |
+| `prompt`           | TEXT        | Original generation prompt                |
+| `aspect_ratio`     | TEXT        | Video aspect ratio (e.g., "16:9", "9:16") |
+| `resolution`       | TEXT        | Resolution (e.g., "720p", "1080p")        |
+| `duration_seconds` | TEXT        | Duration in seconds                       |
+| `mime_type`        | TEXT        | MIME type (default: "video/mp4")          |
+| `file_size`        | BIGINT      | File size in bytes                        |
+| `created_at`       | TIMESTAMPTZ | Creation timestamp                        |
 
 ## Security
 

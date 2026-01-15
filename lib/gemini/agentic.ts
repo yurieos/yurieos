@@ -34,6 +34,7 @@ import {
   ThinkingConfig,
   VideoPart
 } from '@/lib/types'
+import { logger } from '@/lib/utils/logger'
 
 import { FunctionDeclaration, PropertySchema } from './function-calling/types'
 import {
@@ -51,6 +52,7 @@ import {
   extractFunctionCalls,
   functionRegistry
 } from './function-calling'
+import { withGeminiRetry } from './retry'
 import {
   getDeepResearchFormatInstructions,
   getFollowUpPrompt,
@@ -327,11 +329,19 @@ export async function* agenticChat(
 
     // Configure function calling mode
     // Per https://ai.google.dev/gemini-api/docs/function-calling#function_calling_modes
+    // - VALIDATED mode guarantees function schema adherence (recommended)
+    // - AUTO mode lets model decide when to call functions
+    // - ANY mode forces function calls
+    // - NONE mode disables function calling
     const toolConfig =
-      hasFunctionDeclarations && config.functionCallingMode
+      hasFunctionDeclarations && functionDeclarations.length > 0
         ? {
             functionCallingConfig: {
-              mode: toSDKFunctionCallingMode(config.functionCallingMode),
+              // Default to VALIDATED for guaranteed schema adherence
+              // Users can override with config.functionCallingMode
+              mode: toSDKFunctionCallingMode(
+                config.functionCallingMode || 'VALIDATED'
+              ),
               ...(config.allowedFunctionNames && {
                 allowedFunctionNames: config.allowedFunctionNames
               })
@@ -343,6 +353,19 @@ export async function* agenticChat(
     // Per https://ai.google.dev/gemini-api/docs/thinking:
     // - thinkingLevel controls reasoning depth
     // - includeThoughts enables thought summaries
+    //
+    // Temperature configuration per Gemini best practices:
+    // - Function calling mode: Use temperature 0 for deterministic, reliable calls
+    // - Native tools mode (Google Search, Code Execution): Keep temperature 1.0 to avoid looping
+    // @see https://ai.google.dev/gemini-api/docs/function-calling#best_practices
+    const isUsingFunctionCalling =
+      hasFunctionDeclarations && functionDeclarations.length > 0
+    const temperature = isUsingFunctionCalling
+      ? 0 // Low temperature for deterministic function calls
+      : modelId.includes('gemini-3')
+        ? 1.0 // Gemini 3 with native tools needs 1.0 to avoid looping
+        : 0.4 // Older models with native tools
+
     const response = await ai.models.generateContentStream({
       model: modelId,
       contents,
@@ -354,10 +377,7 @@ export async function* agenticChat(
           thinkingLevel,
           includeThoughts
         },
-        // Per Gemini 3 docs: Keep temperature at 1.0 to avoid looping
-        // Lower values may cause looping or degraded performance
-        // https://ai.google.dev/gemini-api/docs/function-calling#best_practices
-        temperature: modelId.includes('gemini-3') ? 1.0 : 0.4
+        temperature
       }
     })
 
@@ -490,7 +510,7 @@ export async function* agenticChat(
       metadata: { sourceCount: allSources.length }
     }
   } catch (error) {
-    console.error('[Agentic Chat] Error:', error)
+    logger.error('Gemini/Agentic', error, { mode: 'standard' })
     yield {
       type: 'error',
       error: error instanceof Error ? error.message : 'Request failed'
@@ -743,31 +763,36 @@ export async function generateFollowUps(
     // Use centralized prompt from system-instructions module
     const prompt = getFollowUpPrompt(query, response.slice(0, 600))
 
-    const result = await ai.models.generateContent({
-      model: GEMINI_3_FLASH,
-      contents: prompt,
-      config: {
-        // Per https://ai.google.dev/gemini-api/docs/thinking - use ThinkingLevel.MINIMAL
-        // MINIMAL minimizes latency for simple tasks
-        thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL },
-        // Structured output guarantees valid JSON
-        // Per https://ai.google.dev/gemini-api/docs/structured-output
-        responseMimeType: 'application/json',
-        responseJsonSchema: {
-          type: 'object',
-          properties: {
-            questions: {
-              type: 'array',
-              items: { type: 'string' },
-              minItems: 3,
-              maxItems: 3,
-              description: 'Exactly 3 follow-up questions'
+    // Use retry logic for transient failures
+    const result = await withGeminiRetry(
+      () =>
+        ai.models.generateContent({
+          model: GEMINI_3_FLASH,
+          contents: prompt,
+          config: {
+            // Per https://ai.google.dev/gemini-api/docs/thinking - use ThinkingLevel.MINIMAL
+            // MINIMAL minimizes latency for simple tasks
+            thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL },
+            // Structured output guarantees valid JSON
+            // Per https://ai.google.dev/gemini-api/docs/structured-output
+            responseMimeType: 'application/json',
+            responseJsonSchema: {
+              type: 'object',
+              properties: {
+                questions: {
+                  type: 'array',
+                  items: { type: 'string' },
+                  minItems: 3,
+                  maxItems: 3,
+                  description: 'Exactly 3 follow-up questions'
+                }
+              },
+              required: ['questions']
             }
-          },
-          required: ['questions']
-        }
-      }
-    })
+          }
+        }),
+      { maxRetries: 2, baseDelayMs: 500 }
+    )
 
     const parsed = JSON.parse(result.text || '{}')
     if (Array.isArray(parsed.questions)) {
@@ -776,7 +801,7 @@ export async function generateFollowUps(
         .filter((q: unknown) => typeof q === 'string')
     }
   } catch (error) {
-    console.error('[Follow-ups] Generation failed:', error)
+    logger.error('Gemini/FollowUps', error)
   }
 
   return []

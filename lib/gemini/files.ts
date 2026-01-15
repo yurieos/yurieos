@@ -8,6 +8,8 @@
  * @see https://ai.google.dev/gemini-api/docs/video-understanding#upload-video
  */
 
+import { logger } from '@/lib/utils/logger'
+
 import { getGeminiClient } from './core'
 
 // ============================================
@@ -92,7 +94,7 @@ export async function uploadVideoToFileAPI(
       state: (uploadResult.state as FileState) || 'PROCESSING'
     }
   } catch (error) {
-    console.error('[File API] Upload failed:', error)
+    logger.error('Gemini/FileAPI', error, { action: 'upload' })
     throw new Error(
       `Failed to upload video: ${error instanceof Error ? error.message : 'Unknown error'}`
     )
@@ -124,7 +126,7 @@ export async function getFileStatus(fileName: string): Promise<UploadedFile> {
       error: file.error as UploadedFile['error']
     }
   } catch (error) {
-    console.error('[File API] Get status failed:', error)
+    logger.error('Gemini/FileAPI', error, { action: 'getStatus' })
     throw new Error(
       `Failed to get file status: ${error instanceof Error ? error.message : 'Unknown error'}`
     )
@@ -205,7 +207,7 @@ export async function deleteFile(fileName: string): Promise<void> {
   try {
     await client.files.delete({ name: fileName })
   } catch (error) {
-    console.error('[File API] Delete failed:', error)
+    logger.error('Gemini/FileAPI', error, { action: 'delete' })
     // Don't throw - deletion is best-effort
   }
 }

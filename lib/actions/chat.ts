@@ -16,7 +16,21 @@ const getRedis = (): Promise<RedisWrapper> => getRedisClient()
 const getSafeRedis = (): Promise<RedisWrapper | null> => getSafeRedisClient()
 const getUserChatKey = (userId: string) => `user:v2:chat:${userId}`
 
-function parseChat(data: Record<string, any> | null): Chat | null {
+/**
+ * Raw chat data shape from Redis storage
+ * Messages are stored as JSON string, dates as ISO strings
+ */
+interface RedisChatData {
+  id?: string
+  title?: string
+  createdAt?: string | Date
+  userId?: string
+  path?: string
+  messages?: string | unknown[] // JSON string or already parsed array
+  [key: string]: unknown // Allow additional fields from Redis
+}
+
+function parseChat(data: RedisChatData | null): Chat | null {
   if (!data || Object.keys(data).length === 0) return null
   const chat = { ...data }
   if (typeof chat.messages === 'string') {
@@ -49,7 +63,9 @@ export async function getChatsPage(
     )
     if (!chatKeys.length) return { chats: [], nextOffset: null }
     const results = await Promise.all(chatKeys.map(key => redis.hgetall(key)))
-    const chats = results.map(parseChat).filter((c): c is Chat => c !== null)
+    const chats = results
+      .map(data => parseChat(data as RedisChatData | null))
+      .filter((c): c is Chat => c !== null)
     return {
       chats,
       nextOffset: chatKeys.length === limit ? offset + limit : null
@@ -65,7 +81,7 @@ export async function getChat(id: string): Promise<Chat | null> {
   try {
     const redis = await getSafeRedis()
     if (!redis) return null
-    const data = await redis.hgetall<Record<string, any>>(`chat:${id}`)
+    const data = await redis.hgetall<RedisChatData>(`chat:${id}`)
     const chat = parseChat(data)
     if (chat && !Array.isArray(chat.messages)) chat.messages = []
     return chat
@@ -124,7 +140,7 @@ export async function deleteChat(
   try {
     const redis = await getRedis()
     const chatKey = `chat:${chatId}`
-    const data = await redis.hgetall<Record<string, any>>(chatKey)
+    const data = await redis.hgetall<RedisChatData>(chatKey)
     if (!data || !Object.keys(data).length) return { error: 'Chat not found' }
 
     // Delete attachments from Supabase Storage (best effort, don't block on failure)

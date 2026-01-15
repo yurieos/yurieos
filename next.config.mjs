@@ -33,6 +33,12 @@ const nextConfig = {
         hostname: 'i.ytimg.com',
         port: '',
         pathname: '/vi/**' // YouTube video thumbnails
+      },
+      {
+        protocol: 'https',
+        hostname: 'img.youtube.com',
+        port: '',
+        pathname: '/vi/**' // YouTube video thumbnails (alternate domain)
       }
     ]
   },

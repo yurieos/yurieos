@@ -79,6 +79,7 @@ export const GeneratedImage = memo(function GeneratedImage({
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
+        {/* eslint-disable-next-line @next/next/no-img-element -- Base64 data URL, Next.js Image cannot optimize */}
         <img
           src={dataUrl}
           alt={alt}
@@ -164,6 +165,7 @@ export const GeneratedImage = memo(function GeneratedImage({
             </DialogTitle>
           </DialogHeader>
           <div className="relative flex items-center justify-center bg-black min-h-[60vh]">
+            {/* eslint-disable-next-line @next/next/no-img-element -- Base64 data URL, Next.js Image cannot optimize */}
             <img
               src={dataUrl}
               alt={alt}
@@ -231,6 +233,7 @@ export const ThinkingImage = memo(function ThinkingImage({
   return (
     <div className={cn('relative', className)}>
       <div className="relative rounded-md overflow-hidden border border-dashed border-muted-foreground/30 bg-muted/30">
+        {/* eslint-disable-next-line @next/next/no-img-element -- Base64 data URL, Next.js Image cannot optimize */}
         <img
           src={dataUrl}
           alt="AI thinking process"

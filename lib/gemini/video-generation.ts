@@ -11,7 +11,11 @@
  * @see https://ai.google.dev/gemini-api/docs/video
  */
 
+import { GoogleGenAI } from '@google/genai'
+
 import { getGeminiClient } from './core'
+import { checkFinishReason } from './function-calling'
+import { withGeminiRetry } from './retry'
 import type {
   GeneratedVideo,
   ReferenceImage,
@@ -20,6 +24,42 @@ import type {
   VideoGenerationResult,
   VideoOperation
 } from './types'
+
+// ============================================
+// SDK Type Helpers
+// The Gemini SDK has specific types for video generation.
+// We use Record<string, unknown> to allow flexibility while still
+// providing structure for our internal code.
+// ============================================
+
+/**
+ * Build reference images configuration for SDK call
+ */
+function buildReferenceImagesConfig(referenceImages: ReferenceImage[]): Array<{
+  image: { imageBytes: string; mimeType: string }
+  referenceType: string
+}> {
+  return referenceImages.map(img => ({
+    image: {
+      imageBytes: img.data,
+      mimeType: img.mimeType
+    },
+    referenceType: 'ASSET'
+  }))
+}
+
+/**
+ * Build video input for extension operations
+ */
+function buildVideoInput(video: {
+  uri?: string
+  videoBytes?: Uint8Array
+}): Record<string, unknown> {
+  return {
+    uri: video.uri,
+    videoBytes: video.videoBytes
+  }
+}
 
 // ============================================
 // Constants
@@ -172,11 +212,16 @@ export async function* generateVideo(
 
   try {
     // Start video generation - returns a long-running operation
-    const operation = await client.models.generateVideos({
-      model,
-      prompt,
-      config: videoConfig
-    })
+    // Use retry for the initial call since it can fail transiently
+    const operation = await withGeminiRetry(
+      () =>
+        client.models.generateVideos({
+          model,
+          prompt,
+          config: videoConfig
+        }),
+      { maxRetries: 2, baseDelayMs: 2000 }
+    )
 
     // Poll for completion
     yield* pollVideoOperation(operation as unknown as VideoOperation, client)
@@ -227,15 +272,19 @@ export async function* generateVideoFromImage(
   try {
     // Start video generation with image
     // Note: The SDK expects base64 string for imageBytes
-    const operation = await client.models.generateVideos({
-      model,
-      prompt,
-      image: {
-        imageBytes: image.data,
-        mimeType: image.mimeType
-      },
-      config: videoConfig
-    })
+    const operation = await withGeminiRetry(
+      () =>
+        client.models.generateVideos({
+          model,
+          prompt,
+          image: {
+            imageBytes: image.data,
+            mimeType: image.mimeType
+          },
+          config: videoConfig
+        }),
+      { maxRetries: 2, baseDelayMs: 2000 }
+    )
 
     yield* pollVideoOperation(operation as unknown as VideoOperation, client)
   } catch (error) {
@@ -388,20 +437,16 @@ export async function* generateVideoWithReferences(
   try {
     // Start video generation with reference images
     // Note: The SDK expects base64 string for imageBytes
+    const configWithRefs = {
+      ...videoConfig,
+      referenceImages: buildReferenceImagesConfig(referenceImages)
+    }
 
+    // Use type assertion for SDK compatibility
     const operation = await client.models.generateVideos({
       model,
       prompt,
-      config: {
-        ...videoConfig,
-        referenceImages: referenceImages.map(img => ({
-          image: {
-            imageBytes: img.data,
-            mimeType: img.mimeType
-          },
-          referenceType: 'ASSET'
-        }))
-      } as any
+      config: configWithRefs as Record<string, unknown>
     })
 
     yield* pollVideoOperation(operation as unknown as VideoOperation, client)
@@ -461,11 +506,17 @@ export async function* extendVideo(
 
   try {
     // Start video extension
+    // Build video input from previous generation
+    const videoInput = buildVideoInput({
+      uri: previousVideo.video?.uri,
+      videoBytes: previousVideo.video?.videoBytes
+    })
 
+    // Use type assertion for SDK compatibility
     const operation = await client.models.generateVideos({
       model,
       prompt,
-      video: previousVideo.video as any,
+      video: videoInput as Record<string, unknown>,
       config: {
         ...videoConfig,
         numberOfVideos: 1
@@ -495,7 +546,7 @@ export async function* extendVideo(
 async function* pollVideoOperation(
   operation: VideoOperation,
 
-  client: any
+  client: any // Using any for SDK compatibility across versions
 ): AsyncGenerator<VideoGenerationChunk> {
   const startTime = Date.now()
   let currentOperation = operation
@@ -523,11 +574,17 @@ async function* pollVideoOperation(
     // Wait before next poll
     await sleep(POLL_INTERVAL_MS)
 
-    // Get updated operation status
+    // Get updated operation status with retry for transient failures
     try {
-      currentOperation = await client.operations.getVideosOperation({
-        operation: currentOperation
-      })
+      const updatedOp = await withGeminiRetry(
+        () =>
+          client.operations.getVideosOperation({
+            operation: currentOperation
+          }),
+        { maxRetries: 2, baseDelayMs: 1000 }
+      )
+      // Cast to our VideoOperation type for consistent handling
+      currentOperation = updatedOp as unknown as VideoOperation
     } catch (error) {
       yield {
         type: 'video-error',

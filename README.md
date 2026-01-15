@@ -17,21 +17,26 @@
 
 - **Standard Mode** — Fast responses with Gemini 3 Flash + Google Search + Code Execution
 - **Deep Research Mode** — Comprehensive multi-step research with Gemini Deep Research Agent
+- **AI Image Generation** — Gemini Imagen 3 (Pro/Flash) with 4K resolution support
+- **AI Video Generation** — Veo 3.1 with text-to-video, image-to-video, and interpolation
+- **Multimodal Support** — Images, videos, audio, and documents in chat
 - **Thinking Mode** — Configurable reasoning depth (minimal, low, medium, high)
 - **Modern UI** — Vintage Paper theme with light/dark mode
 - **Keyboard Shortcuts** — `⌘K` search, `⌘O` new chat
 - **Optional Auth** — Supabase authentication (email/password, OAuth)
 - **Chat History** — Upstash Redis for persistent conversations
 - **Safety** — Prompt injection protection, PII redaction
-- **Error Recovery** — Graceful error boundaries with retry functionality
+- **Error Recovery** — Typed errors, exponential backoff retry, graceful error boundaries
 
 ### Models
 
-| Model               | Features                          |
-| ------------------- | --------------------------------- |
-| Gemini 3 Flash      | Fast, efficient, medium thinking  |
-| Gemini 3 Pro        | Advanced reasoning, high thinking |
-| Deep Research Agent | Autonomous multi-step research    |
+| Model               | Features                               |
+| ------------------- | -------------------------------------- |
+| Gemini 3 Flash      | Fast, efficient, minimal thinking      |
+| Gemini 3 Pro        | Advanced reasoning, high thinking      |
+| Deep Research Agent | Autonomous multi-step research (5-60m) |
+| Imagen 3 Pro/Flash  | High-quality image generation          |
+| Veo 3.1             | Video generation with audio            |
 
 ---
 
@@ -105,19 +110,32 @@ Returns service status for Gemini, Redis, and Supabase.
 
 ```
 app/
+├── (main)/           # Main app routes (with sidebar)
+│   ├── imagine/      # AI image generation
+│   ├── search/       # Chat conversation pages
+│   └── stuff/        # User's saved images/videos
+├── (auth)/           # Authentication routes
 ├── (legal)/          # Legal pages (Privacy, Terms)
-├── api/chat/         # Main chat API (Gemini)
-├── api/health/       # Health check endpoint
-├── auth/             # Authentication pages
-└── search/           # Chat conversation pages
+└── api/
+    ├── chat/         # Main chat streaming API
+    ├── imagine/      # Image generation API
+    ├── video/        # Video generation API
+    ├── attachments/  # File upload API
+    └── health/       # Health check endpoint
 
 lib/
-├── gemini/           # Gemini Agentic Module
-│   ├── core.ts       # Client, citations, safety
-│   ├── agentic.ts    # Agentic workflow
-│   ├── deep-research-agent.ts
+├── gemini/           # Gemini AI Module
+│   ├── core.ts       # Client, citations, safety, URL context
+│   ├── agentic.ts    # Agentic workflow with tools
+│   ├── constants.ts  # Centralized API constants
+│   ├── errors.ts     # Typed error classes
+│   ├── retry.ts      # Exponential backoff retry
+│   ├── tokens.ts     # Token estimation utilities
 │   ├── streaming.ts  # Vercel AI SDK adapter
-│   ├── system-instructions.ts
+│   ├── image-generation.ts
+│   ├── video-generation.ts
+│   ├── deep-research-agent.ts
+│   ├── function-calling/
 │   └── types.ts
 ├── schema/           # Zod validation schemas
 ├── supabase/         # Supabase clients
@@ -128,6 +146,7 @@ lib/
 components/
 ├── ui/               # shadcn/ui components
 ├── sidebar/          # Chat history
+├── chat/             # Chat-specific components
 ├── prompt-kit/       # Chain of thought
 ├── error-boundary.tsx
 └── ...               # Feature components

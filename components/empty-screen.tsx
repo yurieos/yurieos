@@ -3,33 +3,35 @@ import { Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 const exampleMessages = [
+  // Science
   {
-    heading: 'How were the pyramids really built?',
-    message: 'How were the pyramids really built?'
+    heading: 'How does ZIP protein affect memory?',
+    message: 'How does ZIP protein affect memory?'
   },
   {
-    heading: "Pompeii's final hours under Vesuvius",
-    message: "Pompeii's final hours under Vesuvius"
+    heading: 'Why does hot water freeze faster?',
+    message: 'Why does hot water freeze faster?'
   },
   {
-    heading: 'Why did Rome actually fall?',
-    message: 'Why did Rome actually fall?'
+    heading: 'How do parasites control host brains?',
+    message: 'How do parasites control host brains?'
   },
   {
-    heading: 'Who really killed Julius Caesar?',
-    message: 'Who really killed Julius Caesar?'
+    heading: 'Why is anesthesia still a mystery?',
+    message: 'Why is anesthesia still a mystery?'
+  },
+  // History
+  {
+    heading: 'What caused the 1518 dancing plague?',
+    message: 'What caused the 1518 dancing plague?'
   },
   {
-    heading: 'Was the Trojan Horse real?',
-    message: 'Was the Trojan Horse real?'
+    heading: 'Why did Australia lose the Emu War?',
+    message: 'Why did Australia lose the Emu War?'
   },
   {
-    heading: 'Who really wrote the Dead Sea Scrolls?',
-    message: 'Who really wrote the Dead Sea Scrolls?'
-  },
-  {
-    heading: 'What did mummies teach modern science?',
-    message: 'What did mummies teach modern science?'
+    heading: 'How did radium girls change labor laws?',
+    message: 'How did radium girls change labor laws?'
   }
 ]
 

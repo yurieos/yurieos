@@ -26,6 +26,7 @@ import {
   ThinkingConfig,
   VideoPart
 } from '@/lib/types'
+import { logger } from '@/lib/utils/logger'
 
 import { process } from './agentic'
 import { processInputSafely } from './core'
@@ -136,14 +137,36 @@ export async function createGeminiStreamResponse(
       // Per https://ai.google.dev/gemini-api/docs/deep-research
       let interactionMetadata: DeepResearchInteractionMetadata = {}
 
-      // Helper to write annotations
-      const writeAnnotations = () => {
+      // Batched annotation writing for better performance
+      // Instead of writing after every annotation, we batch them and write:
+      // 1. Before sending text deltas (to ensure UI has context)
+      // 2. On completion or error
+      // 3. When explicitly flushed (for important updates like phases)
+      let annotationsPending = false
+      let lastAnnotationWrite = 0
+      const MIN_ANNOTATION_INTERVAL_MS = 100 // Minimum time between annotation writes
+
+      // Helper to write annotations (batched)
+      const writeAnnotations = (force: boolean = false) => {
+        const now = Date.now()
+        // Skip if no pending annotations or we wrote too recently (unless forced)
+        if (!annotationsPending) return
+        if (!force && now - lastAnnotationWrite < MIN_ANNOTATION_INTERVAL_MS)
+          return
+
         writer.write({
           type: 'message-metadata',
           messageMetadata: {
             annotations: [...allAnnotations]
           }
         })
+        annotationsPending = false
+        lastAnnotationWrite = now
+      }
+
+      // Helper to mark annotations as pending
+      const markAnnotationsPending = () => {
+        annotationsPending = true
       }
 
       try {
@@ -173,7 +196,7 @@ export async function createGeminiStreamResponse(
         for await (const chunk of process(sanitizedQuery, researchConfig)) {
           switch (chunk.type) {
             case 'phase':
-              // Update phase annotation
+              // Update phase annotation - force write for important state changes
               if (mode === 'standard') {
                 // Map workflow phases to agentic phases
                 const agenticPhase =
@@ -200,7 +223,8 @@ export async function createGeminiStreamResponse(
                   }
                 })
               }
-              writeAnnotations()
+              markAnnotationsPending()
+              writeAnnotations(true) // Force write for phase changes
               break
 
             case 'progress':
@@ -224,12 +248,13 @@ export async function createGeminiStreamResponse(
                     interactionId: interactionMetadata.interactionId
                   }
                 })
-                writeAnnotations()
+                markAnnotationsPending()
+                writeAnnotations() // Batched - writes if interval passed
               }
               break
 
             case 'source':
-              // Individual source discovered
+              // Individual source discovered - batch these
               if (chunk.source) {
                 allAnnotations.push({
                   type: 'research-source',
@@ -243,7 +268,8 @@ export async function createGeminiStreamResponse(
                   }
                 })
                 sourceCount++
-                writeAnnotations()
+                markAnnotationsPending()
+                writeAnnotations() // Batched - writes if interval passed
               }
               break
 
@@ -273,7 +299,8 @@ export async function createGeminiStreamResponse(
                     sourceCount++
                   }
                 }
-                writeAnnotations()
+                markAnnotationsPending()
+                writeAnnotations() // Batched
               }
               break
 
@@ -309,14 +336,18 @@ export async function createGeminiStreamResponse(
                     timestamp: Date.now()
                   }
                 })
-                writeAnnotations()
+                markAnnotationsPending()
+                writeAnnotations() // Batched
               }
               break
 
             case 'content':
               // Stream text content
               if (chunk.content) {
+                // Flush pending annotations before starting text
+                // This ensures UI has context before content appears
                 if (!hasStartedText) {
+                  writeAnnotations(true) // Force flush before text
                   writer.write({
                     type: 'text-start',
                     id: messageId
@@ -342,7 +373,8 @@ export async function createGeminiStreamResponse(
                     items: chunk.followUpQuestions.map(q => ({ query: q }))
                   }
                 })
-                writeAnnotations()
+                markAnnotationsPending()
+                writeAnnotations(true) // Force write - important for UX
               }
               break
 
@@ -369,7 +401,8 @@ export async function createGeminiStreamResponse(
                     }))
                   }
                 })
-                writeAnnotations()
+                markAnnotationsPending()
+                writeAnnotations(true) // Force - function calls are important
               }
               break
 
@@ -388,7 +421,8 @@ export async function createGeminiStreamResponse(
                     }))
                   }
                 })
-                writeAnnotations()
+                markAnnotationsPending()
+                writeAnnotations(true) // Force - function results are important
               }
               break
 
@@ -407,7 +441,8 @@ export async function createGeminiStreamResponse(
                     }))
                   }
                 })
-                writeAnnotations()
+                markAnnotationsPending()
+                writeAnnotations() // Batched
               }
               break
 
@@ -442,7 +477,8 @@ export async function createGeminiStreamResponse(
                   }
                 })
               }
-              writeAnnotations()
+              markAnnotationsPending()
+              writeAnnotations(true) // Force - completion is important
               break
 
             case 'error':
@@ -481,7 +517,7 @@ export async function createGeminiStreamResponse(
           })
         }
       } catch (error) {
-        console.error('[Gemini Stream] Error:', error)
+        logger.error('Gemini/Stream', error)
         writer.write({
           type: 'error',
           errorText:
@@ -490,7 +526,7 @@ export async function createGeminiStreamResponse(
       }
     },
     onError: (error: unknown) => {
-      console.error('[Gemini Stream] Stream error:', error)
+      logger.error('Gemini/Stream', error)
       return error instanceof Error ? error.message : 'An error occurred'
     }
   })

@@ -10,6 +10,8 @@
 import type { Content, Part } from '@google/genai'
 
 import { GEMINI_IMAGE_FLASH, GEMINI_IMAGE_PRO, getGeminiClient } from './core'
+import { checkFinishReason } from './function-calling'
+import { withGeminiRetry } from './retry'
 import type {
   GeneratedImagePart,
   ImageAspectRatio,
@@ -96,19 +98,23 @@ export async function generateImage(
     imageConfig.imageSize = mergedConfig.imageSize
   }
 
-  const response = await client.models.generateContent({
-    model,
-    contents: [
-      {
-        role: 'user',
-        parts: [{ text: prompt }]
-      }
-    ],
-    config: {
-      responseModalities: mergedConfig.responseModalities,
-      imageConfig
-    }
-  })
+  const response = await withGeminiRetry(
+    () =>
+      client.models.generateContent({
+        model,
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: prompt }]
+          }
+        ],
+        config: {
+          responseModalities: mergedConfig.responseModalities,
+          imageConfig
+        }
+      }),
+    { maxRetries: 2, baseDelayMs: 1000 }
+  )
 
   return parseImageResponse(response)
 }
@@ -176,19 +182,23 @@ export async function editImage(
     imageConfig.imageSize = mergedConfig.imageSize
   }
 
-  const response = await client.models.generateContent({
-    model,
-    contents: [
-      {
-        role: 'user',
-        parts
-      }
-    ],
-    config: {
-      responseModalities: mergedConfig.responseModalities,
-      imageConfig
-    }
-  })
+  const response = await withGeminiRetry(
+    () =>
+      client.models.generateContent({
+        model,
+        contents: [
+          {
+            role: 'user',
+            parts
+          }
+        ],
+        config: {
+          responseModalities: mergedConfig.responseModalities,
+          imageConfig
+        }
+      }),
+    { maxRetries: 2, baseDelayMs: 1000 }
+  )
 
   return parseImageResponse(response)
 }
@@ -248,14 +258,18 @@ export async function refineImage(
     imageConfig.imageSize = mergedConfig.imageSize
   }
 
-  const response = await client.models.generateContent({
-    model,
-    contents,
-    config: {
-      responseModalities: mergedConfig.responseModalities,
-      imageConfig
-    }
-  })
+  const response = await withGeminiRetry(
+    () =>
+      client.models.generateContent({
+        model,
+        contents,
+        config: {
+          responseModalities: mergedConfig.responseModalities,
+          imageConfig
+        }
+      }),
+    { maxRetries: 2, baseDelayMs: 1000 }
+  )
 
   return parseImageResponse(response)
 }
@@ -345,13 +359,15 @@ export async function* generateImageStream(
 
     // Process stream chunks
     for await (const chunk of streamResult) {
-      // Check for safety block
+      // Check finish reason for errors (SAFETY, RECITATION, OTHER)
+      // Per best practice: Always check finishReason
       const candidate = chunk.candidates?.[0]
-      if (candidate?.finishReason === 'SAFETY') {
+      const finishCheck = checkFinishReason(candidate || null)
+      if (!finishCheck.ok && finishCheck.error) {
         yield {
           type: 'image-error',
           blocked: true,
-          blockReason: 'Content blocked by safety filters'
+          blockReason: finishCheck.error
         }
         return
       }
@@ -470,6 +486,8 @@ function buildTurnParts(turn: ImageConversationTurn): Part[] {
 
 /**
  * Parse Gemini response into ImageGenerationResult
+ * Per best practice: Always check finishReason
+ * @see https://ai.google.dev/gemini-api/docs/function-calling#best_practices
  */
 function parseImageResponse(response: unknown): ImageGenerationResult {
   const result: ImageGenerationResult = {
@@ -487,12 +505,13 @@ function parseImageResponse(response: unknown): ImageGenerationResult {
 
   const candidate = resp.candidates?.[0]
 
-  // Check for safety block
-  if (candidate?.finishReason === 'SAFETY') {
+  // Check finish reason for errors (SAFETY, RECITATION, OTHER)
+  const finishCheck = checkFinishReason(candidate || null)
+  if (!finishCheck.ok && finishCheck.error) {
     return {
       images: [],
       blocked: true,
-      blockReason: 'Content blocked by safety filters'
+      blockReason: finishCheck.error
     }
   }
 

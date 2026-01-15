@@ -48,11 +48,13 @@ Node.js v22 or later recommended (for React 19 compatibility).
 ### Environment Variables
 
 **Required:**
+
 ```bash
 GEMINI_API_KEY=              # Google Gemini API key (or GOOGLE_API_KEY)
 ```
 
 **Optional:**
+
 ```bash
 ENABLE_SAVE_CHAT_HISTORY=true
 UPSTASH_REDIS_REST_URL=
@@ -96,6 +98,7 @@ curl http://localhost:3000/api/health
 ```
 
 Expected response (200 OK):
+
 ```json
 {
   "status": "healthy",
@@ -112,6 +115,7 @@ Expected response (200 OK):
 ### Formatting (Prettier)
 
 From `prettier.config.js`:
+
 - No semicolons
 - Single quotes
 - 2-space indentation
@@ -156,11 +160,13 @@ import { cn } from '../../../lib/utils'
 ### Component Patterns
 
 **Server Components** (default):
+
 - Place in `app/` directory
 - No `'use client'` directive
 - Can use async/await directly
 
 **Client Components**:
+
 - Add `'use client'` at top of file
 - Required for hooks, event handlers, browser APIs
 - Prefer keeping client components small and leaf-level
@@ -185,17 +191,39 @@ app/
     ├── chat/         # Main chat streaming API
     ├── imagine/      # Image generation API
     ├── video/        # Video generation API
+    ├── attachments/  # File upload API (Gemini Files API)
+    ├── stuff/images/ # Saved images CRUD API
+    ├── chats/        # Chat list API
+    ├── config/models/# Models configuration API
     └── health/       # Health check endpoint
 
 lib/
 ├── gemini/           # Gemini AI module (core functionality)
-│   ├── core.ts       # Client singleton, constants, safety
+│   ├── core.ts       # Client singleton, constants, safety, URL context
 │   ├── agentic.ts    # Agentic workflow with tools
+│   ├── constants.ts  # Centralized API constants and limits
+│   ├── errors.ts     # Typed error classes
+│   ├── retry.ts      # Exponential backoff retry logic
+│   ├── tokens.ts     # Token estimation utilities
+│   ├── files.ts      # Gemini Files API (video uploads)
 │   ├── streaming.ts  # Vercel AI SDK adapter
-│   ├── image-generation.ts
-│   ├── video-generation.ts
-│   └── deep-research-agent.ts
+│   ├── image-generation.ts  # Imagen 3 Pro/Flash
+│   ├── video-generation.ts  # Veo 3.1 video generation
+│   ├── deep-research-agent.ts
+│   ├── system-instructions.ts
+│   ├── function-calling/     # Function calling module
+│   │   ├── executor.ts       # Function execution
+│   │   ├── registry.ts       # Function registry
+│   │   ├── types.ts          # Type definitions
+│   │   └── functions/        # Built-in functions
+│   ├── types.ts
+│   └── index.ts
 ├── schema/           # Zod validation schemas
+│   ├── chat.ts       # Chat message schemas
+│   ├── model.ts      # Model cookie validation
+│   ├── attachment.ts # Attachment schemas
+│   ├── image.ts      # Image generation schemas
+│   └── video.ts      # Video generation schemas
 ├── supabase/         # Supabase client setup
 ├── redis/            # Upstash Redis configuration
 ├── actions/          # Server actions
@@ -213,18 +241,38 @@ components/
 ### Key Modules
 
 **`lib/gemini/`** - All AI functionality:
+
 - `getGeminiClient()` - Singleton client
-- `GEMINI_3_FLASH`, `GEMINI_3_PRO` - Model constants
+- `GEMINI_3_FLASH`, `GEMINI_3_PRO` - Chat model constants
+- `GEMINI_IMAGE_PRO`, `GEMINI_IMAGE_FLASH` - Image model constants
+- `VEO_3_1`, `VEO_3_1_FAST` - Video model constants
 - `process()` - Main entry point for chat
-- `generateImage()`, `generateVideo()` - Media generation
+- `generateImage()`, `generateImageStream()` - Image generation
+- `generateVideo()`, `generateVideoFromImage()` - Video generation
+- `withGeminiRetry()` - Exponential backoff retry
+- `parseGeminiError()`, `getUserFriendlyMessage()` - Error handling
+- `estimateTokenCount()`, `checkTokenLimits()` - Token estimation
+
+**`lib/gemini/constants.ts`** - Centralized constants:
+
+- `LIMITS` - API limits (tokens, URLs, images, videos)
+- `TIMING` - Polling intervals, retry delays
+- `DEFAULTS` - Default configurations
+- `SUPPORTED_FORMATS` - MIME types for various inputs
 
 **`lib/schema/`** - Zod schemas for validation:
+
 - `chatSchema` - Message validation
 - `modelSchema` - Model configuration
+- `attachmentSchema` - Attachment validation
+- `imageSchema` - Image generation validation
+- `videoSchema` - Video generation validation
 
 **`lib/actions/`** - Server actions:
+
 - `saveChat()`, `getChats()` - Chat persistence
 - `saveImage()`, `getImages()` - Image storage
+- `saveVideo()`, `getVideos()` - Video storage
 
 ### Patterns
 
@@ -232,6 +280,9 @@ components/
 2. **Zod Validation**: All external data validated with Zod schemas
 3. **Error Boundaries**: `ErrorBoundary` and `ChatErrorBoundary` components
 4. **Consolidated Hooks**: All hooks exported from `hooks/index.ts`
+5. **Typed Errors**: `GeminiError` hierarchy with `isRetryableError()` checks
+6. **Retry Logic**: `withGeminiRetry()` for transient error recovery
+7. **Token Management**: Estimate and validate token usage before requests
 
 ---
 
@@ -260,6 +311,7 @@ export async function POST(request: NextRequest) {
 ### New Gemini Feature
 
 Add to `lib/gemini/` following existing patterns:
+
 - Export from `lib/gemini/index.ts`
 - Add types to `lib/gemini/types.ts`
 - Use `getGeminiClient()` singleton
@@ -279,6 +331,7 @@ Use conventional commits:
 ```
 
 Types:
+
 - `feat:` - New feature
 - `fix:` - Bug fix
 - `refactor:` - Code refactoring
@@ -287,6 +340,7 @@ Types:
 - `style:` - Formatting changes
 
 Examples:
+
 ```
 feat: add video generation support
 fix: resolve peer dependency conflict for React 19
@@ -318,10 +372,12 @@ refactor: consolidate auth forms into single component
 
 ### Gemini API
 
-- Model constants in `lib/gemini/core.ts`
+- Model constants in `lib/gemini/constants.ts`
 - Always use `getGeminiClient()` singleton
-- Handle safety blocks in responses
-- Rate limits apply - implement retry logic
+- Handle safety blocks in responses (use `GeminiSafetyError`)
+- Use `withGeminiRetry()` for automatic retry with exponential backoff
+- Use typed errors from `lib/gemini/errors.ts` for better error handling
+- Use `checkTokenLimits()` to validate request size before sending
 
 ### Security
 
@@ -377,19 +433,19 @@ For quick iteration, `typecheck` alone is often sufficient. Run full `build` bef
 
 ## Quick Reference
 
-| Task | Command |
-|------|---------|
-| Start dev server | `bun dev` |
-| Type check | `bun typecheck` |
-| Lint | `bun lint` |
-| Format | `bun format` |
-| Build | `bun run build` |
-| Health check | `curl localhost:3000/api/health` |
+| Task             | Command                          |
+| ---------------- | -------------------------------- |
+| Start dev server | `bun dev`                        |
+| Type check       | `bun typecheck`                  |
+| Lint             | `bun lint`                       |
+| Format           | `bun format`                     |
+| Build            | `bun run build`                  |
+| Health check     | `curl localhost:3000/api/health` |
 
-| Path | Purpose |
-|------|---------|
-| `lib/gemini/` | All AI/Gemini functionality |
-| `lib/schema/` | Zod validation schemas |
-| `components/ui/` | shadcn/ui components |
-| `app/api/chat/` | Main chat API |
-| `app/(main)/` | Primary app routes |
+| Path             | Purpose                     |
+| ---------------- | --------------------------- |
+| `lib/gemini/`    | All AI/Gemini functionality |
+| `lib/schema/`    | Zod validation schemas      |
+| `components/ui/` | shadcn/ui components        |
+| `app/api/chat/`  | Main chat API               |
+| `app/(main)/`    | Primary app routes          |

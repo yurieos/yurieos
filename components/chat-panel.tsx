@@ -25,6 +25,12 @@ import {
   useAttachments
 } from './chat/index'
 import { Button } from './ui/button'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger
+} from './ui/tooltip'
 import { AudioPreview } from './audio-preview'
 import type { ResearchMode } from './chat'
 import { DocumentPreview } from './document-preview'
@@ -365,20 +371,34 @@ export function ChatPanel({
           {/* Bottom menu */}
           <div className="flex items-center justify-between p-3">
             <div className="flex items-center gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                className={cn(
-                  'size-8 rounded-lg text-muted-foreground hover:text-accent-foreground',
-                  hasAttachments && 'text-primary border-primary'
-                )}
-                disabled={isLoading || isToolInvocationInProgress()}
-                onClick={() => fileInputRef.current?.click()}
-                title="Attach files (images, videos, PDFs, audio)"
-              >
-                <Paperclip size={14} />
-              </Button>
+              <TooltipProvider delayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className={cn(
+                        'size-8 rounded-lg text-muted-foreground hover:text-accent-foreground',
+                        hasAttachments && 'text-primary border-primary'
+                      )}
+                      disabled={isLoading || isToolInvocationInProgress()}
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <Paperclip size={14} />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" align="start" className="max-w-xs">
+                    <p className="font-medium">Attach files</p>
+                    <ul className="mt-1 text-xs text-muted-foreground space-y-0.5">
+                      <li>Images: up to 5, max 20MB each</li>
+                      <li>Video: 1 file, max 100MB</li>
+                      <li>PDF: 1 file, max 50MB</li>
+                      <li>Audio: 1 file, max 50MB</li>
+                    </ul>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               <DeepResearchToggle
                 isActive={isDeepResearch}
                 onToggle={toggleResearchMode}

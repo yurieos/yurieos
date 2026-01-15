@@ -105,7 +105,7 @@ export const SavedImageCard = memo(function SavedImageCard({
         onMouseLeave={() => setIsHovered(false)}
         onClick={() => setIsFullscreen(true)}
       >
-        {/* Image */}
+        {/* eslint-disable-next-line @next/next/no-img-element -- Supabase signed URL with dynamic dimensions */}
         <img
           src={image.url}
           alt={image.prompt || 'AI Generated Image'}
@@ -179,6 +179,7 @@ export const SavedImageCard = memo(function SavedImageCard({
           {/* Framed Image */}
           <div className="flex justify-center">
             <div className="rounded-lg overflow-hidden border bg-muted/30 shadow-inner w-fit">
+              {/* eslint-disable-next-line @next/next/no-img-element -- Supabase signed URL with dynamic dimensions */}
               <img
                 src={image.url}
                 alt={image.prompt || 'AI Generated Image'}
