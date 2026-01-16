@@ -15,7 +15,7 @@ import { ClearHistoryAction } from './clear-history-action'
 
 function ChatItemSkeleton({ width }: { width: number }) {
   return (
-    <div className="flex flex-col gap-1 p-2 rounded-md">
+    <div className="flex flex-col gap-1 p-2 rounded-xl">
       <Skeleton className="h-3 rounded" style={{ width }} />
       <Skeleton className="h-2.5 w-20 rounded" />
     </div>

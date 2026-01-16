@@ -12,10 +12,11 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Your Stuff Page**: Gallery page (`/stuff`) for saved AI-generated images and videos
 - **Function Calling**: Gemini function calling with calculator and datetime tools
 - **File Upload API**: `/api/attachments` for uploading files to Gemini Files API
-- **Typed Error Classes**: `GeminiError` hierarchy in `lib/gemini/errors.ts` with `GeminiSafetyError`, `GeminiRateLimitError`, `GeminiQuotaError`, `GeminiAuthError`, `GeminiTimeoutError`, `GeminiNetworkError`, `GeminiRecitationError`, `GeminiTokenLimitError`
+- **Typed Error Classes**: `GeminiError` hierarchy in `lib/gemini/errors.ts` with `GeminiSafetyError`, `GeminiRateLimitError`, `GeminiQuotaError`, `GeminiAuthError`, `GeminiTimeoutError`, `GeminiNetworkError`, `GeminiRecitationError`, `GeminiTokenLimitError`, `GeminiModelError`, `GeminiValidationError`
 - **Retry Logic**: `withGeminiRetry()` in `lib/gemini/retry.ts` with exponential backoff and jitter
 - **Token Estimation**: `lib/gemini/tokens.ts` with `estimateTokenCount()`, `checkTokenLimits()`, `truncateToTokenLimit()`
-- **Centralized Constants**: `lib/gemini/constants.ts` with `LIMITS`, `TIMING`, `DEFAULTS`, `SUPPORTED_FORMATS`, `THINKING_LEVELS`
+- **Centralized Constants**: `lib/gemini/constants.ts` with `LIMITS`, `TIMING`, `DEFAULTS`, `SUPPORTED_FORMATS`, `THINKING_LEVELS`, `MODALITIES`, `FINISH_REASONS`, `FUNCTION_CALLING_MODES`
+- **File API Module**: `lib/gemini/files.ts` for uploading large videos to Gemini Files API
 - **Supabase Migrations**: Database schema for user images, videos, and attachments storage
 - **Sidebar Icon Mode**: Desktop sidebar now collapses to icon-only mode (3rem) instead of hiding completely
 - **Sidebar Tooltips**: Menu buttons show tooltips when sidebar is collapsed
@@ -26,8 +27,11 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Error Boundaries**: `ErrorBoundary` and `ChatErrorBoundary` components for graceful error handling
 - **New Chat Button**: Reusable component with header and sidebar variants (`components/new-chat-button.tsx`)
 - **Health Check Endpoint**: `/api/health` for deployment verification and monitoring
-- **Deep Research Reconnection**: `reconnectToResearch()` function to resume interrupted research tasks
 - **Model Schema Validation**: Zod-based validation for model cookie parsing (`lib/schema/model.ts`)
+
+### Removed
+
+- **Deep Research Mode**: Removed due to serverless timeout limitations (Vercel max 300s vs 5-60min tasks)
 
 ### Changed
 
@@ -39,7 +43,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Sidebar Background**: Now matches main page background color in both light and dark modes
 - **Header Width**: Adjusts for collapsed sidebar icon width on desktop
 - **Production Domain**: Updated `metadataBase` to `https://www.yurie.ai`
-- **Gemini Module Refactored**: Split into `core.ts`, `constants.ts`, `errors.ts`, `retry.ts`, `tokens.ts`
+- **Gemini Module Refactored**: Split into `core.ts`, `constants.ts`, `errors.ts`, `retry.ts`, `tokens.ts`, `files.ts`
 - **Thinking Level Default**: Gemini 3 Flash uses `minimal` thinking, Gemini 3 Pro uses `high` thinking
 - **Error Handling**: All API calls now use typed errors with `parseGeminiError()` and `getUserFriendlyMessage()`
 - **Retry Behavior**: Transient errors automatically retried with exponential backoff via `withGeminiRetry()`
@@ -53,7 +57,9 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `lib/gemini/citations.ts` (merged into `core.ts`)
 - `lib/gemini/safety.ts` (merged into `core.ts`)
 - `lib/gemini/client.ts` (merged into `core.ts`)
+- `lib/gemini/deep-research-agent.ts` (Deep Research feature removed)
 - `components/custom-link.tsx`
+- `components/chat/deep-research-toggle.tsx` (Deep Research feature removed)
 - `components/login-form.tsx`, `sign-up-form.tsx`, `forgot-password-form.tsx`, `update-password-form.tsx`
 - `hooks/use-copy-to-clipboard.ts`, `hooks/use-current-user-name.ts`, `hooks/use-mobile.ts`
 - `lib/types/models.ts`, `lib/types/sources.ts` (consolidated into `lib/types/index.ts`)
@@ -65,9 +71,9 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
-- **Dual Search Modes**: Standard (Gemini 3 Flash + tools) and Deep Research (Gemini Deep Research Agent)
-- **Gemini Features**: Google Search grounding, Code Execution, configurable thinking levels, thought summaries
-- **Models**: Gemini 3 Flash, Gemini 3 Pro, Deep Research Agent
+- **Agentic Chat**: Gemini 3 Flash/Pro with Google Search grounding and Code Execution
+- **Gemini Features**: Configurable thinking levels, thought summaries
+- **Models**: Gemini 3 Flash, Gemini 3 Pro
 - **UI/UX**: Vintage Paper theme, responsive design, Chain of Thought display
 - **Auth & Storage**: Optional Supabase auth, Upstash Redis chat history
 - **Safety**: Prompt injection protection, PII redaction, security headers

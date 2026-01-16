@@ -8,6 +8,13 @@ import { Loader2, Video, X, Youtube } from 'lucide-react'
 import { VideoAttachment, YOUTUBE_URL_PATTERN } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle
+} from '@/components/ui/dialog'
+
 /**
  * Extract YouTube video ID from various URL formats
  */
@@ -61,6 +68,7 @@ function VideoPreviewInner({
   className
 }: VideoPreviewProps) {
   const [thumbnailError, setThumbnailError] = useState(false)
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false)
 
   const isYouTube = !!attachment.youtubeUrl
   const isUploading = attachment.isUploading
@@ -73,88 +81,138 @@ function VideoPreviewInner({
     ? getYouTubeThumbnailUrl(youtubeVideoId)
     : null
 
+  const handlePreviewClick = () => {
+    if (!isUploading) {
+      setIsPreviewOpen(true)
+    }
+  }
+
   return (
-    <div className={cn('relative group', className)}>
-      {/* Preview container */}
-      <div className="relative h-16 w-24 rounded-lg border border-input overflow-hidden bg-muted">
-        {isYouTube ? (
-          // YouTube thumbnail
-          <>
-            {youtubeThumbnail && !thumbnailError ? (
-              <Image
-                src={youtubeThumbnail}
-                alt="YouTube video thumbnail"
-                width={320}
-                height={180}
-                className="h-full w-full object-cover"
-                onError={() => setThumbnailError(true)}
-                unoptimized={false}
-              />
-            ) : (
-              // Fallback when thumbnail fails to load
-              <div className="h-full w-full flex items-center justify-center bg-accent">
-                <Youtube className="size-6 text-accent-foreground" />
+    <>
+      <div className={cn('relative group', className)}>
+        {/* Preview container */}
+        <div
+          className={cn(
+            'relative h-16 w-auto max-w-32 rounded-lg border border-input overflow-hidden bg-muted',
+            !isUploading && 'cursor-pointer hover:opacity-80 transition-opacity'
+          )}
+          onClick={handlePreviewClick}
+        >
+          {isYouTube ? (
+            // YouTube thumbnail
+            <>
+              {youtubeThumbnail && !thumbnailError ? (
+                <Image
+                  src={youtubeThumbnail}
+                  alt="YouTube video thumbnail"
+                  width={320}
+                  height={180}
+                  className="h-16 w-auto object-contain"
+                  onError={() => setThumbnailError(true)}
+                  unoptimized={false}
+                />
+              ) : (
+                // Fallback when thumbnail fails to load
+                <div className="h-16 w-24 flex items-center justify-center bg-accent">
+                  <Youtube className="size-6 text-accent-foreground" />
+                </div>
+              )}
+              {/* YouTube badge */}
+              <div className="absolute bottom-0.5 right-0.5 bg-primary text-primary-foreground text-[8px] px-1 rounded">
+                YT
               </div>
-            )}
-            {/* YouTube badge */}
-            <div className="absolute bottom-0.5 right-0.5 bg-primary text-primary-foreground text-[8px] px-1 rounded">
-              YT
+            </>
+          ) : attachment.previewUrl ? (
+            // Local video preview
+            <video
+              src={attachment.previewUrl}
+              className="h-16 w-auto object-contain"
+              muted
+              playsInline
+              preload="metadata"
+            />
+          ) : (
+            // Fallback icon
+            <div className="h-16 w-24 flex items-center justify-center">
+              <Video className="size-6 text-muted-foreground" />
             </div>
-          </>
-        ) : attachment.previewUrl ? (
-          // Local video preview
-          <video
-            src={attachment.previewUrl}
-            className="h-full w-full object-cover"
-            muted
-            playsInline
-            preload="metadata"
-          />
-        ) : (
-          // Fallback icon
-          <div className="h-full w-full flex items-center justify-center">
-            <Video className="size-6 text-muted-foreground" />
-          </div>
-        )}
+          )}
 
-        {/* Upload progress overlay */}
-        {isUploading && (
-          <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center">
-            <Loader2 className="size-4 animate-spin text-primary" />
-            {attachment.uploadProgress !== undefined && (
-              <span className="text-[10px] text-muted-foreground mt-1">
-                {Math.round(attachment.uploadProgress)}%
-              </span>
-            )}
-          </div>
-        )}
+          {/* Upload progress overlay */}
+          {isUploading && (
+            <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center">
+              <Loader2 className="size-4 animate-spin text-primary" />
+              {attachment.uploadProgress !== undefined && (
+                <span className="text-[10px] text-muted-foreground mt-1">
+                  {Math.round(attachment.uploadProgress)}%
+                </span>
+              )}
+            </div>
+          )}
 
-        {/* Video icon badge for local videos */}
-        {!isYouTube && !isUploading && (
-          <div className="absolute bottom-0.5 right-0.5 bg-primary/80 text-primary-foreground p-0.5 rounded">
-            <Video className="size-3" />
-          </div>
-        )}
+          {/* Video icon badge for local videos */}
+          {!isYouTube && !isUploading && (
+            <div className="absolute bottom-0.5 right-0.5 bg-primary/80 text-primary-foreground p-0.5 rounded">
+              <Video className="size-3" />
+            </div>
+          )}
+        </div>
+
+        {/* Remove button */}
+        <button
+          type="button"
+          onClick={e => {
+            e.stopPropagation()
+            onRemove(attachment.id)
+          }}
+          disabled={isUploading}
+          className={cn(
+            'absolute -top-1.5 -right-1.5 size-5 rounded-full',
+            'bg-muted text-muted-foreground',
+            'flex items-center justify-center',
+            'opacity-0 group-hover:opacity-100 transition-opacity',
+            'hover:bg-accent',
+            'disabled:opacity-50 disabled:cursor-not-allowed'
+          )}
+          aria-label="Remove video"
+        >
+          <X size={12} />
+        </button>
       </div>
 
-      {/* Remove button */}
-      <button
-        type="button"
-        onClick={() => onRemove(attachment.id)}
-        disabled={isUploading}
-        className={cn(
-          'absolute -top-1.5 -right-1.5 size-5 rounded-full',
-          'bg-muted text-muted-foreground',
-          'flex items-center justify-center',
-          'opacity-0 group-hover:opacity-100 transition-opacity',
-          'hover:bg-accent',
-          'disabled:opacity-50 disabled:cursor-not-allowed'
-        )}
-        aria-label="Remove video"
-      >
-        <X size={12} />
-      </button>
-    </div>
+      <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+        <DialogContent className="max-w-3xl p-4 pt-12">
+          <DialogTitle className="sr-only">Video Preview</DialogTitle>
+          <DialogDescription className="sr-only">
+            Preview of attached video:{' '}
+            {isYouTube ? 'YouTube video' : attachment.file?.name || 'video'}
+          </DialogDescription>
+          {isYouTube && youtubeVideoId ? (
+            <div className="relative w-full aspect-video rounded-2xl overflow-hidden">
+              <iframe
+                src={`https://www.youtube.com/embed/${youtubeVideoId}?autoplay=1`}
+                title="YouTube video"
+                className="absolute inset-0 w-full h-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          ) : attachment.previewUrl ? (
+            <video
+              src={attachment.previewUrl}
+              className="w-full max-h-[80vh] rounded-2xl"
+              controls
+              autoPlay
+              playsInline
+            />
+          ) : (
+            <div className="w-full aspect-video rounded-2xl bg-muted flex items-center justify-center">
+              <Video className="size-12 text-muted-foreground" />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }
 
@@ -193,7 +251,7 @@ export function VideoDisplay({
     return (
       <div
         className={cn(
-          'relative w-full max-w-md aspect-video rounded-lg overflow-hidden',
+          'relative w-full max-w-md aspect-video rounded-3xl overflow-hidden',
           className
         )}
       >
@@ -213,7 +271,7 @@ export function VideoDisplay({
     return (
       <video
         src={`data:${mimeType};base64,${data}`}
-        className={cn('max-w-md max-h-64 rounded-lg', className)}
+        className={cn('max-w-md max-h-64 rounded-3xl', className)}
         controls
         playsInline
         preload="metadata"
@@ -225,7 +283,7 @@ export function VideoDisplay({
   return (
     <div
       className={cn(
-        'w-48 h-32 rounded-lg bg-muted flex items-center justify-center',
+        'w-48 h-32 rounded-3xl bg-muted flex items-center justify-center',
         className
       )}
     >

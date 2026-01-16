@@ -14,14 +14,14 @@ export function CollapsedSidebarTrigger() {
       {/* Bear emoji - visible by default, hidden on hover */}
       <Link
         href="/"
-        className="flex items-center justify-center size-8 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground group-hover/trigger:opacity-0 group-hover/trigger:pointer-events-none"
+        className="flex items-center justify-center size-8 transition-colors rounded-full hover:bg-sidebar-accent hover:text-sidebar-accent-foreground group-hover/trigger:opacity-0 group-hover/trigger:pointer-events-none"
       >
         <span className="text-base leading-none">🧸</span>
       </Link>
       {/* Sidebar toggle icon - hidden by default, visible on hover */}
       <button
         onClick={toggleSidebar}
-        className="absolute inset-0 flex items-center justify-center size-8 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground opacity-0 group-hover/trigger:opacity-100"
+        className="absolute inset-0 flex items-center justify-center size-8 transition-colors rounded-full hover:bg-sidebar-accent hover:text-sidebar-accent-foreground opacity-0 group-hover/trigger:opacity-100"
         aria-label="Toggle Sidebar"
       >
         <PanelLeft size={18} />

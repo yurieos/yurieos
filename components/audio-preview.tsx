@@ -1,9 +1,18 @@
 'use client'
 
+import { useState } from 'react'
+
 import { Loader2, Music, X } from 'lucide-react'
 
 import { AudioAttachment } from '@/lib/types'
 import { cn } from '@/lib/utils'
+
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle
+} from '@/components/ui/dialog'
 
 interface AudioPreviewProps {
   attachment: AudioAttachment
@@ -22,11 +31,14 @@ export function AudioPreview({
   onRemove,
   className
 }: AudioPreviewProps) {
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+
   const isUploading = attachment.isUploading
   const filename = attachment.filename || attachment.file?.name || 'audio.mp3'
-  // Truncate long filenames for display
+  // Truncate long filenames for display (show more characters)
   const displayName =
-    filename.length > 20 ? `${filename.slice(0, 17)}...` : filename
+    filename.length > 28 ? `${filename.slice(0, 25)}...` : filename
 
   // Format duration as MM:SS
   const formatDuration = (seconds?: number) => {
@@ -36,60 +48,124 @@ export function AudioPreview({
     return `${mins}:${secs.toString().padStart(2, '0')}`
   }
 
-  return (
-    <div className={cn('relative group', className)}>
-      {/* Preview container */}
-      <div className="relative h-16 w-32 rounded-lg border border-input overflow-hidden bg-muted flex items-center gap-2 px-2">
-        {/* Audio icon */}
-        <div className="flex-shrink-0 size-8 rounded bg-accent flex items-center justify-center">
-          <Music className="size-4 text-accent-foreground" />
-        </div>
+  const handlePreviewClick = () => {
+    if (!isUploading && attachment.file) {
+      // Create object URL for audio preview
+      const url = URL.createObjectURL(attachment.file)
+      setPreviewUrl(url)
+      setIsPreviewOpen(true)
+    }
+  }
 
-        {/* File info */}
-        <div className="flex-1 min-w-0">
-          <p className="text-xs font-medium truncate" title={filename}>
-            {displayName}
-          </p>
-          {attachment.duration ? (
-            <p className="text-[10px] text-muted-foreground">
-              {formatDuration(attachment.duration)}
+  const handleClosePreview = (open: boolean) => {
+    if (!open && previewUrl) {
+      URL.revokeObjectURL(previewUrl)
+      setPreviewUrl(null)
+    }
+    setIsPreviewOpen(open)
+  }
+
+  return (
+    <>
+      <div className={cn('relative group', className)}>
+        {/* Preview container */}
+        <div
+          className={cn(
+            'relative h-12 px-3 rounded-lg border border-input overflow-hidden bg-muted flex items-center gap-2.5',
+            !isUploading &&
+              attachment.file &&
+              'cursor-pointer hover:bg-muted/80 transition-colors'
+          )}
+          onClick={handlePreviewClick}
+        >
+          {/* Audio icon */}
+          <div className="flex-shrink-0 size-7 rounded-md bg-purple-500/10 flex items-center justify-center">
+            <Music className="size-4 text-purple-500" />
+          </div>
+
+          {/* File info */}
+          <div className="flex-1 min-w-0 pr-1">
+            <p className="text-sm font-medium truncate" title={filename}>
+              {displayName}
             </p>
-          ) : (
-            <p className="text-[10px] text-muted-foreground">Audio</p>
+            <p className="text-xs text-muted-foreground">
+              {attachment.duration
+                ? formatDuration(attachment.duration)
+                : 'Audio'}
+            </p>
+          </div>
+
+          {/* Upload progress overlay */}
+          {isUploading && (
+            <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center">
+              <Loader2 className="size-4 animate-spin text-primary" />
+              {attachment.uploadProgress !== undefined && (
+                <span className="text-[10px] text-muted-foreground mt-1">
+                  {Math.round(attachment.uploadProgress)}%
+                </span>
+              )}
+            </div>
           )}
         </div>
 
-        {/* Upload progress overlay */}
-        {isUploading && (
-          <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center">
-            <Loader2 className="size-4 animate-spin text-primary" />
-            {attachment.uploadProgress !== undefined && (
-              <span className="text-[10px] text-muted-foreground mt-1">
-                {Math.round(attachment.uploadProgress)}%
-              </span>
-            )}
-          </div>
-        )}
+        {/* Remove button */}
+        <button
+          type="button"
+          onClick={e => {
+            e.stopPropagation()
+            onRemove(attachment.id)
+          }}
+          disabled={isUploading}
+          className={cn(
+            'absolute -top-1.5 -right-1.5 size-5 rounded-full',
+            'bg-muted text-muted-foreground',
+            'flex items-center justify-center',
+            'opacity-0 group-hover:opacity-100 transition-opacity',
+            'hover:bg-accent',
+            'disabled:opacity-50 disabled:cursor-not-allowed'
+          )}
+          aria-label="Remove audio"
+        >
+          <X size={12} />
+        </button>
       </div>
 
-      {/* Remove button */}
-      <button
-        type="button"
-        onClick={() => onRemove(attachment.id)}
-        disabled={isUploading}
-        className={cn(
-          'absolute -top-1.5 -right-1.5 size-5 rounded-full',
-          'bg-muted text-muted-foreground',
-          'flex items-center justify-center',
-          'opacity-0 group-hover:opacity-100 transition-opacity',
-          'hover:bg-accent',
-          'disabled:opacity-50 disabled:cursor-not-allowed'
-        )}
-        aria-label="Remove audio"
-      >
-        <X size={12} />
-      </button>
-    </div>
+      <Dialog open={isPreviewOpen} onOpenChange={handleClosePreview}>
+        <DialogContent className="max-w-md p-6 pt-12">
+          <DialogTitle className="sr-only">Audio Preview</DialogTitle>
+          <DialogDescription className="sr-only">
+            Preview of attached audio: {filename}
+          </DialogDescription>
+          <div className="flex flex-col items-center gap-4">
+            <div className="size-20 rounded-full bg-accent flex items-center justify-center">
+              <Music className="size-10 text-accent-foreground" />
+            </div>
+            <div className="text-center">
+              <p
+                className="font-medium truncate max-w-[300px]"
+                title={filename}
+              >
+                {filename}
+              </p>
+              {attachment.duration && (
+                <p className="text-sm text-muted-foreground">
+                  {formatDuration(attachment.duration)}
+                </p>
+              )}
+            </div>
+            {previewUrl && (
+              <audio
+                src={previewUrl}
+                controls
+                autoPlay
+                className="w-full"
+                preload="metadata"
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }
 
@@ -126,7 +202,7 @@ export function AudioDisplay({
   return (
     <div
       className={cn(
-        'inline-flex flex-col gap-2 px-3 py-2 rounded-lg',
+        'inline-flex flex-col gap-2 px-3 py-2 rounded-3xl',
         'bg-muted border border-input max-w-xs',
         className
       )}

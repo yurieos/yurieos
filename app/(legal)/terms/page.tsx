@@ -55,9 +55,10 @@ export default function TermsOfServicePage() {
               Standard mode with real-time search and code execution
               capabilities
             </li>
-            <li>Deep Research mode for comprehensive multi-step research</li>
             <li>Chat history storage and synchronization</li>
             <li>Multiple AI model options with configurable thinking levels</li>
+            <li>AI image generation capabilities</li>
+            <li>AI video generation capabilities</li>
           </ul>
 
           <h2>2. User Accounts</h2>

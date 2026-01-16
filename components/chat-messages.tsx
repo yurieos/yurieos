@@ -6,7 +6,6 @@ import { ChatRequestOptions, UIMessage } from 'ai'
 
 import { cn } from '@/lib/utils'
 
-import { ResearchMode } from './chat'
 import { ChatErrorBoundary } from './error-boundary'
 import { RenderMessage } from './render-message'
 
@@ -27,7 +26,6 @@ interface ChatMessagesProps {
     messageId: string,
     options?: ChatRequestOptions
   ) => Promise<string | null | undefined>
-  researchMode?: ResearchMode
 }
 
 export function ChatMessages({
@@ -37,8 +35,7 @@ export function ChatMessages({
   chatId,
   scrollContainerRef,
   onUpdateMessage,
-  reload,
-  researchMode
+  reload
 }: ChatMessagesProps) {
   const [openStates, setOpenStates] = useState<Record<string, boolean>>({})
 
@@ -121,7 +118,6 @@ export function ChatMessages({
                   onUpdateMessage={onUpdateMessage}
                   reload={reload}
                   isLoading={isLoading}
-                  researchMode={researchMode}
                 />
               </ChatErrorBoundary>
             </div>
@@ -140,7 +136,6 @@ export function ChatMessages({
                     onUpdateMessage={onUpdateMessage}
                     reload={reload}
                     isLoading={isLoading}
-                    researchMode={researchMode}
                   />
                 </ChatErrorBoundary>
               </div>

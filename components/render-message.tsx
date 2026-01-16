@@ -5,7 +5,6 @@ import { ChatRequestOptions, JSONValue, UIMessage } from 'ai'
 import { ResearchAnnotation } from '@/lib/types'
 
 import { AnswerSection } from './answer-section'
-import { ResearchMode } from './chat'
 import { GeneratedImage } from './generated-image'
 import RelatedQuestions from './related-questions'
 import { ThinkingDisplay } from './thinking-display'
@@ -24,7 +23,6 @@ interface RenderMessageProps {
     options?: ChatRequestOptions
   ) => Promise<string | null | undefined>
   isLoading: boolean
-  researchMode?: ResearchMode
 }
 
 /** Text part from UIMessage */
@@ -108,11 +106,11 @@ function getAnnotations(message: UIMessage): ResearchAnnotation[] {
 function isAnswerCompleteFromAnnotations(
   annotations: ResearchAnnotation[]
 ): boolean {
-  // Check for agentic-phase complete (standard mode)
+  // Check for agentic-phase complete
   const hasAgenticComplete = annotations.some(
     a => a.type === 'agentic-phase' && a.data.phase === 'complete'
   )
-  // Check for deep research complete
+  // Legacy: check for research-complete (for backwards compatibility with old chats)
   const hasResearchComplete = annotations.some(
     a => a.type === 'research-complete' && a.data.phase === 'complete'
   )
@@ -128,8 +126,7 @@ export const RenderMessage = memo(function RenderMessage({
   chatId,
   onUpdateMessage,
   reload,
-  isLoading,
-  researchMode
+  isLoading
 }: RenderMessageProps) {
   const annotations = useMemo(() => getAnnotations(message), [message])
 
@@ -148,16 +145,6 @@ export const RenderMessage = memo(function RenderMessage({
   const hasThoughtSteps = useMemo(
     () => annotations.some(a => a.type === 'thought-step'),
     [annotations]
-  )
-
-  // Show pulsing dot when in deep research mode, loading, and no thought steps yet
-  const showDeepResearchLoading = useMemo(
-    () =>
-      researchMode === 'deep-research' &&
-      isLoading &&
-      !hasThoughtSteps &&
-      message.role === 'assistant',
-    [researchMode, isLoading, hasThoughtSteps, message.role]
   )
 
   // Handle user messages
@@ -191,20 +178,6 @@ export const RenderMessage = memo(function RenderMessage({
 
   return (
     <>
-      {/* Deep Research Loading Indicator - Pulsing dot while waiting for thought steps */}
-      {showDeepResearchLoading && (
-        <div className="w-full max-w-3xl mb-4">
-          <div className="text-muted-foreground hover:text-foreground flex items-center gap-1 text-sm transition-colors">
-            <div className="flex items-center gap-2">
-              <span className="relative inline-flex size-4 items-center justify-center">
-                <span className="inline-flex size-2 animate-pulse-scale rounded-full bg-current" />
-              </span>
-              <span>Starting deep research...</span>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Chain of Thought - Display Gemini's thinking process */}
       {/* Per https://ai.google.dev/gemini-api/docs/thinking - thought summaries provide insights */}
       {hasThoughtSteps && (

@@ -7,7 +7,7 @@ function SkeletonLine({ width }: { width: string }) {
 function UserMessageSkeleton() {
   return (
     <div className="flex justify-end mb-6">
-      <div className="bg-muted/50 rounded-2xl px-4 py-3 max-w-[80%]">
+      <div className="bg-muted/50 rounded-3xl px-4 py-3 max-w-[80%]">
         <Skeleton className="h-4 w-48 rounded" />
       </div>
     </div>

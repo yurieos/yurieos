@@ -1,10 +1,6 @@
 /**
  * Gemini Agentic AI Workflow
  *
- * Two modes of operation:
- * - Standard Mode (Agentic): Gemini 3 Flash with tools (Google Search, URL Context, Code Execution, Function Calling)
- * - Deep Research Mode: Official Deep Research Agent via Interactions API
- *
  * Agentic capabilities:
  * - Google Search grounding for real-time web information
  * - URL Context for analyzing content from specific URLs
@@ -17,7 +13,6 @@
  * @see https://ai.google.dev/gemini-api/docs/code-execution
  * @see https://ai.google.dev/gemini-api/docs/function-calling
  * @see https://ai.google.dev/gemini-api/docs/thinking
- * @see https://ai.google.dev/gemini-api/docs/deep-research
  */
 
 import {
@@ -45,7 +40,6 @@ import {
   parseGroundingMetadata,
   parseUrlContextMetadata
 } from './core'
-import { executeDeepResearch } from './deep-research-agent'
 import {
   checkFinishReason,
   executeFunctionCalls,
@@ -54,7 +48,6 @@ import {
 } from './function-calling'
 import { withGeminiRetry } from './retry'
 import {
-  getDeepResearchFormatInstructions,
   getFollowUpPrompt,
   getStandardSystemInstruction
 } from './system-instructions'
@@ -182,7 +175,7 @@ function mapThinkingLevel(level?: string): ThinkingLevel {
 // ============================================
 
 /**
- * Main workflow - routes to appropriate mode
+ * Main workflow - processes queries with agentic capabilities
  *
  * @param query - The user query
  * @param config - Configuration options
@@ -192,13 +185,7 @@ export async function* process(
   query: string,
   config: ResearchConfig = {}
 ): AsyncGenerator<ResearchChunk> {
-  const { mode = 'standard' } = config
-
-  if (mode === 'deep-research') {
-    yield* deepResearch(query, config)
-  } else {
-    yield* agenticChat(query, config)
-  }
+  yield* agenticChat(query, config)
 }
 
 // ============================================
@@ -516,38 +503,6 @@ export async function* agenticChat(
       error: error instanceof Error ? error.message : 'Request failed'
     }
   }
-}
-
-// ============================================
-// Deep Research Mode: Official Deep Research Agent
-// ============================================
-
-/**
- * Deep research using the official Gemini Deep Research Agent
- *
- * Uses the Interactions API for multi-step research:
- * Plan → Search → Read → Iterate → Output
- *
- * Thinking is handled internally by the Deep Research Agent:
- * - Uses thinking_summaries: 'auto' for real-time progress updates
- * - Agent uses maximum reasoning depth (equivalent to ThinkingLevel.HIGH)
- *
- * Research tasks typically take 5-20 minutes (max 60 minutes).
- *
- * @see https://ai.google.dev/gemini-api/docs/deep-research
- * @see https://ai.google.dev/gemini-api/docs/thinking
- */
-export async function* deepResearch(
-  query: string,
-  config: ResearchConfig
-): AsyncGenerator<ResearchChunk> {
-  // Use the official Deep Research Agent via Interactions API
-  // The agent handles thinking internally with maximum reasoning depth
-  yield* executeDeepResearch(query, {
-    thinkingSummaries: true, // Enable thought summaries for progress updates
-    formatInstructions: getDeepResearchFormatInstructions(),
-    previousInteractionId: config.previousInteractionId
-  })
 }
 
 // ============================================

@@ -1,15 +1,16 @@
 /**
  * Gemini Module - Main Entry Point
  *
- * Two modes of operation:
- * - Standard Mode (Agentic): Gemini 3 Flash with tools (Google Search, URL Context, Code Execution, Function Calling)
- * - Deep Research Mode: Official Deep Research Agent via Interactions API
+ * Agentic Mode: Gemini 3 Flash/Pro with tools
+ * - Google Search grounding
+ * - URL Context analysis
+ * - Code Execution
+ * - Function Calling
  *
  * @see https://ai.google.dev/gemini-api/docs/google-search
  * @see https://ai.google.dev/gemini-api/docs/url-context
  * @see https://ai.google.dev/gemini-api/docs/code-execution
  * @see https://ai.google.dev/gemini-api/docs/function-calling
- * @see https://ai.google.dev/gemini-api/docs/deep-research
  */
 
 // Core (Client + Citations + URL Context)
@@ -17,7 +18,6 @@ export type { UrlValidationResult } from './core'
 export {
   deduplicateSources,
   deduplicateUrls,
-  DEEP_RESEARCH_MODEL,
   extractDomain,
   extractUrlsFromQuery,
   GEMINI_3_FLASH,
@@ -44,8 +44,6 @@ export type { ThinkingConfig } from '@/lib/types'
 export type {
   ContentPart,
   ConversationTurn,
-  DeepResearchInteractionMetadata,
-  DeepResearchOptions,
   FunctionCall,
   FunctionCallingMode,
   FunctionDeclaration,
@@ -99,24 +97,11 @@ export {
 } from './types'
 
 // Agentic workflow
-export {
-  agenticChat,
-  deepResearch,
-  generateFollowUps,
-  process
-} from './agentic'
-
-// Deep Research Agent (Interactions API)
-export {
-  askFollowUp,
-  executeDeepResearch,
-  reconnectToResearch
-} from './deep-research-agent'
+export { agenticChat, generateFollowUps, process } from './agentic'
 
 // System Instructions (Agentic Template)
 // @see https://ai.google.dev/gemini-api/docs/prompting-strategies#agentic-si-template
 export {
-  getDeepResearchFormatInstructions,
   getFollowUpPrompt,
   getStandardSystemInstruction
 } from './system-instructions'

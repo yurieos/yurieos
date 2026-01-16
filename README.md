@@ -2,7 +2,7 @@
 
 <div align="center">
 
-**Open-source AI research engine with Gemini deep research and real-time search grounding**
+**Open-source AI assistant with Gemini, real-time search, and AI image/video generation**
 
 [![Next.js](https://img.shields.io/badge/Next.js-16.1-black?logo=next.js)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://reactjs.org/)
@@ -15,8 +15,7 @@
 
 ## ✨ Features
 
-- **Standard Mode** — Fast responses with Gemini 3 Flash + Google Search + Code Execution
-- **Deep Research Mode** — Comprehensive multi-step research with Gemini Deep Research Agent
+- **Agentic Chat** — Gemini 3 Flash/Pro + Google Search + Code Execution
 - **AI Image Generation** — Gemini Imagen 3 (Pro/Flash) with 4K resolution support
 - **AI Video Generation** — Veo 3.1 with text-to-video, image-to-video, and interpolation
 - **Multimodal Support** — Images, videos, audio, and documents in chat
@@ -30,13 +29,12 @@
 
 ### Models
 
-| Model               | Features                               |
-| ------------------- | -------------------------------------- |
-| Gemini 3 Flash      | Fast, efficient, minimal thinking      |
-| Gemini 3 Pro        | Advanced reasoning, high thinking      |
-| Deep Research Agent | Autonomous multi-step research (5-60m) |
-| Imagen 3 Pro/Flash  | High-quality image generation          |
-| Veo 3.1             | Video generation with audio            |
+| Model              | Features                          |
+| ------------------ | --------------------------------- |
+| Gemini 3 Flash     | Fast, efficient, minimal thinking |
+| Gemini 3 Pro       | Advanced reasoning, high thinking |
+| Imagen 3 Pro/Flash | High-quality image generation     |
+| Veo 3.1            | Video generation with audio       |
 
 ---
 
@@ -120,7 +118,10 @@ app/
     ├── chat/         # Main chat streaming API
     ├── imagine/      # Image generation API
     ├── video/        # Video generation API
-    ├── attachments/  # File upload API
+    ├── attachments/  # File upload API (Gemini Files API)
+    ├── stuff/images/ # Saved images CRUD
+    ├── chats/        # Chat list API
+    ├── config/models/# Models configuration API
     └── health/       # Health check endpoint
 
 lib/
@@ -131,10 +132,11 @@ lib/
 │   ├── errors.ts     # Typed error classes
 │   ├── retry.ts      # Exponential backoff retry
 │   ├── tokens.ts     # Token estimation utilities
+│   ├── files.ts      # Gemini Files API (large uploads)
 │   ├── streaming.ts  # Vercel AI SDK adapter
 │   ├── image-generation.ts
 │   ├── video-generation.ts
-│   ├── deep-research-agent.ts
+│   ├── system-instructions.ts
 │   ├── function-calling/
 │   └── types.ts
 ├── schema/           # Zod validation schemas
@@ -156,19 +158,18 @@ components/
 
 ## 🔬 Operation Modes
 
-### Standard Mode (Agentic AI)
+### Agentic Workflow
 
 ```
-QUERY → TOOLS (Search + Code Execution) → SYNTHESIZE
+QUERY → TOOLS (Search + Code Execution + Functions) → SYNTHESIZE
 ```
 
-### Deep Research Mode
+Tools available:
 
-```
-QUERY → PLAN → SEARCH → ANALYZE → VERIFY → SYNTHESIZE
-```
-
-Research takes 5-60 minutes with streaming progress updates. Supports reconnection to interrupted tasks.
+- **Google Search** — Real-time web grounding
+- **URL Context** — Analyze linked web pages
+- **Code Execution** — Run Python in sandbox
+- **Function Calling** — Built-in functions (calculator, datetime)
 
 ---
 

@@ -4,13 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import Textarea from 'react-textarea-autosize'
 
 import { UIMessage } from 'ai'
-import {
-  ChevronDown,
-  CornerRightUp,
-  Loader2,
-  Paperclip,
-  Square
-} from 'lucide-react'
+import { ChevronDown, CornerRightUp, Loader2, Plus, Square } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { AudioPart, DocumentPart, ImagePart, VideoPart } from '@/lib/types'
@@ -18,21 +12,9 @@ import { cn } from '@/lib/utils'
 
 import { useCurrentUserName, useIsAuthenticated } from '@/hooks'
 
-import {
-  ALL_SUPPORTED_TYPES,
-  DeepResearchToggle,
-  ImagePreview,
-  useAttachments
-} from './chat/index'
+import { ALL_SUPPORTED_TYPES, ImagePreview, useAttachments } from './chat/index'
 import { Button } from './ui/button'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger
-} from './ui/tooltip'
 import { AudioPreview } from './audio-preview'
-import type { ResearchMode } from './chat'
 import { DocumentPreview } from './document-preview'
 import { EmptyScreen } from './empty-screen'
 import { VideoPreview } from './video-preview'
@@ -68,8 +50,6 @@ interface ChatPanelProps {
   }) => void
   showScrollToBottomButton: boolean
   scrollContainerRef: React.RefObject<HTMLDivElement | null>
-  researchMode?: ResearchMode
-  onResearchModeChange?: (mode: ResearchMode) => void
   chatId?: string
 }
 
@@ -84,8 +64,6 @@ export function ChatPanel({
   append,
   showScrollToBottomButton,
   scrollContainerRef,
-  researchMode = 'standard',
-  onResearchModeChange,
   chatId
 }: ChatPanelProps) {
   const [showEmptyScreen, setShowEmptyScreen] = useState(false)
@@ -99,7 +77,6 @@ export function ChatPanel({
   const fullName = useCurrentUserName()
   const firstName = fullName.split(' ')[0]
   const isAuthenticated = useIsAuthenticated()
-  const isDeepResearch = researchMode === 'deep-research'
 
   // Use the attachments hook
   const {
@@ -140,29 +117,6 @@ export function ChatPanel({
         lastPart?.state === 'input-streaming')
     )
   }, [messages])
-
-  const toggleResearchMode = useCallback(() => {
-    const newMode: ResearchMode = isDeepResearch ? 'standard' : 'deep-research'
-    onResearchModeChange?.(newMode)
-  }, [isDeepResearch, onResearchModeChange])
-
-  // Keyboard shortcut for toggling Deep Research mode (Cmd+D / Ctrl+D)
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (
-        (e.metaKey || e.ctrlKey) &&
-        !e.shiftKey &&
-        e.key.toLowerCase() === 'd'
-      ) {
-        e.preventDefault()
-        if (!isLoading && !isToolInvocationInProgress()) {
-          toggleResearchMode()
-        }
-      }
-    }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isLoading, isToolInvocationInProgress, toggleResearchMode])
 
   // Submit query on mount if provided
   useEffect(() => {
@@ -252,9 +206,7 @@ export function ChatPanel({
       {messages.length === 0 && (
         <div className="mb-6 flex flex-col items-center gap-4">
           <p className="text-center text-[1.625rem] font-semibold">
-            {isDeepResearch ? (
-              'What are you researching?'
-            ) : firstName && firstName !== '?' ? (
+            {firstName && firstName !== '?' ? (
               <>
                 Hello, <em>{firstName}</em>.
               </>
@@ -294,7 +246,12 @@ export function ChatPanel({
           </Button>
         )}
 
-        <div className="relative flex flex-col w-full gap-2 bg-muted rounded-lg border border-input">
+        <div
+          className={cn(
+            'relative flex flex-col w-full bg-muted border border-input',
+            hasAttachments ? 'rounded-3xl' : 'rounded-full'
+          )}
+        >
           {/* Media previews */}
           {hasAttachments && (
             <div className="flex flex-col gap-2 p-3 pb-0">
@@ -328,108 +285,86 @@ export function ChatPanel({
             </div>
           )}
 
-          {/* Textarea */}
-          <Textarea
-            ref={inputRef}
-            name="input"
-            rows={2}
-            maxRows={5}
-            tabIndex={0}
-            onCompositionStart={handleCompositionStart}
-            onCompositionEnd={handleCompositionEnd}
-            placeholder={
-              isDeepResearch ? 'Get a detailed report' : 'Ask anything'
-            }
-            spellCheck={false}
-            value={input}
-            disabled={isLoading || isToolInvocationInProgress()}
-            className="resize-none w-full min-h-12 bg-transparent border-0 p-4 text-sm placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-            onChange={e => {
-              handleInputChange(e)
-              setShowEmptyScreen(e.target.value.length === 0)
-            }}
-            onKeyDown={async e => {
-              if (
-                e.key === 'Enter' &&
-                !e.shiftKey &&
-                !isComposing &&
-                !enterDisabled
-              ) {
-                if (!hasContent) {
-                  e.preventDefault()
-                  return
-                }
-                e.preventDefault()
-                const textarea = e.target as HTMLTextAreaElement
-                textarea.form?.requestSubmit()
-              }
-            }}
-            onFocus={() => setShowEmptyScreen(true)}
-            onBlur={() => setShowEmptyScreen(false)}
-          />
+          {/* Input row with attach button, textarea, and send button inline */}
+          <div className="flex items-end gap-2 p-3">
+            {/* Attach button */}
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className={cn(
+                'size-8 shrink-0 rounded-full text-muted-foreground hover:text-accent-foreground',
+                hasAttachments && 'text-primary'
+              )}
+              disabled={isLoading || isToolInvocationInProgress()}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Plus size={28} strokeWidth={2} />
+            </Button>
 
-          {/* Bottom menu */}
-          <div className="flex items-center justify-between p-3">
-            <div className="flex items-center gap-2">
-              <TooltipProvider delayDuration={0}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      className={cn(
-                        'size-8 rounded-lg text-muted-foreground hover:text-accent-foreground',
-                        hasAttachments && 'text-primary border-primary'
-                      )}
-                      disabled={isLoading || isToolInvocationInProgress()}
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      <Paperclip size={14} />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" align="start" className="max-w-xs">
-                    <p className="font-medium">Attach files</p>
-                    <ul className="mt-1 text-xs text-muted-foreground space-y-0.5">
-                      <li>Images: up to 5, max 20MB each</li>
-                      <li>Video: 1 file, max 100MB</li>
-                      <li>PDF: 1 file, max 50MB</li>
-                      <li>Audio: 1 file, max 50MB</li>
-                    </ul>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              <DeepResearchToggle
-                isActive={isDeepResearch}
-                onToggle={toggleResearchMode}
-                disabled={isLoading || isToolInvocationInProgress()}
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                type={isLoading || isUploading ? 'button' : 'submit'}
-                size="icon"
-                variant="outline"
-                className={cn(
-                  (isLoading || isUploading) && 'animate-pulse',
-                  'rounded-lg size-8'
-                )}
-                disabled={
-                  (!hasContent && !isLoading && !isUploading) ||
-                  isToolInvocationInProgress() ||
-                  isUploading
+            {/* Textarea */}
+            <Textarea
+              ref={inputRef}
+              name="input"
+              rows={1}
+              maxRows={5}
+              tabIndex={0}
+              onCompositionStart={handleCompositionStart}
+              onCompositionEnd={handleCompositionEnd}
+              placeholder="Ask anything"
+              spellCheck={false}
+              value={input}
+              disabled={isLoading || isToolInvocationInProgress()}
+              className="resize-none flex-1 min-h-8 bg-transparent border-0 py-1.5 px-0 text-sm placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+              onChange={e => {
+                handleInputChange(e)
+                setShowEmptyScreen(e.target.value.length === 0)
+              }}
+              onKeyDown={async e => {
+                if (
+                  e.key === 'Enter' &&
+                  !e.shiftKey &&
+                  !isComposing &&
+                  !enterDisabled
+                ) {
+                  if (!hasContent) {
+                    e.preventDefault()
+                    return
+                  }
+                  e.preventDefault()
+                  const textarea = e.target as HTMLTextAreaElement
+                  textarea.form?.requestSubmit()
                 }
-                onClick={isLoading ? stop : undefined}
-              >
-                {isUploading ? (
-                  <Loader2 size={16} className="animate-spin" />
-                ) : isLoading ? (
-                  <Square size={16} />
-                ) : (
-                  <CornerRightUp size={16} />
-                )}
-              </Button>
-            </div>
+              }}
+              onFocus={() => setShowEmptyScreen(true)}
+              onBlur={() => setShowEmptyScreen(false)}
+            />
+
+            {/* Send/Stop button */}
+            <Button
+              type={isLoading || isUploading ? 'button' : 'submit'}
+              size="icon"
+              variant="ghost"
+              className={cn(
+                'size-8 shrink-0 rounded-full text-muted-foreground hover:text-accent-foreground',
+                (isLoading || isUploading) && 'animate-pulse',
+                hasContent && 'bg-accent text-accent-foreground'
+              )}
+              disabled={
+                (!hasContent && !isLoading && !isUploading) ||
+                isToolInvocationInProgress() ||
+                isUploading
+              }
+              onClick={isLoading ? stop : undefined}
+            >
+              {isUploading ? (
+                <Loader2 size={20} className="animate-spin" />
+              ) : isLoading ? (
+                <Square size={20} />
+              ) : (
+                <CornerRightUp size={20} />
+              )}
+            </Button>
           </div>
         </div>
 

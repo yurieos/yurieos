@@ -465,7 +465,6 @@ export interface ResearchProgressAnnotation {
     message: string
     phase?: ResearchPhase
     metadata?: AnnotationMetadata
-    interactionId?: string
   }
 }
 
@@ -487,7 +486,6 @@ export interface ResearchCompleteAnnotation {
     phase: 'complete'
     success: boolean
     metadata?: AnnotationMetadata
-    interactionId?: string
   }
 }
 

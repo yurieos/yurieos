@@ -648,13 +648,13 @@ export function ImagineClient() {
   return (
     <div className="space-y-6">
       {/* Media Type Toggle */}
-      <div className="flex items-center justify-center gap-1 bg-muted/50 rounded-lg p-1 w-fit mx-auto">
+      <div className="flex items-center justify-center gap-1 bg-muted/50 rounded-full p-1 w-fit mx-auto">
         <button
           type="button"
           onClick={() => setMediaType('image')}
           disabled={isGenerating}
           className={cn(
-            'flex items-center gap-1.5 h-8 px-4 text-sm rounded-md transition-all',
+            'flex items-center gap-1.5 h-8 px-4 text-sm rounded-full transition-all',
             mediaType === 'image'
               ? 'bg-background text-foreground shadow-sm font-medium'
               : 'text-muted-foreground hover:text-foreground',
@@ -669,7 +669,7 @@ export function ImagineClient() {
           onClick={() => setMediaType('video')}
           disabled={isGenerating}
           className={cn(
-            'flex items-center gap-1.5 h-8 px-4 text-sm rounded-md transition-all',
+            'flex items-center gap-1.5 h-8 px-4 text-sm rounded-full transition-all',
             mediaType === 'video'
               ? 'bg-background text-foreground shadow-sm font-medium'
               : 'text-muted-foreground hover:text-foreground',
@@ -687,7 +687,7 @@ export function ImagineClient() {
           {hasOutput ? (
             <>
               {/* Media preview */}
-              <div className="relative p-2 bg-gradient-to-b from-muted/80 to-muted/40 rounded-lg shadow-sm">
+              <div className="relative p-2 bg-gradient-to-b from-muted/80 to-muted/40 rounded-3xl shadow-sm">
                 <div className="relative rounded overflow-hidden ring-1 ring-border/50 shadow-inner">
                   {mediaType === 'image' && generatedImage ? (
                     // eslint-disable-next-line @next/next/no-img-element -- Base64 data URL, Next.js Image cannot optimize
@@ -766,14 +766,14 @@ export function ImagineClient() {
               ? 'A serene mountain lake at sunset with golden reflections...'
               : 'A cinematic shot of a majestic lion walking through the savannah at sunset, warm golden light, shallow depth of field...'
           }
-          className="flex min-h-24 w-full rounded-lg border-0 bg-muted/50 px-4 py-3 text-sm placeholder:text-muted-foreground/60 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 resize-none"
+          className="flex min-h-24 w-full rounded-3xl border-0 bg-muted/50 px-4 py-3 text-sm placeholder:text-muted-foreground/60 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 resize-none"
           disabled={isGenerating}
         />
       </div>
 
       {/* Video Mode Selector */}
       {mediaType === 'video' && (
-        <div className="flex items-center gap-1.5">
+        <div className="flex flex-wrap items-center gap-1.5">
           <span className="text-xs text-muted-foreground mr-1">Mode:</span>
           {VIDEO_MODE_OPTIONS.map(option => (
             <button
@@ -782,7 +782,7 @@ export function ImagineClient() {
               onClick={() => handleVideoModeChange(option.value)}
               disabled={isGenerating}
               className={cn(
-                'h-7 px-2.5 text-xs rounded-md transition-all',
+                'h-7 px-2.5 text-xs rounded-full transition-all whitespace-nowrap',
                 videoMode === option.value
                   ? 'bg-foreground text-background font-medium'
                   : 'text-muted-foreground hover:text-foreground hover:bg-muted/50',
@@ -798,10 +798,10 @@ export function ImagineClient() {
       {/* Frame Images for Video (image-to-video and interpolation modes) */}
       {mediaType === 'video' &&
         (videoMode === 'image-to-video' || videoMode === 'interpolation') && (
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             {/* First Frame */}
             <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">
+              <span className="text-xs text-muted-foreground whitespace-nowrap">
                 First frame:
               </span>
               <input
@@ -812,12 +812,12 @@ export function ImagineClient() {
                 className="hidden"
               />
               {firstFrameImage ? (
-                <div className="relative group">
+                <div className="relative group flex-shrink-0">
                   {/* eslint-disable-next-line @next/next/no-img-element -- Blob URL preview, Next.js Image cannot optimize */}
                   <img
                     src={firstFrameImage.previewUrl}
                     alt="First frame"
-                    className="size-10 object-cover rounded-md"
+                    className="size-10 object-cover rounded-xl"
                   />
                   <button
                     type="button"
@@ -835,7 +835,7 @@ export function ImagineClient() {
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isGenerating}
-                  className="size-10 rounded-md border border-dashed border-muted-foreground/30 flex items-center justify-center text-muted-foreground/50 hover:border-muted-foreground/50 hover:text-muted-foreground transition-colors disabled:opacity-50 disabled:pointer-events-none"
+                  className="size-10 rounded-xl border border-dashed border-muted-foreground/30 flex items-center justify-center text-muted-foreground/50 hover:border-muted-foreground/50 hover:text-muted-foreground transition-colors disabled:opacity-50 disabled:pointer-events-none flex-shrink-0"
                 >
                   <ImagePlus size={16} />
                 </button>
@@ -845,7 +845,7 @@ export function ImagineClient() {
             {/* Last Frame (interpolation only) */}
             {videoMode === 'interpolation' && (
               <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">
+                <span className="text-xs text-muted-foreground whitespace-nowrap">
                   Last frame:
                 </span>
                 <input
@@ -856,12 +856,12 @@ export function ImagineClient() {
                   className="hidden"
                 />
                 {lastFrameImage ? (
-                  <div className="relative group">
+                  <div className="relative group flex-shrink-0">
                     {/* eslint-disable-next-line @next/next/no-img-element -- Blob URL preview, Next.js Image cannot optimize */}
                     <img
                       src={lastFrameImage.previewUrl}
                       alt="Last frame"
-                      className="size-10 object-cover rounded-md"
+                      className="size-10 object-cover rounded-xl"
                     />
                     <button
                       type="button"
@@ -879,7 +879,7 @@ export function ImagineClient() {
                     type="button"
                     onClick={() => lastFrameInputRef.current?.click()}
                     disabled={isGenerating}
-                    className="size-10 rounded-md border border-dashed border-muted-foreground/30 flex items-center justify-center text-muted-foreground/50 hover:border-muted-foreground/50 hover:text-muted-foreground transition-colors disabled:opacity-50 disabled:pointer-events-none"
+                    className="size-10 rounded-xl border border-dashed border-muted-foreground/30 flex items-center justify-center text-muted-foreground/50 hover:border-muted-foreground/50 hover:text-muted-foreground transition-colors disabled:opacity-50 disabled:pointer-events-none flex-shrink-0"
                   >
                     <ImagePlus size={16} />
                   </button>
@@ -901,14 +901,14 @@ export function ImagineClient() {
             className="hidden"
             id="reference-images-input"
           />
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {referenceImages.map(img => (
-              <div key={img.id} className="relative group">
+              <div key={img.id} className="relative group flex-shrink-0">
                 {/* eslint-disable-next-line @next/next/no-img-element -- Blob URL preview, Next.js Image cannot optimize */}
                 <img
                   src={img.previewUrl}
                   alt="Reference"
-                  className="size-10 object-cover rounded-md"
+                  className="size-10 object-cover rounded-xl"
                 />
                 <button
                   type="button"
@@ -929,7 +929,7 @@ export function ImagineClient() {
                   input?.click()
                 }}
                 disabled={isGenerating}
-                className="size-10 rounded-md border border-dashed border-muted-foreground/30 flex items-center justify-center text-muted-foreground/50 hover:border-muted-foreground/50 hover:text-muted-foreground transition-colors disabled:opacity-50 disabled:pointer-events-none"
+                className="size-10 rounded-xl border border-dashed border-muted-foreground/30 flex items-center justify-center text-muted-foreground/50 hover:border-muted-foreground/50 hover:text-muted-foreground transition-colors disabled:opacity-50 disabled:pointer-events-none flex-shrink-0"
                 title="Add reference image"
               >
                 <ImagePlus size={16} />
@@ -946,9 +946,9 @@ export function ImagineClient() {
 
       {/* Image Options */}
       {mediaType === 'image' && (
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-y-3 gap-x-4">
           {/* Aspect Ratio */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-1.5">
             {CURATED_IMAGE_ASPECT_RATIOS.map(ratio => (
               <button
                 key={ratio}
@@ -956,7 +956,7 @@ export function ImagineClient() {
                 onClick={() => setImageAspectRatio(ratio)}
                 disabled={isGenerating}
                 className={cn(
-                  'h-7 px-2.5 text-xs rounded-md transition-all',
+                  'h-7 px-2.5 text-xs rounded-full transition-all whitespace-nowrap',
                   imageAspectRatio === ratio
                     ? 'bg-foreground text-background font-medium'
                     : 'text-muted-foreground hover:text-foreground hover:bg-muted/50',
@@ -969,7 +969,7 @@ export function ImagineClient() {
           </div>
 
           {/* Resolution */}
-          <div className="flex items-center gap-1 bg-muted/50 rounded-md p-0.5">
+          <div className="flex items-center gap-1 bg-muted/50 rounded-full p-0.5">
             {IMAGE_SIZES.map(size => (
               <button
                 key={size}
@@ -977,7 +977,7 @@ export function ImagineClient() {
                 onClick={() => setImageSize(size)}
                 disabled={isGenerating}
                 className={cn(
-                  'h-6 px-2.5 text-xs rounded transition-all',
+                  'h-6 px-2.5 text-xs rounded-full transition-all whitespace-nowrap',
                   imageSize === size
                     ? 'bg-background text-foreground shadow-sm font-medium'
                     : 'text-muted-foreground hover:text-foreground',
@@ -993,12 +993,14 @@ export function ImagineClient() {
 
       {/* Video Options */}
       {mediaType === 'video' && (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {/* Row 1: Aspect Ratio, Duration, Resolution */}
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-y-3 gap-x-4">
             {/* Aspect Ratio */}
             <div className="flex items-center gap-1.5">
-              <span className="text-xs text-muted-foreground mr-1">Ratio:</span>
+              <span className="text-xs text-muted-foreground mr-1 whitespace-nowrap">
+                Ratio:
+              </span>
               {VIDEO_ASPECT_RATIOS.map(ratio => (
                 <button
                   key={ratio}
@@ -1006,7 +1008,7 @@ export function ImagineClient() {
                   onClick={() => setVideoAspectRatio(ratio)}
                   disabled={isGenerating || videoMode === 'reference'}
                   className={cn(
-                    'h-7 px-2.5 text-xs rounded-md transition-all',
+                    'h-7 px-2.5 text-xs rounded-full transition-all whitespace-nowrap',
                     videoAspectRatio === ratio
                       ? 'bg-foreground text-background font-medium'
                       : 'text-muted-foreground hover:text-foreground hover:bg-muted/50',
@@ -1020,7 +1022,7 @@ export function ImagineClient() {
 
             {/* Duration */}
             <div className="flex items-center gap-1.5">
-              <span className="text-xs text-muted-foreground mr-1">
+              <span className="text-xs text-muted-foreground mr-1 whitespace-nowrap">
                 Duration:
               </span>
               {VIDEO_DURATIONS.map(dur => (
@@ -1035,7 +1037,7 @@ export function ImagineClient() {
                     (videoResolution === '1080p' && dur !== '8')
                   }
                   className={cn(
-                    'h-7 px-2.5 text-xs rounded-md transition-all',
+                    'h-7 px-2.5 text-xs rounded-full transition-all whitespace-nowrap',
                     videoDuration === dur
                       ? 'bg-foreground text-background font-medium'
                       : 'text-muted-foreground hover:text-foreground hover:bg-muted/50',
@@ -1048,7 +1050,7 @@ export function ImagineClient() {
             </div>
 
             {/* Resolution */}
-            <div className="flex items-center gap-1 bg-muted/50 rounded-md p-0.5">
+            <div className="flex items-center gap-1 bg-muted/50 rounded-full p-0.5">
               {VIDEO_RESOLUTIONS.map(res => (
                 <button
                   key={res}
@@ -1062,7 +1064,7 @@ export function ImagineClient() {
                   }}
                   disabled={isGenerating}
                   className={cn(
-                    'h-6 px-2.5 text-xs rounded transition-all',
+                    'h-6 px-2.5 text-xs rounded-full transition-all whitespace-nowrap',
                     videoResolution === res
                       ? 'bg-background text-foreground shadow-sm font-medium'
                       : 'text-muted-foreground hover:text-foreground',
@@ -1076,8 +1078,8 @@ export function ImagineClient() {
           </div>
 
           {/* Row 2: Fast Model Toggle & Negative Prompt Toggle */}
-          <div className="flex items-center gap-4">
-            <label className="flex items-center gap-2 text-xs cursor-pointer">
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+            <label className="flex items-center gap-2 text-xs cursor-pointer whitespace-nowrap">
               <input
                 type="checkbox"
                 checked={useFastModel}
@@ -1089,8 +1091,8 @@ export function ImagineClient() {
             </label>
 
             {/* Negative Prompt (collapsible) */}
-            <details className="flex-1">
-              <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground">
+            <details className="flex-1 min-w-[150px]">
+              <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground whitespace-nowrap">
                 Negative prompt
               </summary>
               <input
@@ -1098,7 +1100,7 @@ export function ImagineClient() {
                 value={negativePrompt}
                 onChange={e => setNegativePrompt(e.target.value)}
                 placeholder="cartoon, drawing, low quality..."
-                className="mt-2 w-full h-8 rounded-md border-0 bg-muted/50 px-3 text-xs placeholder:text-muted-foreground/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                className="mt-2 w-full h-8 rounded-full border-0 bg-muted/50 px-3 text-xs placeholder:text-muted-foreground/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 disabled={isGenerating}
               />
             </details>

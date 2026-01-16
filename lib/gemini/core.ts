@@ -52,11 +52,8 @@ export function isGeminiAvailable(): boolean {
 /** Gemini 3 Flash - Fast, efficient model for standard mode */
 export const GEMINI_3_FLASH = 'gemini-3-flash-preview'
 
-/** Gemini 3 Pro - Advanced model for deep research */
+/** Gemini 3 Pro - Advanced model with extended reasoning */
 export const GEMINI_3_PRO = 'gemini-3-pro-preview'
-
-/** Deep Research Agent - For comprehensive research tasks */
-export const DEEP_RESEARCH_MODEL = 'deep-research-pro-preview-12-2025'
 
 /** Gemini Image Flash (Nano Banana) - Fast, efficient image generation at 1024px
  * Optimized for high-volume, low-latency tasks

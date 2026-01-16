@@ -140,7 +140,7 @@ function ImageDisplay({
     return (
       <Skeleton
         className={cn(
-          'rounded-lg',
+          'rounded-3xl',
           totalImages === 1 ? 'h-48 w-48' : 'h-20 w-20'
         )}
       />
@@ -151,7 +151,7 @@ function ImageDisplay({
     return (
       <div
         className={cn(
-          'rounded-lg bg-muted flex items-center justify-center text-xs text-muted-foreground',
+          'rounded-3xl bg-muted flex items-center justify-center text-xs text-muted-foreground',
           totalImages === 1 ? 'h-48 w-48' : 'h-20 w-20'
         )}
       >
@@ -166,7 +166,7 @@ function ImageDisplay({
       src={src!}
       alt={image.filename || `Attachment ${index + 1}`}
       className={cn(
-        'rounded-lg object-cover',
+        'rounded-3xl object-cover',
         totalImages === 1 ? 'max-h-48 w-auto' : 'h-20 w-20'
       )}
     />
@@ -396,7 +396,7 @@ export const UserMessage: React.FC<UserMessageProps> = ({
                   value={editedContent}
                   onChange={e => setEditedContent(e.target.value)}
                   autoFocus
-                  className="resize-none flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                  className="resize-none flex w-full rounded-3xl border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                   minRows={2}
                   maxRows={10}
                 />

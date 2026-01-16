@@ -235,9 +235,6 @@ export interface ResearchChunk {
     sourceCount?: number
     searchQueries?: string[]
     confidence?: number
-    interactionId?: string
-    lastEventId?: string
-    previousInteractionId?: string
   }
   error?: string
   modelParts?: ContentPart[]
@@ -254,11 +251,9 @@ export interface ResearchChunk {
 
 // Research Config
 export interface ResearchConfig {
-  mode?: 'standard' | 'deep-research'
   model?: string
   thinkingConfig?: ThinkingConfig
   conversationHistory?: ConversationTurn[]
-  previousInteractionId?: string
   /**
    * Image attachments for multimodal requests
    * @see https://ai.google.dev/gemini-api/docs/image-understanding
@@ -301,19 +296,6 @@ export interface ResearchConfig {
    * Per best practice: Keep active set to 10-20 functions max
    */
   allowedFunctionNames?: string[]
-}
-
-// Deep Research Types (Interactions API)
-export interface DeepResearchOptions {
-  thinkingSummaries?: boolean
-  formatInstructions?: string
-  previousInteractionId?: string
-}
-
-export interface DeepResearchInteractionMetadata {
-  interactionId?: string
-  lastEventId?: string
-  previousInteractionId?: string
 }
 
 // ============================================

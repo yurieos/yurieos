@@ -79,7 +79,7 @@ export function CollapsibleMessage({
             'min-w-0',
             role === 'assistant'
               ? 'flex-1'
-              : 'bg-primary/10 px-4 py-2.5 rounded-2xl rounded-tr-sm'
+              : 'bg-primary/10 px-4 py-2.5 rounded-3xl rounded-tr-lg'
           )}
         >
           {content}

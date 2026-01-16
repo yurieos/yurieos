@@ -41,7 +41,7 @@ export const Header: React.FC<HeaderProps> = ({ user }) => {
         {isMobile && (
           <Link
             href="/"
-            className="flex items-center gap-2 h-8 px-2 rounded-md"
+            className="flex items-center gap-2 h-8 px-2 rounded-full"
           >
             <span className="text-base leading-none">🧸</span>
             <span className="text-sm">Yurie</span>

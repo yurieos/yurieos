@@ -37,12 +37,6 @@ export const GEMINI_IMAGE_FLASH = 'gemini-3-flash-image-preview'
 export const GEMINI_IMAGE_PRO = 'gemini-3-pro-image-preview'
 
 /**
- * Deep Research Agent model ID
- * @see https://ai.google.dev/gemini-api/docs/deep-research
- */
-export const DEEP_RESEARCH_MODEL = 'deep-research-pro-preview-12-2025'
-
-/**
  * Veo 3.1 model for high-quality video generation
  * @see https://ai.google.dev/gemini-api/docs/video
  */
@@ -128,16 +122,7 @@ export const TIMING = {
 
   // Streaming
   /** Minimum interval between annotation writes in milliseconds */
-  ANNOTATION_WRITE_INTERVAL_MS: 100,
-
-  // Deep Research
-  // @see https://ai.google.dev/gemini-api/docs/deep-research
-  /** Keep-alive heartbeat interval during deep research (30 seconds) */
-  DEEP_RESEARCH_HEARTBEAT_MS: 30_000,
-  /** Maximum deep research duration in milliseconds (60 minutes per docs) */
-  DEEP_RESEARCH_MAX_DURATION_MS: 60 * 60 * 1000,
-  /** Typical deep research duration in milliseconds (5-20 minutes) */
-  DEEP_RESEARCH_TYPICAL_DURATION_MS: 20 * 60 * 1000
+  ANNOTATION_WRITE_INTERVAL_MS: 100
 } as const
 
 // ============================================

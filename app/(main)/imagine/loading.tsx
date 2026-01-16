@@ -11,27 +11,27 @@ export default function ImagineLoading() {
 
       {/* Form */}
       <div className="space-y-6">
-        <Skeleton className="w-full h-24 rounded-lg" />
+        <Skeleton className="w-full h-24 rounded-3xl" />
 
         <div className="flex items-center gap-2">
-          <Skeleton className="size-10 rounded-md" />
+          <Skeleton className="size-10 rounded-3xl" />
           <Skeleton className="h-3 w-36" />
         </div>
 
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-1.5">
             {[1, 2, 3, 4, 5].map(i => (
-              <Skeleton key={i} className="h-7 w-10 rounded-md" />
+              <Skeleton key={i} className="h-7 w-10 rounded-full" />
             ))}
           </div>
           <div className="flex items-center gap-1">
             {[1, 2, 3].map(i => (
-              <Skeleton key={i} className="h-6 w-8 rounded" />
+              <Skeleton key={i} className="h-6 w-8 rounded-full" />
             ))}
           </div>
         </div>
 
-        <Skeleton className="w-full h-10 rounded-md" />
+        <Skeleton className="w-full h-10 rounded-full" />
       </div>
     </div>
   )

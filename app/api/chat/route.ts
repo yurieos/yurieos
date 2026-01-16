@@ -5,11 +5,8 @@ import { createGeminiStreamResponse, isGeminiAvailable } from '@/lib/gemini'
 import { validateChatRequest } from '@/lib/schema/chat'
 import { parseModelFromCookie } from '@/lib/schema/model'
 
-// Extended timeout for deep research
-// Deep research tasks can take 5-60 minutes per Gemini docs
-// @see https://ai.google.dev/gemini-api/docs/deep-research
+// Maximum function timeout for Vercel
 // Vercel limits: Hobby 300s, Pro 300s, Enterprise custom
-// Note: Deep research may require Pro/Enterprise plan for full duration
 export const maxDuration = 300
 
 export async function POST(req: Request) {
@@ -40,7 +37,6 @@ export async function POST(req: Request) {
     const {
       messages,
       id: chatId,
-      mode,
       functions,
       functionCallingMode,
       allowedFunctionNames
@@ -73,7 +69,6 @@ export async function POST(req: Request) {
       messages,
       chatId,
       userId,
-      mode,
       model: selectedModel.id,
       thinkingConfig: selectedModel.thinkingConfig,
       // Function calling configuration

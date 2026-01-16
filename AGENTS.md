@@ -18,8 +18,7 @@ Instructions for AI coding agents (Codex, Cursor, Claude, etc.) working with thi
 
 ### Key Features
 
-- Standard chat mode with Gemini 3 Flash + Google Search + Code Execution
-- Deep Research mode via Interactions API (5-60 min research tasks)
+- Agentic chat with Gemini 3 Flash/Pro + Google Search + Code Execution
 - AI image generation (Gemini Image Pro/Flash)
 - AI video generation (Veo 3.1)
 - Multimodal support (images, videos, documents, audio)
@@ -209,13 +208,13 @@ lib/
 │   ├── streaming.ts  # Vercel AI SDK adapter
 │   ├── image-generation.ts  # Imagen 3 Pro/Flash
 │   ├── video-generation.ts  # Veo 3.1 video generation
-│   ├── deep-research-agent.ts
 │   ├── system-instructions.ts
 │   ├── function-calling/     # Function calling module
 │   │   ├── executor.ts       # Function execution
 │   │   ├── registry.ts       # Function registry
 │   │   ├── types.ts          # Type definitions
-│   │   └── functions/        # Built-in functions
+│   │   ├── validation.ts     # Argument validation
+│   │   └── functions/        # Built-in functions (calculator, datetime)
 │   ├── types.ts
 │   └── index.ts
 ├── schema/           # Zod validation schemas
@@ -246,12 +245,14 @@ components/
 - `GEMINI_3_FLASH`, `GEMINI_3_PRO` - Chat model constants
 - `GEMINI_IMAGE_PRO`, `GEMINI_IMAGE_FLASH` - Image model constants
 - `VEO_3_1`, `VEO_3_1_FAST` - Video model constants
-- `process()` - Main entry point for chat
-- `generateImage()`, `generateImageStream()` - Image generation
-- `generateVideo()`, `generateVideoFromImage()` - Video generation
-- `withGeminiRetry()` - Exponential backoff retry
-- `parseGeminiError()`, `getUserFriendlyMessage()` - Error handling
-- `estimateTokenCount()`, `checkTokenLimits()` - Token estimation
+- `process()`, `agenticChat()` - Main entry points for chat
+- `generateImage()`, `generateImageStream()`, `editImage()`, `refineImage()` - Image generation
+- `generateVideo()`, `generateVideoFromImage()`, `generateVideoWithInterpolation()`, `extendVideo()` - Video generation
+- `uploadVideoToFileAPI()`, `uploadAndWaitForVideo()` - File API for large uploads
+- `withGeminiRetry()`, `withGeminiRetryStream()` - Exponential backoff retry
+- `parseGeminiError()`, `getUserFriendlyMessage()`, `isRetryableError()` - Error handling
+- `estimateTokenCount()`, `checkTokenLimits()`, `truncateToTokenLimit()` - Token estimation
+- `FunctionRegistry`, `executeFunctionCalls()` - Function calling
 
 **`lib/gemini/constants.ts`** - Centralized constants:
 
@@ -259,6 +260,10 @@ components/
 - `TIMING` - Polling intervals, retry delays
 - `DEFAULTS` - Default configurations
 - `SUPPORTED_FORMATS` - MIME types for various inputs
+- `THINKING_LEVELS` - Thinking configuration levels (none, minimal, low, medium, high)
+- `MODALITIES` - Response modalities (TEXT, IMAGE, AUDIO)
+- `FINISH_REASONS` - Response finish reasons
+- `FUNCTION_CALLING_MODES` - Function calling modes (AUTO, ANY, NONE, VALIDATED)
 
 **`lib/schema/`** - Zod schemas for validation:
 
@@ -376,7 +381,19 @@ refactor: consolidate auth forms into single component
 - Always use `getGeminiClient()` singleton
 - Handle safety blocks in responses (use `GeminiSafetyError`)
 - Use `withGeminiRetry()` for automatic retry with exponential backoff
-- Use typed errors from `lib/gemini/errors.ts` for better error handling
+- Use typed errors from `lib/gemini/errors.ts`:
+  - `GeminiError` - Base error class
+  - `GeminiSafetyError` - Content blocked by safety filters
+  - `GeminiRateLimitError` - Rate limit exceeded (retryable)
+  - `GeminiQuotaError` - Quota exceeded
+  - `GeminiAuthError` - Invalid/missing API key
+  - `GeminiTimeoutError` - Request timeout (retryable)
+  - `GeminiNetworkError` - Network issues (retryable)
+  - `GeminiRecitationError` - Content too similar to training data
+  - `GeminiTokenLimitError` - Content exceeds token limits
+  - `GeminiModelError` - Model unavailable
+  - `GeminiValidationError` - Invalid request parameters
+- Error utilities: `isRetryableError()`, `isRateLimitError()`, `isSafetyError()`, `parseGeminiError()`, `getUserFriendlyMessage()`
 - Use `checkTokenLimits()` to validate request size before sending
 
 ### Security

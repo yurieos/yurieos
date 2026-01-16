@@ -31,9 +31,15 @@ type MediaFilter = 'all' | 'images' | 'videos'
 
 function GallerySkeleton() {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-      {Array.from({ length: 12 }).map((_, i) => (
-        <Skeleton key={i} className="aspect-square rounded-lg" />
+    <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-4">
+      {Array.from({ length: 8 }).map((_, i) => (
+        <Skeleton
+          key={i}
+          className="w-full rounded-3xl break-inside-avoid mb-4 animate-pulse"
+          style={{
+            height: `${[280, 380, 320, 420, 240, 360][i % 6]}px`
+          }}
+        />
       ))}
     </div>
   )
@@ -291,8 +297,8 @@ export function StuffGallery() {
         videoCount={videos.length}
       />
 
-      {/* Gallery Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+      {/* Gallery Grid (Masonry Layout) */}
+      <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-4">
         {/* Show videos first if showing videos */}
         {showVideos &&
           videos.map(video => (
@@ -359,47 +365,72 @@ function FilterTabs({
   const totalCount = imageCount + videoCount
 
   return (
-    <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1 w-fit">
+    <div className="flex items-center gap-1 bg-muted/50 rounded-full p-1 w-fit">
       <button
         type="button"
         onClick={() => setFilter('all')}
         className={cn(
-          'flex items-center gap-1.5 h-7 px-3 text-xs rounded-md transition-all',
+          'flex items-center gap-1.5 h-8 px-3 text-sm rounded-full transition-all',
           filter === 'all'
             ? 'bg-background text-foreground shadow-sm font-medium'
             : 'text-muted-foreground hover:text-foreground'
         )}
       >
         All
-        <span className="text-[10px] opacity-60">({totalCount})</span>
+        <span
+          className={cn(
+            'text-xs tabular-nums',
+            filter === 'all' ? 'text-foreground/70' : 'text-muted-foreground/70'
+          )}
+        >
+          {totalCount}
+        </span>
       </button>
       <button
         type="button"
         onClick={() => setFilter('images')}
         className={cn(
-          'flex items-center gap-1.5 h-7 px-3 text-xs rounded-md transition-all',
+          'flex items-center gap-1.5 h-8 px-3 text-sm rounded-full transition-all',
           filter === 'images'
             ? 'bg-background text-foreground shadow-sm font-medium'
             : 'text-muted-foreground hover:text-foreground'
         )}
       >
-        <ImageIcon size={12} />
+        <ImageIcon className="size-3.5" />
         Images
-        <span className="text-[10px] opacity-60">({imageCount})</span>
+        <span
+          className={cn(
+            'text-xs tabular-nums',
+            filter === 'images'
+              ? 'text-foreground/70'
+              : 'text-muted-foreground/70'
+          )}
+        >
+          {imageCount}
+        </span>
       </button>
       <button
         type="button"
         onClick={() => setFilter('videos')}
         className={cn(
-          'flex items-center gap-1.5 h-7 px-3 text-xs rounded-md transition-all',
+          'flex items-center gap-1.5 h-8 px-3 text-sm rounded-full transition-all',
           filter === 'videos'
             ? 'bg-background text-foreground shadow-sm font-medium'
             : 'text-muted-foreground hover:text-foreground'
         )}
       >
-        <Film size={12} />
+        <Film className="size-3.5" />
         Videos
-        <span className="text-[10px] opacity-60">({videoCount})</span>
+        <span
+          className={cn(
+            'text-xs tabular-nums',
+            filter === 'videos'
+              ? 'text-foreground/70'
+              : 'text-muted-foreground/70'
+          )}
+        >
+          {videoCount}
+        </span>
       </button>
     </div>
   )

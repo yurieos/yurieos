@@ -2,11 +2,9 @@
  * Gemini Streaming Adapter
  * Bridges Gemini agentic workflow with Vercel AI SDK format for frontend compatibility
  *
- * Supports both standard agentic mode (seconds) and Deep Research Agent (minutes)
  * @see https://ai.google.dev/gemini-api/docs/google-search
  * @see https://ai.google.dev/gemini-api/docs/url-context
  * @see https://ai.google.dev/gemini-api/docs/code-execution
- * @see https://ai.google.dev/gemini-api/docs/deep-research
  */
 
 import {
@@ -33,7 +31,6 @@ import { processInputSafely } from './core'
 import {
   ContentPart,
   ConversationTurn,
-  DeepResearchInteractionMetadata,
   FunctionCallingMode,
   FunctionDeclaration,
   ResearchChunk,
@@ -48,7 +45,6 @@ export interface GeminiStreamConfig {
   messages: UIMessage[]
   chatId?: string
   userId?: string
-  mode?: 'standard' | 'deep-research'
   /** Selected model ID (e.g., 'gemini-3-flash-preview', 'gemini-3-pro-preview') */
   model?: string
   /**
@@ -85,7 +81,6 @@ export async function createGeminiStreamResponse(
 ): Promise<Response> {
   const {
     messages,
-    mode = 'standard',
     chatId,
     userId,
     model,
@@ -133,9 +128,6 @@ export async function createGeminiStreamResponse(
       // Store model parts with thought signatures for multi-turn preservation
       // Per https://ai.google.dev/gemini-api/docs/thought-signatures
       let geminiParts: ContentPart[] = []
-      // Track Deep Research interaction metadata for reconnection/follow-ups
-      // Per https://ai.google.dev/gemini-api/docs/deep-research
-      let interactionMetadata: DeepResearchInteractionMetadata = {}
 
       // Batched annotation writing for better performance
       // Instead of writing after every annotation, we batch them and write:
@@ -178,8 +170,7 @@ export async function createGeminiStreamResponse(
         // Per https://ai.google.dev/gemini-api/docs/audio
         // Per https://ai.google.dev/gemini-api/docs/function-calling
         const researchConfig: ResearchConfig = {
-          mode,
-          model, // Pass selected model for standard mode (Flash vs Pro)
+          model, // Pass selected model (Flash vs Pro)
           thinkingConfig, // Pass thinking configuration from model
           conversationHistory: conversationHistory.slice(0, -1), // Exclude current query
           images: images.length > 0 ? images : undefined, // Include image attachments
@@ -197,60 +188,28 @@ export async function createGeminiStreamResponse(
           switch (chunk.type) {
             case 'phase':
               // Update phase annotation - force write for important state changes
-              if (mode === 'standard') {
-                // Map workflow phases to agentic phases
-                const agenticPhase =
-                  chunk.phase === 'complete'
-                    ? 'complete'
-                    : chunk.phase === 'synthesizing'
-                      ? 'answering'
-                      : 'searching'
+              // Map workflow phases to agentic phases
+              const agenticPhase =
+                chunk.phase === 'complete'
+                  ? 'complete'
+                  : chunk.phase === 'synthesizing'
+                    ? 'answering'
+                    : 'searching'
 
-                allAnnotations.push({
-                  type: 'agentic-phase',
-                  data: {
-                    phase: agenticPhase,
-                    sourceCount,
-                    startTime
-                  }
-                })
-              } else {
-                allAnnotations.push({
-                  type: 'research-phase',
-                  data: {
-                    phase: chunk.phase || 'searching',
-                    description: chunk.content
-                  }
-                })
-              }
+              allAnnotations.push({
+                type: 'agentic-phase',
+                data: {
+                  phase: agenticPhase,
+                  sourceCount,
+                  startTime
+                }
+              })
               markAnnotationsPending()
               writeAnnotations(true) // Force write for phase changes
               break
 
             case 'progress':
-              // Progress message only for deep research mode
-              if (mode === 'deep-research') {
-                // Capture interaction metadata for reconnection/follow-ups
-                if (chunk.metadata?.interactionId) {
-                  interactionMetadata.interactionId =
-                    chunk.metadata.interactionId
-                }
-                if (chunk.metadata?.lastEventId) {
-                  interactionMetadata.lastEventId = chunk.metadata.lastEventId
-                }
-
-                allAnnotations.push({
-                  type: 'research-progress',
-                  data: {
-                    message: chunk.content || '',
-                    phase: chunk.phase,
-                    // Include interaction ID for UI tracking
-                    interactionId: interactionMetadata.interactionId
-                  }
-                })
-                markAnnotationsPending()
-                writeAnnotations() // Batched - writes if interval passed
-              }
+              // Progress messages (not used in standard mode)
               break
 
             case 'source':
@@ -447,36 +406,15 @@ export async function createGeminiStreamResponse(
               break
 
             case 'complete':
-              // Capture final interaction metadata for Deep Research
-              if (chunk.metadata?.interactionId) {
-                interactionMetadata.interactionId = chunk.metadata.interactionId
-              }
-              if (chunk.metadata?.lastEventId) {
-                interactionMetadata.lastEventId = chunk.metadata.lastEventId
-              }
-
               // Agentic workflow complete
-              if (mode === 'standard') {
-                allAnnotations.push({
-                  type: 'agentic-phase',
-                  data: {
-                    phase: 'complete',
-                    sourceCount,
-                    startTime
-                  }
-                })
-              } else {
-                allAnnotations.push({
-                  type: 'research-complete',
-                  data: {
-                    phase: 'complete',
-                    success: true,
-                    metadata: chunk.metadata,
-                    // Include interaction ID for follow-up questions
-                    interactionId: interactionMetadata.interactionId
-                  }
-                })
-              }
+              allAnnotations.push({
+                type: 'agentic-phase',
+                data: {
+                  phase: 'complete',
+                  sourceCount,
+                  startTime
+                }
+              })
               markAnnotationsPending()
               writeAnnotations(true) // Force - completion is important
               break
@@ -509,11 +447,7 @@ export async function createGeminiStreamResponse(
             originalMessages: messages,
             annotations: allAnnotations,
             // Include Gemini parts with thought signatures for multi-turn preservation
-            geminiParts: geminiParts.length > 0 ? geminiParts : undefined,
-            // Include interaction metadata for Deep Research follow-ups
-            interactionMetadata: interactionMetadata.interactionId
-              ? interactionMetadata
-              : undefined
+            geminiParts: geminiParts.length > 0 ? geminiParts : undefined
           })
         }
       } catch (error) {
@@ -829,9 +763,6 @@ function convertMessagesForStorage(messages: UIMessage[]) {
  *
  * Per https://ai.google.dev/gemini-api/docs/thought-signatures:
  * We preserve geminiParts in metadata to maintain thought signatures across turns
- *
- * Per https://ai.google.dev/gemini-api/docs/deep-research:
- * We preserve interactionMetadata for Deep Research follow-up questions
  */
 async function saveChatWithAnnotations(params: {
   chatId: string
@@ -842,7 +773,6 @@ async function saveChatWithAnnotations(params: {
   originalMessages: UIMessage[]
   annotations: ResearchAnnotation[]
   geminiParts?: ContentPart[]
-  interactionMetadata?: DeepResearchInteractionMetadata
 }) {
   const {
     chatId,
@@ -852,23 +782,18 @@ async function saveChatWithAnnotations(params: {
     fullContent,
     originalMessages,
     annotations,
-    geminiParts,
-    interactionMetadata
+    geminiParts
   } = params
 
   const convertedMessages = convertMessagesForStorage(originalMessages)
 
-  // Build metadata including annotations, geminiParts, and interaction metadata
+  // Build metadata including annotations and geminiParts
   const metadata: Record<string, unknown> = {}
   if (annotations.length > 0) {
     metadata.annotations = annotations
   }
   if (geminiParts && geminiParts.length > 0) {
     metadata.geminiParts = geminiParts
-  }
-  // Include Deep Research interaction metadata for follow-up questions
-  if (interactionMetadata?.interactionId) {
-    metadata.interactionMetadata = interactionMetadata
   }
 
   const assistantMessage = {

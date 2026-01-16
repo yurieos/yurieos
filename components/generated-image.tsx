@@ -73,7 +73,7 @@ export const GeneratedImage = memo(function GeneratedImage({
       {/* Image Display */}
       <div
         className={cn(
-          'relative group rounded-lg overflow-hidden bg-muted/50 border',
+          'relative group rounded-3xl overflow-hidden bg-muted/50 border',
           className
         )}
         onMouseEnter={() => setIsHovered(true)}
@@ -149,7 +149,7 @@ export const GeneratedImage = memo(function GeneratedImage({
         </div>
 
         {/* AI Badge */}
-        <div className="absolute top-2 left-2 px-2 py-1 rounded-md bg-black/60 text-white text-xs font-medium flex items-center gap-1">
+        <div className="absolute top-2 left-2 px-2 py-1 rounded-full bg-black/60 text-white text-xs font-medium flex items-center gap-1">
           <Sparkles size={12} />
           AI Generated
         </div>
@@ -232,7 +232,7 @@ export const ThinkingImage = memo(function ThinkingImage({
 
   return (
     <div className={cn('relative', className)}>
-      <div className="relative rounded-md overflow-hidden border border-dashed border-muted-foreground/30 bg-muted/30">
+      <div className="relative rounded-3xl overflow-hidden border border-dashed border-muted-foreground/30 bg-muted/30">
         {/* eslint-disable-next-line @next/next/no-img-element -- Base64 data URL, Next.js Image cannot optimize */}
         <img
           src={dataUrl}
@@ -273,7 +273,7 @@ export const ImageGenerationLoading = memo(function ImageGenerationLoading({
   return (
     <div
       className={cn(
-        'relative rounded-lg overflow-hidden border bg-muted/50 p-8',
+        'relative rounded-3xl overflow-hidden border bg-muted/50 p-8',
         className
       )}
     >

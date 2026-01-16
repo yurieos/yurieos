@@ -24,7 +24,7 @@
     --border: 40 33% 80%;
     --input: 40 33% 80%;
     --ring: 29 36% 49%;
-    --radius: 0.25rem;
+    --radius: 1rem;
     /* Sidebar */
     --sidebar-background: 43 38% 93%;
     --sidebar-foreground: 29 17% 25%;
@@ -87,7 +87,7 @@
 
   *::-webkit-scrollbar-thumb {
     background-color: hsl(var(--border));
-    border-radius: 4px;
+    border-radius: 9999px;
   }
 
   *::-webkit-scrollbar-thumb:hover {
@@ -184,9 +184,9 @@
      Shared UI Utilities
      ============================================ */
 
-  /* Pill button style - matches DeepResearchToggle */
+  /* Pill button style */
   .pill-button {
-    @apply inline-flex items-center justify-center gap-1.5 h-8 px-2.5 rounded-lg;
+    @apply inline-flex items-center justify-center gap-1.5 h-8 px-2.5 rounded-full;
     @apply text-xs font-medium transition-colors duration-200;
     @apply border border-input bg-background;
     @apply focus:outline-none focus-visible:ring-1 focus-visible:ring-ring;
@@ -203,12 +203,12 @@
 
   /* Input container style - matches chat input container */
   .input-container {
-    @apply bg-muted rounded-lg border border-input;
+    @apply bg-muted rounded-full border border-input;
   }
 
   /* Icon button style - consistent size and rounding */
   .icon-button {
-    @apply inline-flex items-center justify-center size-8 rounded-lg;
+    @apply inline-flex items-center justify-center size-8 rounded-full;
     @apply transition-colors duration-200;
     @apply text-muted-foreground hover:text-foreground hover:bg-accent;
     @apply focus:outline-none focus-visible:ring-1 focus-visible:ring-ring;
@@ -217,7 +217,7 @@
 
   /* Floating panel style - matches toast/indicator panels */
   .floating-panel {
-    @apply bg-muted/95 backdrop-blur-sm border border-input shadow-lg rounded-lg;
+    @apply bg-muted/95 backdrop-blur-sm border border-input shadow-lg rounded-3xl;
     @apply transition-all duration-200;
   }
 
@@ -235,7 +235,7 @@
 
   /* Keyboard hint style - consistent kbd styling */
   .kbd-hint {
-    @apply px-1.5 py-0.5 text-[10px] font-mono bg-muted/70 border border-border/40 rounded;
+    @apply px-1.5 py-0.5 text-[10px] font-mono bg-muted/70 border border-border/40 rounded-full;
   }
 }
 

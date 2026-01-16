@@ -20,24 +20,6 @@ interface ChatSection {
   assistantMessages: UIMessage[]
 }
 
-export type ResearchMode = 'standard' | 'deep-research'
-
-/**
- * Set the research mode in a cookie for the backend to read.
- */
-function setResearchModeCookie(mode: ResearchMode) {
-  // Set a cookie that expires in 1 hour
-  document.cookie = `research-mode=${mode}; path=/; max-age=3600; SameSite=Lax`
-}
-
-/**
- * Get the research mode from the cookie.
- */
-function getResearchModeCookie(): ResearchMode {
-  const match = document.cookie.match(/research-mode=(standard|deep-research)/)
-  return (match?.[1] as ResearchMode) || 'standard'
-}
-
 export function Chat({
   id,
   savedMessages = [],
@@ -50,29 +32,8 @@ export function Chat({
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const [isAtBottom, setIsAtBottom] = useState(true)
   const [input, setInput] = useState('')
-  const [researchMode, setResearchMode] = useState<ResearchMode>('standard')
 
-  // Initialize research mode from cookie on mount
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const savedMode = getResearchModeCookie()
-      setResearchMode(savedMode)
-    }
-  }, [])
-
-  // Update cookie when research mode changes
-  const handleResearchModeChange = useCallback((mode: ResearchMode) => {
-    setResearchMode(mode)
-    setResearchModeCookie(mode)
-  }, [])
-
-  // Use ref to access the latest researchMode in the transport callback
-  const researchModeRef = useRef(researchMode)
-  useEffect(() => {
-    researchModeRef.current = researchMode
-  }, [researchMode])
-
-  // Create transport that dynamically includes the research mode in every request
+  // Create transport for chat API
   const transport = useMemo(
     () =>
       new DefaultChatTransport({
@@ -86,7 +47,7 @@ export function Chat({
                 role: m.role,
                 parts: m.parts
               })),
-              mode: researchModeRef.current
+              mode: 'standard'
             }
           }
         }
@@ -314,7 +275,6 @@ export function Chat({
         scrollContainerRef={scrollContainerRef}
         onUpdateMessage={handleUpdateAndReloadMessage}
         reload={handleReloadFrom}
-        researchMode={researchMode}
       />
       <ChatPanel
         input={input}
@@ -328,8 +288,6 @@ export function Chat({
         append={handleAppend}
         showScrollToBottomButton={!isAtBottom}
         scrollContainerRef={scrollContainerRef}
-        researchMode={researchMode}
-        onResearchModeChange={handleResearchModeChange}
         chatId={id}
       />
     </div>

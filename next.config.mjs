@@ -39,6 +39,12 @@ const nextConfig = {
         hostname: 'img.youtube.com',
         port: '',
         pathname: '/vi/**' // YouTube video thumbnails (alternate domain)
+      },
+      {
+        protocol: 'https',
+        hostname: 'lchbtfojmflxdetcqdmf.supabase.co',
+        port: '',
+        pathname: '/storage/v1/object/**'
       }
     ]
   },

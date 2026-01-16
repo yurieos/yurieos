@@ -87,7 +87,7 @@ export class ErrorBoundary extends Component<
             </CardHeader>
             <CardContent className="flex flex-col gap-3">
               {process.env.NODE_ENV === 'development' && this.state.error && (
-                <div className="rounded-md bg-muted p-3 text-xs font-mono text-muted-foreground overflow-auto max-h-32">
+                <div className="rounded-3xl bg-muted p-3 text-xs font-mono text-muted-foreground overflow-auto max-h-32">
                   {this.state.error.message}
                 </div>
               )}
@@ -133,7 +133,7 @@ export class ChatErrorBoundary extends ErrorBoundary {
             </CardHeader>
             <CardContent className="flex flex-col gap-3">
               {process.env.NODE_ENV === 'development' && this.state.error && (
-                <div className="rounded-md bg-muted p-3 text-xs font-mono text-muted-foreground overflow-auto max-h-32">
+                <div className="rounded-3xl bg-muted p-3 text-xs font-mono text-muted-foreground overflow-auto max-h-32">
                   {this.state.error.message}
                 </div>
               )}

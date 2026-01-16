@@ -56,12 +56,13 @@ lib/
 │   ├── streaming.ts  # Vercel AI SDK adapter
 │   ├── image-generation.ts  # Imagen 3 Pro/Flash
 │   ├── video-generation.ts  # Veo 3.1 video generation
-│   ├── deep-research-agent.ts
 │   ├── system-instructions.ts
 │   ├── function-calling/     # Function calling module
-│   │   ├── executor.ts
-│   │   ├── registry.ts
-│   │   └── functions/
+│   │   ├── executor.ts       # Function execution
+│   │   ├── registry.ts       # Function registry
+│   │   ├── types.ts          # Type definitions
+│   │   ├── validation.ts     # Argument validation
+│   │   └── functions/        # Built-in functions (calculator, datetime)
 │   ├── types.ts
 │   └── index.ts
 ├── schema/           # Zod validation schemas
@@ -92,10 +93,11 @@ hooks/
 └── index.ts          # All hooks (useIsMobile, useCopyToClipboard, etc.)
 ```
 
-### Operation Modes
+### Features
 
-- **Standard**: Gemini 3 Flash + Google Search + Code Execution
-- **Deep Research**: Deep Research Agent via Interactions API (5-60 min)
+- Gemini 3 Flash/Pro with Google Search + Code Execution
+- AI image generation (Gemini Image Pro/Flash)
+- AI video generation (Veo 3.1)
 
 ## Environment Variables
 
@@ -185,17 +187,10 @@ From `lib/gemini/constants.ts`:
 - `GEMINI_3_PRO` = `'gemini-3-pro-preview'`
 - `GEMINI_IMAGE_FLASH` = `'gemini-3-flash-image-preview'`
 - `GEMINI_IMAGE_PRO` = `'gemini-3-pro-image-preview'`
-- `DEEP_RESEARCH_MODEL` = `'deep-research-pro-preview-12-2025'`
 - `VEO_3_1` = `'veo-3.1-generate-preview'`
 - `VEO_3_1_FAST` = `'veo-3.1-fast-generate-preview'`
 
-Also exports `LIMITS`, `TIMING`, `DEFAULTS`, `SUPPORTED_FORMATS` constants.
-
-## Deep Research
-
-- `executeDeepResearch()` - Start new research task
-- `askFollowUp()` - Continue with follow-up questions
-- `reconnectToResearch()` - Resume interrupted research tasks
+Also exports `LIMITS`, `TIMING`, `DEFAULTS`, `SUPPORTED_FORMATS`, `THINKING_LEVELS`, `MODALITIES`, `FINISH_REASONS`, `FUNCTION_CALLING_MODES` constants.
 
 ## Image Generation
 
@@ -209,7 +204,10 @@ Also exports `LIMITS`, `TIMING`, `DEFAULTS`, `SUPPORTED_FORMATS` constants.
 - `generateVideo()` - Text-to-video generation
 - `generateVideoFromImage()` - Image-to-video (first frame)
 - `generateVideoWithInterpolation()` - First+last frame interpolation
+- `generateVideoWithReferences()` - Video with asset reference images
 - `extendVideo()` - Extend existing video
+- `downloadVideo()` - Download video from URI
+- `validateVideoConfig()` - Validate video generation config
 
 ## Error Handling
 
@@ -222,8 +220,12 @@ Typed error classes in `lib/gemini/errors.ts`:
 - `GeminiAuthError` - Invalid/missing API key
 - `GeminiTimeoutError` - Request timeout (retryable)
 - `GeminiNetworkError` - Network issues (retryable)
+- `GeminiRecitationError` - Content too similar to training data
+- `GeminiTokenLimitError` - Content exceeds token limits
+- `GeminiModelError` - Model unavailable (may be retryable)
+- `GeminiValidationError` - Invalid request parameters
 
-Utilities: `isRetryableError()`, `parseGeminiError()`, `getUserFriendlyMessage()`
+Utilities: `isRetryableError()`, `isRateLimitError()`, `isSafetyError()`, `parseGeminiError()`, `getUserFriendlyMessage()`
 
 ## Retry Logic
 
@@ -239,13 +241,25 @@ From `lib/gemini/tokens.ts`:
 
 - `estimateTokenCount()` - Estimate tokens for text
 - `estimateMessageTokens()` - Estimate tokens for message with attachments
+- `estimateTotalTokens()` - Estimate total tokens for conversation
 - `checkTokenLimits()` - Validate against model limits
 - `truncateToTokenLimit()` - Truncate conversation history
+- `getTokenSummary()` - Get human-readable token summary
 
 ## Error Boundaries
 
 - `ErrorBoundary` - Generic error boundary with retry
 - `ChatErrorBoundary` - Chat-specific with "Start New Chat" option
+
+## File API (Large Uploads)
+
+From `lib/gemini/files.ts`:
+
+- `uploadVideoToFileAPI()` - Upload video to Gemini File API
+- `uploadAndWaitForVideo()` - Upload and wait for processing
+- `waitForProcessing()` - Poll for file processing completion
+- `getFileStatus()` - Get file processing status
+- `deleteFile()` - Delete uploaded file
 
 ## Supabase
 

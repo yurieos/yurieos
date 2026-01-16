@@ -41,7 +41,7 @@ export function NotAvailable({
     >
       <div className="text-center max-w-md animate-fade-in">
         {Icon && (
-          <div className="size-20 mx-auto mb-6 rounded-2xl bg-muted/50 flex items-center justify-center">
+          <div className="size-20 mx-auto mb-6 rounded-full bg-muted/50 flex items-center justify-center">
             <Icon className="size-10 text-muted-foreground/40" />
           </div>
         )}
