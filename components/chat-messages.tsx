@@ -101,7 +101,7 @@ export function ChatMessages({
             className="chat-section mb-8 max-w-full overflow-x-hidden"
             style={
               sectionIndex === sections.length - 1
-                ? { minHeight: 'calc(-228px + 100dvh)' }
+                ? { minHeight: 'calc(-160px + 100dvh)' }
                 : {}
             }
           >
