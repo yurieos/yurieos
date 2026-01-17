@@ -67,6 +67,7 @@ export function ChatPanel({
   chatId
 }: ChatPanelProps) {
   const [showEmptyScreen, setShowEmptyScreen] = useState(false)
+  const [isMultiline, setIsMultiline] = useState(false)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const isFirstRender = useRef(true)
@@ -249,7 +250,9 @@ export function ChatPanel({
         <div
           className={cn(
             'relative flex flex-col w-full bg-muted border border-input',
-            hasAttachments ? 'rounded-3xl' : 'rounded-full'
+            hasAttachments || (input.length > 0 && isMultiline)
+              ? 'rounded-[26px]'
+              : 'rounded-full'
           )}
         >
           {/* Media previews */}
@@ -316,6 +319,9 @@ export function ChatPanel({
               value={input}
               disabled={isLoading || isToolInvocationInProgress()}
               className="resize-none flex-1 min-h-8 bg-transparent border-0 py-1.5 px-0 text-sm placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+              onHeightChange={(height, { rowHeight }) => {
+                setIsMultiline(height > rowHeight)
+              }}
               onChange={e => {
                 handleInputChange(e)
                 setShowEmptyScreen(e.target.value.length === 0)
