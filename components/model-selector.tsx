@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 
-import { Check, ChevronsUpDown } from 'lucide-react'
+import { Check, ChevronDown } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { DEFAULT_MODEL_ID } from '@/lib/config/models'
@@ -115,10 +115,10 @@ export function ModelSelector() {
           variant="ghost"
           role="combobox"
           aria-expanded={open}
-          className="h-8 px-2 text-sm font-semibold text-foreground/70 hover:text-foreground focus:ring-0"
+          className="h-8 w-fit gap-1 px-2 text-sm font-semibold text-foreground/70 hover:text-foreground focus:ring-0"
         >
           {selected?.name || 'Select model'}
-          <ChevronsUpDown className="ml-1 size-3 shrink-0 opacity-50" />
+          <ChevronDown className="size-3 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-72 p-0" align="start">
