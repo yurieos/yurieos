@@ -12,7 +12,6 @@ import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar'
 
 import GuestMenu from './guest-menu'
 import { ModelSelector } from './model-selector'
-import { NewChatButton } from './new-chat-button'
 
 interface HeaderProps {
   user: User | null
@@ -23,7 +22,6 @@ export const Header: React.FC<HeaderProps> = ({ user }) => {
   const pathname = usePathname()
 
   const isOnChatPage = pathname === '/' || pathname.startsWith('/search')
-  const showNewChatButton = pathname !== '/' && pathname.startsWith('/search')
 
   return (
     <header
@@ -48,7 +46,6 @@ export const Header: React.FC<HeaderProps> = ({ user }) => {
           </Link>
         )}
         {isOnChatPage && <ModelSelector />}
-        {showNewChatButton && <NewChatButton variant="header" />}
       </div>
 
       {/* Guest menu for non-logged in users (logged in users have avatar in sidebar) */}

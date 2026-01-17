@@ -62,9 +62,7 @@ export function NewChatButton({ variant, className }: NewChatButtonProps) {
               <Plus className="size-4" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="bottom">
-            <p>New chat ⌘O</p>
-          </TooltipContent>
+          <TooltipContent side="bottom">New chat</TooltipContent>
         </Tooltip>
       </TooltipProvider>
     )

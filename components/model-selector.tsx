@@ -135,7 +135,7 @@ export function ModelSelector() {
                       key={id}
                       value={id}
                       onSelect={handleSelect}
-                      className="flex justify-between"
+                      className="flex justify-between cursor-pointer"
                     >
                       <span className="text-xs font-medium">{m.name}</span>
                       <Check
