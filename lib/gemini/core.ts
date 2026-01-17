@@ -49,7 +49,7 @@ export function isGeminiAvailable(): boolean {
 // Model Constants
 // ============================================
 
-/** Gemini 3 Flash - Fast, efficient model for standard mode */
+/** Gemini 3 Flash - Fast, efficient model for Agentic AI */
 export const GEMINI_3_FLASH = 'gemini-3-flash-preview'
 
 /** Gemini 3 Pro - Advanced model with extended reasoning */

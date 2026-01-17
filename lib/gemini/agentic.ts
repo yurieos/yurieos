@@ -189,7 +189,7 @@ export async function* process(
 }
 
 // ============================================
-// Standard Mode: Agentic AI with Tools
+// Agentic AI with Tools
 // ============================================
 
 /**
@@ -497,7 +497,7 @@ export async function* agenticChat(
       metadata: { sourceCount: allSources.length }
     }
   } catch (error) {
-    logger.error('Gemini/Agentic', error, { mode: 'standard' })
+    logger.error('Gemini/Agentic', error, { mode: 'agentic' })
     yield {
       type: 'error',
       error: error instanceof Error ? error.message : 'Request failed'

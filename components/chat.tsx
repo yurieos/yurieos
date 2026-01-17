@@ -47,7 +47,7 @@ export function Chat({
                 role: m.role,
                 parts: m.parts
               })),
-              mode: 'standard'
+              mode: 'agentic'
             }
           }
         }

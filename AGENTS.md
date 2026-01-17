@@ -4,7 +4,7 @@ Instructions for AI coding agents (Codex, Cursor, Claude, etc.) working with thi
 
 ## Project Overview
 
-**Yurie** is an open-source AI-powered answer engine with generative UI, built on Google's Gemini API.
+**Yurie** is an open-source Agentic AI with generative UI, built on Google's Gemini API.
 
 ### Tech Stack
 

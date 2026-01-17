@@ -31,7 +31,7 @@ const fontMono = IBM_Plex_Mono({
 
 const title = 'Yurie'
 const description =
-  'A fully open-source AI-powered answer engine with a generative UI.'
+  'A fully open-source Agentic AI with a generative UI.'
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.yurie.ai'),

@@ -182,7 +182,7 @@ const ChatRequestSchema = z.object({
     .array(UIMessageSchema)
     .min(1, 'At least one message is required')
     .max(MAX_MESSAGES_PER_REQUEST, 'Too many messages in request'),
-  mode: z.literal('standard').default('standard'),
+  mode: z.literal('agentic').default('agentic'),
   // Function calling options
   functions: z.array(FunctionDeclarationSchema).max(20).optional(),
   functionCallingMode: z.enum(['AUTO', 'ANY', 'NONE', 'VALIDATED']).optional(),
@@ -224,7 +224,7 @@ export interface FunctionDeclarationInput {
 export interface ChatRequest {
   id: string
   messages: UIMessage[]
-  mode: 'standard'
+  mode: 'agentic'
   functions?: FunctionDeclarationInput[]
   functionCallingMode?: FunctionCallingModeType
   allowedFunctionNames?: string[]

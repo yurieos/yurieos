@@ -209,7 +209,7 @@ export async function createGeminiStreamResponse(
               break
 
             case 'progress':
-              // Progress messages (not used in standard mode)
+              // Progress messages (not used in Agentic AI)
               break
 
             case 'source':

@@ -1,7 +1,7 @@
 /**
  * Gemini Module - Main Entry Point
  *
- * Agentic Mode: Gemini 3 Flash/Pro with tools
+ * Agentic AI: Gemini 3 Flash/Pro with tools
  * - Google Search grounding
  * - URL Context analysis
  * - Code Execution
