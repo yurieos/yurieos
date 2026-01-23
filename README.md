@@ -194,6 +194,4 @@ The `/api/health` endpoint returns:
 
 **Built with 💜 by the Yurie team**
 
-[Issues](https://github.com/yurieos/yurieos/issues)
-
 </div>
