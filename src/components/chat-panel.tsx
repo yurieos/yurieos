@@ -212,7 +212,7 @@ export function ChatPanel({
 
       <form
         onSubmit={onFormSubmit}
-        className="max-w-3xl w-full mx-auto relative"
+        className="relative w-full md:max-w-3xl md:mx-auto"
       >
         {/* Hidden file input */}
         <input
