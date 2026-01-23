@@ -1,5 +1,6 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
+import type { NextConfig } from 'next'
+
+const nextConfig: NextConfig = {
   // Increase body size limit for multimodal requests (images, videos, documents)
   // Per Gemini docs: Supports up to 14 reference images for image generation
   // @see https://ai.google.dev/gemini-api/docs/image-generation

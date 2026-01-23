@@ -10,7 +10,7 @@ import { toast } from 'sonner'
 import type { AudioPart, DocumentPart, ImagePart, VideoPart } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
-import { useCurrentUserName, useIsAuthenticated } from '@/hooks'
+import { useIsAuthenticated } from '@/hooks'
 
 import { AudioPreview } from './audio-preview'
 import { ALL_SUPPORTED_TYPES, ImagePreview, useAttachments } from './chat/index'
@@ -75,8 +75,6 @@ export function ChatPanel({
   const [enterDisabled, setEnterDisabled] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
 
-  const fullName = useCurrentUserName()
-  const firstName = fullName.split(' ')[0]
   const isAuthenticated = useIsAuthenticated()
 
   // Use the attachments hook
@@ -207,13 +205,7 @@ export function ChatPanel({
       {messages.length === 0 && (
         <div className="mb-6 flex flex-col items-center gap-4">
           <p className="text-center text-[1.625rem] font-semibold">
-            {firstName && firstName !== '?' ? (
-              <>
-                Hello, <em>{firstName}</em>.
-              </>
-            ) : (
-              'What can I help with?'
-            )}
+            What can I help with?
           </p>
         </div>
       )}
