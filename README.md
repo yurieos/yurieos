@@ -2,12 +2,11 @@
 
 <div align="center">
 
-**Open-source AI assistant with Gemini and real-time search**
+**Private AI assistant with Gemini and real-time search**
 
 [![Next.js](https://img.shields.io/badge/Next.js-16.1-black?logo=next.js)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript)](https://www.typescriptlang.org/)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 </div>
 
@@ -188,12 +187,6 @@ The `/api/health` endpoint returns:
 2. Create feature branch
 3. Run `npm run lint && npm run typecheck && npm run build`
 4. Open a Pull Request
-
----
-
-## 📄 License
-
-[Apache License 2.0](LICENSE)
 
 ---
 
