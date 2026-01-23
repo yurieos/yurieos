@@ -47,7 +47,8 @@ export async function GET(request: NextRequest) {
       return response
     }
     // redirect the user to an error page with some instructions
-    return NextResponse.redirect(`${origin}/auth/error?error=${encodeURIComponent(error.message)}`)
+    const errorMessage = error?.message ?? 'Verification failed'
+    return NextResponse.redirect(`${origin}/auth/error?error=${encodeURIComponent(errorMessage)}`)
   }
 
   // redirect the user to an error page with some instructions
