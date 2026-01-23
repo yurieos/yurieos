@@ -113,7 +113,7 @@ const CodeBlock: FC<Props> = memo(({ language, value }) => {
   return (
     <div
       className={cn(
-        'relative w-full max-w-full font-mono codeblock rounded-3xl',
+        'relative w-full max-w-full font-mono codeblock',
         isDark
           ? 'bg-card border border-border'
           : 'bg-[#f5f0e6] border border-[#d9d0c3]'
