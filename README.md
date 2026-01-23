@@ -181,15 +181,6 @@ The `/api/health` endpoint returns:
 
 ---
 
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create feature branch
-3. Run `npm run lint && npm run typecheck && npm run build`
-4. Open a Pull Request
-
----
-
 <div align="center">
 
 **Built with 💜 by the Yurie team**
