@@ -6,6 +6,7 @@ import { FileText, Loader2, X } from 'lucide-react'
 
 import type { DocumentAttachment } from '@/lib/types'
 import { cn } from '@/lib/utils'
+import { truncateFilename } from '@/lib/utils/user'
 
 import {
   Dialog,
@@ -37,9 +38,7 @@ export function DocumentPreview({
   const isUploading = attachment.isUploading
   const filename =
     attachment.filename || attachment.file?.name || 'document.pdf'
-  // Truncate long filenames for display (show more characters)
-  const displayName =
-    filename.length > 28 ? `${filename.slice(0, 25)}...` : filename
+  const displayName = truncateFilename(filename)
 
   const handlePreviewClick = () => {
     if (!isUploading && attachment.file) {
@@ -176,8 +175,7 @@ export function DocumentDisplay({
   className
 }: DocumentDisplayProps) {
   const displayName = filename || 'document.pdf'
-  const truncatedName =
-    displayName.length > 30 ? `${displayName.slice(0, 27)}...` : displayName
+  const truncatedName = truncateFilename(displayName, 30)
 
   return (
     <div

@@ -38,31 +38,3 @@ export const programmingLanguages: LanguageMap = {
   xml: '.xml',
   markdown: '.md'
 }
-
-/**
- * Common languages for UI dropdowns
- */
-export const COMMON_LANGUAGES = [
-  'plaintext',
-  'javascript',
-  'typescript',
-  'python',
-  'java',
-  'c',
-  'cpp',
-  'rust',
-  'go',
-  'ruby',
-  'php',
-  'swift',
-  'kotlin',
-  'shell',
-  'sql',
-  'html',
-  'css',
-  'json',
-  'yaml',
-  'markdown'
-] as const
-
-export type CommonLanguage = (typeof COMMON_LANGUAGES)[number]

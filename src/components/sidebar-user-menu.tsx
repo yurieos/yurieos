@@ -1,11 +1,10 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
-
 import type { User } from '@supabase/supabase-js'
 import { ChevronsUpDown, LogOut, Palette } from 'lucide-react'
 
-import { createClient } from '@/lib/supabase/client'
+import { useLogout } from '@/hooks'
+import { getInitials } from '@/lib/utils/user'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
@@ -32,33 +31,12 @@ interface SidebarUserMenuProps {
 }
 
 export function SidebarUserMenu({ user }: SidebarUserMenuProps) {
-  const router = useRouter()
+  const handleLogout = useLogout()
 
   const userName =
     user.user_metadata?.full_name || user.user_metadata?.name || 'User'
   const avatarUrl =
     user.user_metadata?.avatar_url || user.user_metadata?.picture
-
-  const getInitials = (name: string, email: string | undefined) => {
-    if (name && name !== 'User') {
-      const names = name.split(' ')
-      if (names.length > 1) {
-        return `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase()
-      }
-      return name.substring(0, 2).toUpperCase()
-    }
-    if (email) {
-      return email.split('@')[0].substring(0, 2).toUpperCase()
-    }
-    return 'U'
-  }
-
-  const handleLogout = async () => {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    router.push('/')
-    router.refresh()
-  }
 
   return (
     <SidebarMenu>

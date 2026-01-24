@@ -14,7 +14,9 @@ export async function GET(request: NextRequest) {
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
     if (!supabaseUrl || !supabaseAnonKey) {
-      return NextResponse.redirect(`${origin}/auth/error?error=Supabase not configured`)
+      return NextResponse.redirect(
+        `${origin}/auth/error?error=Supabase not configured`
+      )
     }
 
     // Create a response object that we can attach cookies to
@@ -25,7 +27,13 @@ export async function GET(request: NextRequest) {
         getAll() {
           return request.cookies.getAll()
         },
-        setAll(cookiesToSet: { name: string; value: string; options?: CookieOptions }[]) {
+        setAll(
+          cookiesToSet: {
+            name: string
+            value: string
+            options?: CookieOptions
+          }[]
+        ) {
           for (const { name, value, options } of cookiesToSet) {
             response.cookies.set(name, value, options)
           }
@@ -48,9 +56,13 @@ export async function GET(request: NextRequest) {
     }
     // redirect the user to an error page with some instructions
     const errorMessage = error?.message ?? 'Verification failed'
-    return NextResponse.redirect(`${origin}/auth/error?error=${encodeURIComponent(errorMessage)}`)
+    return NextResponse.redirect(
+      `${origin}/auth/error?error=${encodeURIComponent(errorMessage)}`
+    )
   }
 
   // redirect the user to an error page with some instructions
-  return NextResponse.redirect(`${origin}/auth/error?error=No token hash or type`)
+  return NextResponse.redirect(
+    `${origin}/auth/error?error=No token hash or type`
+  )
 }

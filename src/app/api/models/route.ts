@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 
-import { getModels } from '@/lib/config/models'
+import { getModels } from '@/lib/models'
 
 export function GET() {
   const models = getModels()

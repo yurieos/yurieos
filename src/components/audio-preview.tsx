@@ -6,6 +6,7 @@ import { Loader2, Music, X } from 'lucide-react'
 
 import type { AudioAttachment } from '@/lib/types'
 import { cn } from '@/lib/utils'
+import { truncateFilename } from '@/lib/utils/user'
 
 import {
   Dialog,
@@ -36,9 +37,7 @@ export function AudioPreview({
 
   const isUploading = attachment.isUploading
   const filename = attachment.filename || attachment.file?.name || 'audio.mp3'
-  // Truncate long filenames for display (show more characters)
-  const displayName =
-    filename.length > 28 ? `${filename.slice(0, 25)}...` : filename
+  const displayName = truncateFilename(filename)
 
   // Format duration as MM:SS
   const formatDuration = (seconds?: number) => {
@@ -201,8 +200,7 @@ export function AudioDisplay({
   className
 }: AudioDisplayProps) {
   const displayName = filename || 'Audio'
-  const truncatedName =
-    displayName.length > 30 ? `${displayName.slice(0, 27)}...` : displayName
+  const truncatedName = truncateFilename(displayName, 30)
 
   // If we have base64 data, create a data URL for the audio element
   const audioSrc = data

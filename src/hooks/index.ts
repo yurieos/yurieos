@@ -1,7 +1,8 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import * as React from 'react'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 import { createClient, isSupabaseConfigured } from '@/lib/supabase/client'
 
@@ -62,29 +63,6 @@ export function useCopyToClipboard({
 }
 
 // ============================================
-// useCurrentUserName
-// ============================================
-
-export const useCurrentUserName = () => {
-  const [name, setName] = useState<string | null>(null)
-
-  useEffect(() => {
-    const fetchProfileName = async () => {
-      const { data, error } = await createClient().auth.getSession()
-      if (error) {
-        console.error(error)
-      }
-
-      setName(data.session?.user.user_metadata.full_name ?? '?')
-    }
-
-    fetchProfileName()
-  }, [])
-
-  return name || '?'
-}
-
-// ============================================
 // useIsAuthenticated
 // ============================================
 
@@ -115,4 +93,23 @@ export const useIsAuthenticated = () => {
   }, [])
 
   return isAuthenticated
+}
+
+// ============================================
+// useLogout
+// ============================================
+
+/**
+ * Hook that returns a logout function
+ * Handles signing out and redirecting to home
+ */
+export function useLogout() {
+  const router = useRouter()
+
+  return useCallback(async () => {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push('/')
+    router.refresh()
+  }, [router])
 }

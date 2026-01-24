@@ -1,7 +1,7 @@
 import { notFound, redirect } from 'next/navigation'
 
 import { getChat } from '@/lib/actions/chat'
-import { getCurrentUserId } from '@/lib/auth/get-current-user'
+import { getCurrentUserId } from '@/lib/get-current-user'
 import type { ExtendedCoreMessage, SearchResults } from '@/lib/types'
 import { convertToUIMessages } from '@/lib/utils'
 

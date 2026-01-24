@@ -3,13 +3,13 @@
 import { revalidatePath } from 'next/cache'
 
 import { deleteAttachmentsByChat } from '@/lib/actions/attachments'
-import { getCurrentUserId } from '@/lib/auth/get-current-user'
+import { getCurrentUserId } from '@/lib/get-current-user'
 import {
   type RedisWrapper,
   getRedisClient,
   getSafeRedisClient,
   isRedisConfigured
-} from '@/lib/redis/config'
+} from '@/lib/redis-config'
 import type { Chat } from '@/lib/types'
 
 const getRedis = (): Promise<RedisWrapper> => getRedisClient()

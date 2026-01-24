@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers'
 
-import { getCurrentUserId } from '@/lib/auth/get-current-user'
 import { createGeminiStreamResponse, isGeminiAvailable } from '@/lib/gemini'
+import { getCurrentUserId } from '@/lib/get-current-user'
 import { validateChatRequest } from '@/lib/schema/chat'
 import { parseModelFromCookie } from '@/lib/schema/model'
 

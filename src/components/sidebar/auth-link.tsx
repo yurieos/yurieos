@@ -2,7 +2,7 @@ import Link from 'next/link'
 
 import type { LucideIcon } from 'lucide-react'
 
-import { getCurrentUser } from '@/lib/auth/get-current-user'
+import { getCurrentUser } from '@/lib/get-current-user'
 import { isSupabaseConfigured } from '@/lib/supabase/server'
 
 import { SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar'

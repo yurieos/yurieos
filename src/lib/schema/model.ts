@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { getDefaultModel } from '@/lib/config/models'
+import { getDefaultModel } from '@/lib/models'
 import type { Model, ThinkingConfig } from '@/lib/types'
 
 /**

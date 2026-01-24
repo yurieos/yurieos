@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 
 import { isGeminiAvailable } from '@/lib/gemini'
-import { getSafeRedisClient, isRedisConfigured } from '@/lib/redis/config'
+import { getSafeRedisClient, isRedisConfigured } from '@/lib/redis-config'
 import { isSupabaseConfigured } from '@/lib/supabase/server'
 
 /**

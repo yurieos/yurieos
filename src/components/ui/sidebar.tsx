@@ -286,32 +286,25 @@ const SidebarTrigger = React.forwardRef<
   const isCollapsed = state === 'collapsed'
 
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          ref={ref}
-          data-sidebar="trigger"
-          variant="ghost"
-          size="icon"
-          className={cn(
-            'size-6',
-            isCollapsed ? 'cursor-e-resize' : 'cursor-w-resize',
-            className
-          )}
-          onClick={event => {
-            onClick?.(event)
-            toggleSidebar()
-          }}
-          {...props}
-        >
-          <PanelLeft size={18} />
-          <span className="sr-only">Toggle Sidebar</span>
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent side={isCollapsed ? 'right' : 'left'}>
-        {isCollapsed ? 'Open' : 'Close'}
-      </TooltipContent>
-    </Tooltip>
+    <Button
+      ref={ref}
+      data-sidebar="trigger"
+      variant="ghost"
+      size="icon"
+      className={cn(
+        'size-6',
+        isCollapsed ? 'cursor-e-resize' : 'cursor-w-resize',
+        className
+      )}
+      onClick={event => {
+        onClick?.(event)
+        toggleSidebar()
+      }}
+      {...props}
+    >
+      <PanelLeft size={18} />
+      <span className="sr-only">Toggle Sidebar</span>
+    </Button>
   )
 })
 SidebarTrigger.displayName = 'SidebarTrigger'

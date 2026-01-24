@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 
 import { deleteChat } from '@/lib/actions/chat'
-import { getCurrentUserId } from '@/lib/auth/get-current-user'
+import { getCurrentUserId } from '@/lib/get-current-user'
 
 export async function DELETE(
   request: NextRequest,

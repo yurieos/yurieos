@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Check, ChevronDown } from 'lucide-react'
 import { toast } from 'sonner'
 
-import { DEFAULT_MODEL_ID } from '@/lib/config/models'
+import { DEFAULT_MODEL_ID } from '@/lib/models'
 import type { Model } from '@/lib/types'
 
 import { createModelId } from '../lib/utils'
@@ -74,7 +74,7 @@ export function ModelSelector() {
     if (hasInitialized.current) return
     hasInitialized.current = true
 
-    fetch('/api/config/models')
+    fetch('/api/models')
       .then(r => {
         if (!r.ok) throw new Error('Failed to fetch models')
         return r.json()

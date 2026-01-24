@@ -13,7 +13,9 @@ export async function GET(request: NextRequest) {
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
     if (!supabaseUrl || !supabaseAnonKey) {
-      return NextResponse.redirect(`${origin}/auth/error?error=Supabase not configured`)
+      return NextResponse.redirect(
+        `${origin}/auth/error?error=Supabase not configured`
+      )
     }
 
     // Create a response object that we can attach cookies to
@@ -32,7 +34,13 @@ export async function GET(request: NextRequest) {
         getAll() {
           return request.cookies.getAll()
         },
-        setAll(cookiesToSet: { name: string; value: string; options?: CookieOptions }[]) {
+        setAll(
+          cookiesToSet: {
+            name: string
+            value: string
+            options?: CookieOptions
+          }[]
+        ) {
           for (const { name, value, options } of cookiesToSet) {
             response.cookies.set(name, value, options)
           }

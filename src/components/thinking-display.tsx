@@ -13,7 +13,7 @@ import {
   ChainOfThoughtItem,
   ChainOfThoughtStep,
   ChainOfThoughtTrigger
-} from '@/components/prompt-kit/chain-of-thought'
+} from '@/components/chain-of-thought'
 
 interface ThinkingDisplayProps {
   message?: UIMessage
