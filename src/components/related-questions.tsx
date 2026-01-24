@@ -79,10 +79,10 @@ export const RelatedQuestions: React.FC<RelatedQuestionsProps> = ({
                   className="flex items-start w-full min-w-0"
                   key={item?.query || `related-${index}`}
                 >
-                  <CornerDownRight className="size-4 mr-2 mt-1 flex-shrink-0 text-accent-foreground/50" />
+                  <CornerDownRight className="size-4 mr-2 mt-1 shrink-0 text-accent-foreground/50" />
                   <Button
                     variant="link"
-                    className="flex-1 min-w-0 justify-start px-0 py-1 h-fit font-semibold text-accent-foreground/50 whitespace-normal text-left break-words"
+                    className="flex-1 min-w-0 justify-start px-0 py-1 h-fit font-semibold text-accent-foreground/50 whitespace-normal text-left wrap-break-word"
                     type="submit"
                     name={'related_query'}
                     value={item?.query}

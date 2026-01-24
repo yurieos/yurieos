@@ -359,14 +359,14 @@ export const UserMessage: React.FC<UserMessageProps> = ({
           </>
         )}
         <CollapsibleMessage messageRole="user">
-          <div className="min-w-0 break-words outline-none relative">
+          <div className="min-w-0 wrap-break-word outline-hidden relative">
             {isEditing ? (
               <div className="flex flex-col gap-2">
                 <TextareaAutosize
                   value={editedContent}
                   onChange={e => setEditedContent(e.target.value)}
                   autoFocus
-                  className="resize-none flex w-full rounded-3xl border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                  className="resize-none flex w-full rounded-3xl border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50"
                   minRows={2}
                   maxRows={10}
                 />
@@ -384,7 +384,7 @@ export const UserMessage: React.FC<UserMessageProps> = ({
                 </div>
               </div>
             ) : (
-              <div className="min-w-0 break-words">
+              <div className="min-w-0 wrap-break-word">
                 {message && <div>{message}</div>}
               </div>
             )}

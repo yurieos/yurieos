@@ -129,7 +129,7 @@ const CodeBlock: FC<Props> = memo(({ language, value }) => {
         )}
       >
         <span className="text-xs lowercase truncate">{language}</span>
-        <div className="flex items-center space-x-1 flex-shrink-0">
+        <div className="flex items-center space-x-1 shrink-0">
           <Button
             variant="ghost"
             className="focus-visible:ring-1 size-8"

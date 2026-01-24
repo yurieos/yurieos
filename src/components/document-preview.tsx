@@ -80,7 +80,7 @@ export function DocumentPreview({
           tabIndex={!isUploading && attachment.file ? 0 : -1}
         >
           {/* PDF icon */}
-          <div className="flex-shrink-0 size-7 rounded-md bg-red-500/10 flex items-center justify-center">
+          <div className="shrink-0 size-7 rounded-md bg-red-500/10 flex items-center justify-center">
             <FileText className="size-4 text-red-500" />
           </div>
 
@@ -185,7 +185,7 @@ export function DocumentDisplay({
         className
       )}
     >
-      <div className="flex-shrink-0 size-8 rounded bg-accent flex items-center justify-center">
+      <div className="shrink-0 size-8 rounded bg-accent flex items-center justify-center">
         <FileText className="size-4 text-accent-foreground" />
       </div>
       <div className="flex-1 min-w-0">

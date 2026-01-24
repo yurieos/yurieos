@@ -87,7 +87,7 @@ export function AudioPreview({
           tabIndex={!isUploading && attachment.file ? 0 : -1}
         >
           {/* Audio icon */}
-          <div className="flex-shrink-0 size-7 rounded-md bg-purple-500/10 flex items-center justify-center">
+          <div className="shrink-0 size-7 rounded-md bg-purple-500/10 flex items-center justify-center">
             <Music className="size-4 text-purple-500" />
           </div>
 
@@ -216,7 +216,7 @@ export function AudioDisplay({
       )}
     >
       <div className="flex items-center gap-2">
-        <div className="flex-shrink-0 size-8 rounded bg-accent flex items-center justify-center">
+        <div className="shrink-0 size-8 rounded bg-accent flex items-center justify-center">
           <Music className="size-4 text-accent-foreground" />
         </div>
         <div className="flex-1 min-w-0">

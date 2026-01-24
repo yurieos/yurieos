@@ -58,7 +58,7 @@ export function CollapsibleMessage({
               <CollapsibleTrigger asChild>
                 <button
                   type="button"
-                  className="rounded-full p-1 hover:bg-muted/60 transition-colors flex-shrink-0"
+                  className="rounded-full p-1 hover:bg-muted/60 transition-colors shrink-0"
                   aria-label={isOpen ? 'Collapse' : 'Expand'}
                 >
                   <ChevronDown

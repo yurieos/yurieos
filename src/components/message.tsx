@@ -47,7 +47,7 @@ const stripThinkTags = (content: string) => {
 
 // Shared prose styling for markdown content
 const proseClassName =
-  'prose-sm prose-stone dark:prose-invert prose-a:text-primary/70 w-full max-w-full overflow-hidden [&>*]:max-w-full [&_p]:break-words [&_li]:break-words [&_ol]:pl-4 [&_ul]:pl-4'
+  'prose-sm prose-stone dark:prose-invert prose-a:text-primary/70 w-full max-w-full overflow-hidden *:max-w-full [&_p]:wrap-break-word [&_li]:wrap-break-word [&_ol]:pl-4 [&_ul]:pl-4'
 
 export const BotMessage = memo(function BotMessage({
   message,

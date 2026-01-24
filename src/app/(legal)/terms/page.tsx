@@ -531,7 +531,7 @@ export default function TermsOfServicePage() {
           </p>
 
           {/* Section 16: Dispute Resolution and Arbitration */}
-          <h2 className="!font-bold">16. Dispute Resolution and Arbitration</h2>
+          <h2 className="font-bold!">16. Dispute Resolution and Arbitration</h2>
           <p>
             <strong>
               PLEASE READ THIS SECTION CAREFULLY. IT AFFECTS YOUR LEGAL RIGHTS,
@@ -627,7 +627,7 @@ export default function TermsOfServicePage() {
           </p>
 
           {/* Section 17: Class Action Waiver */}
-          <h2 className="!font-bold">17. Class Action Waiver</h2>
+          <h2 className="font-bold!">17. Class Action Waiver</h2>
           <p>
             <strong>
               YOU AND WE AGREE THAT ANY DISPUTE RESOLUTION PROCEEDINGS, WHETHER

@@ -310,7 +310,7 @@ export function ChatPanel({
               spellCheck={false}
               value={input}
               disabled={isLoading || isToolInvocationInProgress()}
-              className="resize-none flex-1 min-h-8 bg-transparent border-0 py-1.5 px-0 text-sm placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+              className="resize-none flex-1 min-h-8 bg-transparent border-0 py-1.5 px-0 text-sm placeholder:text-muted-foreground focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50"
               onHeightChange={(height, { rowHeight }) => {
                 setIsMultiline(height > rowHeight)
               }}
