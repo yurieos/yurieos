@@ -34,13 +34,7 @@ export async function POST(req: Request) {
       })
     }
 
-    const {
-      messages,
-      id: chatId,
-      functions,
-      functionCallingMode,
-      allowedFunctionNames
-    } = validation.data
+    const { messages, id: chatId } = validation.data
     const userId = await getCurrentUserId()
 
     const cookieStore = await cookies()
@@ -61,25 +55,12 @@ export async function POST(req: Request) {
       )
     }
 
-    // Use Gemini research with streaming response
-    // Pass selected model and thinkingConfig for Gemini 3 models
-    // Per https://ai.google.dev/gemini-api/docs/thinking
-    // Per https://ai.google.dev/gemini-api/docs/function-calling
+    // Use Gemini streaming response
     return createGeminiStreamResponse({
       messages,
       chatId,
       userId,
-      model: selectedModel.id,
-      thinkingConfig: selectedModel.thinkingConfig,
-      // Function calling configuration
-      // Cast is safe as types are structurally compatible
-      functions: functions as
-        | import('@/lib/gemini').FunctionDeclaration[]
-        | undefined,
-      functionCallingMode: functionCallingMode as
-        | import('@/lib/gemini').FunctionCallingMode
-        | undefined,
-      allowedFunctionNames
+      model: selectedModel.id
     })
   } catch (error) {
     console.error('API route error:', error)

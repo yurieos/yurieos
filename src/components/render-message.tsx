@@ -1,18 +1,10 @@
 import { memo, useMemo } from 'react'
 
-import type { ChatRequestOptions, JSONValue, UIMessage } from 'ai'
+import type { ChatRequestOptions, UIMessage } from 'ai'
 
-import type {
-  MessageAudioPart,
-  MessageDocumentPart,
-  MessageImagePart,
-  MessageTextPart,
-  MessageVideoPart,
-  ResearchAnnotation
-} from '@/lib/types'
+import type { MessageTextPart, ResearchAnnotation } from '@/lib/types'
 
 import { AnswerSection } from './answer-section'
-import RelatedQuestions from './related-questions'
 import { ThinkingDisplay } from './thinking-display'
 import { UserMessage } from './user-message'
 
@@ -45,15 +37,6 @@ function getTextFromParts(parts: UIMessage['parts']): string {
     .join('')
 }
 
-// Generic helper to extract parts by type
-// Uses type assertion since custom part types are not in AI SDK
-function getPartsByType<T>(parts: UIMessage['parts'], type: string): T[] {
-  if (!parts) return []
-  return parts
-    .filter(p => (p as { type: string }).type === type)
-    .map(p => p as unknown as T)
-}
-
 // Helper to get annotations from message metadata
 function getAnnotations(message: UIMessage): ResearchAnnotation[] {
   const metadata = message.metadata as MessageMetadata | undefined
@@ -80,18 +63,11 @@ export const RenderMessage = memo(function RenderMessage({
   messageId,
   getIsOpen,
   onOpenChange,
-  onQuerySelect,
-  chatId,
   onUpdateMessage,
   reload,
   isLoading
 }: RenderMessageProps) {
   const annotations = useMemo(() => getAnnotations(message), [message])
-
-  const relatedQuestions = useMemo(
-    () => annotations.filter(a => a.type === 'related-questions'),
-    [annotations]
-  )
 
   // Check if the answer streaming is complete (based on backend phase annotation)
   const isAnswerComplete = useMemo(
@@ -107,22 +83,11 @@ export const RenderMessage = memo(function RenderMessage({
 
   // Handle user messages
   if (message.role === 'user') {
-    const userImages = getPartsByType<MessageImagePart>(message.parts, 'image')
-    const userVideos = getPartsByType<MessageVideoPart>(message.parts, 'video')
-    const userDocuments = getPartsByType<MessageDocumentPart>(
-      message.parts,
-      'document'
-    )
-    const userAudios = getPartsByType<MessageAudioPart>(message.parts, 'audio')
     return (
       <UserMessage
         message={getTextFromParts(message.parts)}
         messageId={messageId}
         onUpdateMessage={onUpdateMessage}
-        images={userImages.length > 0 ? userImages : undefined}
-        videos={userVideos.length > 0 ? userVideos : undefined}
-        documents={userDocuments.length > 0 ? userDocuments : undefined}
-        audios={userAudios.length > 0 ? userAudios : undefined}
       />
     )
   }
@@ -138,7 +103,7 @@ export const RenderMessage = memo(function RenderMessage({
         <ThinkingDisplay message={message} className="mb-4 animate-fade-in" />
       )}
 
-      {/* Regular answer content - citations are inline markdown links */}
+      {/* Regular answer content */}
       {textContent && (
         <AnswerSection
           content={textContent}
@@ -148,17 +113,6 @@ export const RenderMessage = memo(function RenderMessage({
           reload={reload}
           isLoading={isLoading}
           isAnswerComplete={isAnswerComplete}
-        />
-      )}
-
-      {relatedQuestions.length > 0 && (
-        <RelatedQuestions
-          annotations={relatedQuestions as unknown as JSONValue[]}
-          onQuerySelect={onQuerySelect}
-          isOpen={getIsOpen(`${messageId}-related`)}
-          onOpenChange={open => onOpenChange(`${messageId}-related`, open)}
-          chatId={chatId || ''}
-          isLoading={isLoading}
         />
       )}
     </>

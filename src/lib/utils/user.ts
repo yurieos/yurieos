@@ -14,12 +14,3 @@ export function getInitials(name: string, email: string | undefined): string {
   }
   return 'U'
 }
-
-/**
- * Truncate filename for display
- */
-export function truncateFilename(filename: string, maxLength = 28): string {
-  return filename.length > maxLength
-    ? `${filename.slice(0, maxLength - 3)}...`
-    : filename
-}

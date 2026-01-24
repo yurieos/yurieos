@@ -256,23 +256,6 @@ export function SignUpForm({
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? 'Creating account...' : 'Sign Up'}
               </Button>
-              <p className="px-8 text-center text-xs text-muted-foreground">
-                By clicking Sign Up, you agree to our{' '}
-                <Link
-                  href="/terms"
-                  className="underline underline-offset-4 hover:text-primary"
-                >
-                  Terms of Service
-                </Link>{' '}
-                and{' '}
-                <Link
-                  href="/privacy"
-                  className="underline underline-offset-4 hover:text-primary"
-                >
-                  Privacy Policy
-                </Link>
-                .
-              </p>
             </div>
             <div className="mt-6 text-center text-sm">
               Already have an account?{' '}

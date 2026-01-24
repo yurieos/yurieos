@@ -1,18 +1,7 @@
 import { z } from 'zod'
 
 import { getDefaultModel } from '@/lib/models'
-import type { Model, ThinkingConfig } from '@/lib/types'
-
-/**
- * Schema for thinking configuration
- * @see https://ai.google.dev/gemini-api/docs/thinking
- */
-const ThinkingConfigSchema = z
-  .object({
-    thinkingLevel: z.enum(['minimal', 'low', 'medium', 'high']).optional(),
-    includeThoughts: z.boolean().optional()
-  })
-  .optional()
+import type { Model } from '@/lib/types'
 
 /**
  * Schema for model cookie structure
@@ -25,8 +14,7 @@ const ModelCookieSchema = z.object({
   providerId: z.string().min(1),
   enabled: z.boolean().optional().default(true),
   toolCallType: z.enum(['native', 'manual']).optional().default('native'),
-  toolCallModel: z.string().optional(),
-  thinkingConfig: ThinkingConfigSchema
+  toolCallModel: z.string().optional()
 })
 
 /**
@@ -35,7 +23,6 @@ const ModelCookieSchema = z.object({
  *
  * @param modelJson - JSON string from cookie
  * @returns Validated Model object
- * @see https://ai.google.dev/gemini-api/docs/thinking
  */
 export function parseModelFromCookie(modelJson: string | undefined): Model {
   const defaultModel = getDefaultModel()
@@ -58,15 +45,6 @@ export function parseModelFromCookie(modelJson: string | undefined): Model {
 
     const data = result.data
 
-    // Build ThinkingConfig if present
-    let thinkingConfig: ThinkingConfig | undefined
-    if (data.thinkingConfig) {
-      thinkingConfig = {
-        thinkingLevel: data.thinkingConfig.thinkingLevel,
-        includeThoughts: data.thinkingConfig.includeThoughts
-      }
-    }
-
     return {
       id: data.id,
       name: data.name || data.id,
@@ -74,8 +52,7 @@ export function parseModelFromCookie(modelJson: string | undefined): Model {
       providerId: data.providerId,
       enabled: data.enabled,
       toolCallType: data.toolCallType,
-      toolCallModel: data.toolCallModel,
-      thinkingConfig
+      toolCallModel: data.toolCallModel
     }
   } catch (e) {
     console.error('[Model Cookie] Failed to parse:', e)

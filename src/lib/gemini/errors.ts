@@ -248,47 +248,6 @@ export function isRetryableError(error: unknown): boolean {
 }
 
 /**
- * Check if an error is a rate limit error
- */
-export function isRateLimitError(error: unknown): boolean {
-  if (error instanceof GeminiRateLimitError) {
-    return true
-  }
-
-  if (error instanceof Error) {
-    const message = error.message.toLowerCase()
-    return (
-      message.includes('rate limit') ||
-      message.includes('429') ||
-      message.includes('too many requests') ||
-      message.includes('quota')
-    )
-  }
-
-  return false
-}
-
-/**
- * Check if an error is a safety-related error
- */
-export function isSafetyError(error: unknown): boolean {
-  if (error instanceof GeminiSafetyError) {
-    return true
-  }
-
-  if (error instanceof Error) {
-    const message = error.message.toLowerCase()
-    return (
-      message.includes('safety') ||
-      message.includes('blocked') ||
-      message.includes('harmful')
-    )
-  }
-
-  return false
-}
-
-/**
  * Parse an error from Gemini API response and return appropriate typed error
  */
 export function parseGeminiError(error: unknown): GeminiError {

@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Agent instructions for the Yurie project - a private AI assistant with Gemini and real-time search.
+Agent instructions for the Yurie project - a simple AI chat assistant with Gemini text streaming.
 
 ## Setup Commands
 
@@ -41,7 +41,7 @@ Based on `biome.json` and `tsconfig.json`:
 | Files      | kebab-case       | `chat-messages.tsx`, `get-current-user.ts` |
 | Components | PascalCase       | `ChatMessages`, `UserMessage`              |
 | Functions  | camelCase        | `getGeminiClient`, `validateChatRequest`   |
-| Constants  | UPPER_SNAKE_CASE | `GEMINI_3_FLASH`, `MAX_URLS_PER_REQUEST`   |
+| Constants  | UPPER_SNAKE_CASE | `GEMINI_3_FLASH`                           |
 | Types      | PascalCase       | `Chat`, `UIMessage`, `SafetyResult`        |
 
 ## Project Architecture
@@ -54,24 +54,22 @@ src/
 │   ├── (legal)/            # Legal pages (privacy, terms)
 │   └── api/                # API routes
 │       ├── chat/           # Streaming chat endpoint
-│       ├── attachments/    # File upload/download
 │       ├── chats/          # Chat history list
 │       ├── models/         # Model configuration
 │       └── health/         # Health check
 ├── components/
 │   ├── ui/                 # shadcn/ui components
-│   ├── sidebar/            # Sidebar components
-│   └── chat/               # Chat-specific components
+│   └── sidebar/            # Sidebar components
 ├── lib/
 │   ├── gemini/             # Gemini AI integration
-│   │   ├── core.ts         # Client, citations, safety
-│   │   ├── agentic.ts      # Agentic workflow orchestrator
+│   │   ├── core.ts         # Client, safety
 │   │   ├── streaming.ts    # Vercel AI SDK adapter
 │   │   ├── errors.ts       # Typed error classes
 │   │   ├── retry.ts        # Exponential backoff
-│   │   └── function-calling/
+│   │   ├── constants.ts    # API constants
+│   │   └── types.ts        # Type definitions
 │   ├── schema/             # Zod validation schemas
-│   ├── actions/            # Server actions (chat, attachments)
+│   ├── actions/            # Server actions (chat)
 │   ├── supabase/           # Supabase client utilities
 │   └── utils/              # Utility functions
 └── hooks/                  # Custom React hooks
@@ -130,7 +128,6 @@ Use `parseGeminiError()` to convert unknown errors, `getUserFriendlyMessage()` f
 Use Zod schemas from `lib/schema/`:
 
 - `validateChatRequest()` - Chat API validation
-- `UploadAttachmentSchema` - File upload validation
 - Always validate before processing
 
 ### Performance
@@ -141,32 +138,25 @@ Use Zod schemas from `lib/schema/`:
 
 ## Important Files
 
-| File                              | Purpose                          |
-| --------------------------------- | -------------------------------- |
-| `src/lib/gemini/index.ts`         | Gemini module entry point        |
-| `src/lib/gemini/agentic.ts`       | Agentic workflow with tools      |
-| `src/lib/gemini/streaming.ts`     | Streaming response adapter       |
-| `src/lib/schema/chat.ts`          | Chat request validation          |
-| `src/lib/models.ts`               | Model configuration              |
-| `src/app/api/chat/route.ts`       | Main chat API endpoint           |
-| `src/components/chat.tsx`         | Main chat component              |
-| `src/lib/gemini/constants.ts`     | API limits and constants         |
+| File                            | Purpose                    |
+| ------------------------------- | -------------------------- |
+| `src/lib/gemini/index.ts`       | Gemini module entry point  |
+| `src/lib/gemini/streaming.ts`   | Streaming response adapter |
+| `src/lib/gemini/core.ts`        | Client and safety checks   |
+| `src/lib/schema/chat.ts`        | Chat request validation    |
+| `src/lib/models.ts`             | Model configuration        |
+| `src/app/api/chat/route.ts`     | Main chat API endpoint     |
+| `src/components/chat.tsx`       | Main chat component        |
 
-## Agentic Workflow
+## Chat Flow
 
-The chat uses an agentic workflow with multiple tools:
+Simple text generation with streaming:
 
 ```
-Query → Tools (Search + Code Execution + Functions) → Synthesize → Stream
+User Input → Gemini API → Stream Response → Display
 ```
 
-Tools available:
-- **Google Search** - Real-time web grounding
-- **URL Context** - Analyze linked web pages
-- **Code Execution** - Run Python in sandbox
-- **Function Calling** - Built-in functions (calculator, datetime)
-
-Configuration in `lib/gemini/agentic.ts`.
+The chat uses Gemini's `generateContentStream` for real-time text streaming.
 
 ## Testing Instructions
 
@@ -187,8 +177,7 @@ No test suite is currently configured. Before committing:
 ## Common Gotchas
 
 1. **Next.js 16 Proxy**: Auth session handled via `src/proxy.ts` for middleware
-2. **Multimodal uploads**: Max 50MB body size configured in `next.config.ts`
-3. **Model selection**: Stored in cookies, parsed via `parseModelFromCookie()`
-4. **Redis optional**: Set `ENABLE_SAVE_CHAT_HISTORY=true` to enable
-5. **Supabase optional**: App works without auth (anonymous users)
-6. **Streaming**: Uses Vercel AI SDK format with custom annotations
+2. **Model selection**: Stored in cookies, parsed via `parseModelFromCookie()`
+3. **Redis optional**: Chat history requires Redis configuration
+4. **Supabase optional**: App works without auth (anonymous users)
+5. **Streaming**: Uses Vercel AI SDK format

@@ -3,16 +3,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { useChat } from '@ai-sdk/react'
-import {
-  type ChatRequestOptions,
-  DefaultChatTransport,
-  type UIMessage
-} from 'ai'
+import { DefaultChatTransport, type UIMessage } from 'ai'
 import { toast } from 'sonner'
 
-import type { AudioPart, DocumentPart, ImagePart, VideoPart } from '@/lib/types'
 import { cn } from '@/lib/utils'
-import { buildMessageParts, hasMediaContent } from '@/lib/utils/media-parts'
 
 import { ChatMessages } from './chat-messages'
 import { ChatPanel } from './chat-panel'
@@ -50,8 +44,7 @@ export function Chat({
                 id: m.id,
                 role: m.role,
                 parts: m.parts
-              })),
-              mode: 'agentic'
+              }))
             }
           }
         }
@@ -192,8 +185,7 @@ export function Chat({
   }
 
   const handleReloadFrom = async (
-    messageId: string,
-    _options?: ChatRequestOptions
+    messageId: string
   ): Promise<string | null | undefined> => {
     const messageIndex = messages.findIndex(m => m.id === messageId)
     if (messageIndex !== -1) {
@@ -212,53 +204,20 @@ export function Chat({
   }
 
   const onSubmit = useCallback(
-    (
-      e: React.FormEvent<HTMLFormElement>,
-      images?: ImagePart[],
-      videos?: VideoPart[],
-      documents?: DocumentPart[],
-      audios?: AudioPart[]
-    ) => {
+    (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault()
 
-      const mediaInput = {
-        text: input,
-        images,
-        videos,
-        documents,
-        audios
-      }
+      if (!input.trim()) return
 
-      if (!hasMediaContent(mediaInput)) return
-
-      const parts = buildMessageParts(mediaInput)
-
-      // Cast to bypass AI SDK's strict type checking for custom media parts
-      sendMessage({ parts } as Parameters<typeof sendMessage>[0])
+      sendMessage({ text: input })
       setInput('')
     },
     [input, sendMessage]
   )
 
   const handleAppend = useCallback(
-    (msg: {
-      role: string
-      content: string
-      images?: ImagePart[]
-      videos?: VideoPart[]
-      documents?: DocumentPart[]
-      audios?: AudioPart[]
-    }) => {
-      const parts = buildMessageParts({
-        text: msg.content,
-        images: msg.images,
-        videos: msg.videos,
-        documents: msg.documents,
-        audios: msg.audios
-      })
-
-      // Cast to bypass AI SDK's strict type checking for custom media parts
-      sendMessage({ parts } as Parameters<typeof sendMessage>[0])
+    (msg: { role: string; content: string }) => {
+      sendMessage({ text: msg.content })
     },
     [sendMessage]
   )
@@ -292,7 +251,6 @@ export function Chat({
         append={handleAppend}
         showScrollToBottomButton={!isAtBottom}
         scrollContainerRef={scrollContainerRef}
-        chatId={id}
       />
     </div>
   )
