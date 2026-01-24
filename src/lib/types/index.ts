@@ -604,3 +604,53 @@ export type ResearchAnnotation =
   | ImageGenerationAnnotation
 
 export type { UISource as Source }
+
+// ============================================
+// UI Message Part Types
+// Used for rendering message content in components
+// ============================================
+
+/** Text part from UI message */
+export interface MessageTextPart {
+  type: 'text'
+  text: string
+}
+
+/** Image part from UI message */
+export interface MessageImagePart {
+  type: 'image'
+  mimeType: string
+  data?: string // base64 (optional if attachmentId is set)
+  attachmentId?: string // For Supabase Storage
+  filename?: string
+}
+
+/** Video part from UI message */
+export interface MessageVideoPart {
+  type: 'video'
+  mimeType?: string
+  data?: string // base64 for inline (optional if attachmentId or fileUri is set)
+  fileUri?: string // For YouTube or File API
+  attachmentId?: string // For Supabase Storage
+  filename?: string
+}
+
+/** Document part from UI message */
+export interface MessageDocumentPart {
+  type: 'document'
+  mimeType: string
+  data?: string // base64 for inline (optional if attachmentId or fileUri is set)
+  fileUri?: string // For File API
+  attachmentId?: string // For Supabase Storage
+  filename?: string
+}
+
+/** Audio part from UI message */
+export interface MessageAudioPart {
+  type: 'audio'
+  mimeType: string
+  data?: string // base64 for inline (optional if attachmentId or fileUri is set)
+  fileUri?: string // For File API
+  attachmentId?: string // For Supabase Storage
+  filename?: string
+}

@@ -2,7 +2,14 @@ import { memo, useMemo } from 'react'
 
 import type { ChatRequestOptions, JSONValue, UIMessage } from 'ai'
 
-import type { ResearchAnnotation } from '@/lib/types'
+import type {
+  MessageAudioPart,
+  MessageDocumentPart,
+  MessageImagePart,
+  MessageTextPart,
+  MessageVideoPart,
+  ResearchAnnotation
+} from '@/lib/types'
 
 import { AnswerSection } from './answer-section'
 import RelatedQuestions from './related-questions'
@@ -24,45 +31,6 @@ interface RenderMessageProps {
   isLoading: boolean
 }
 
-/** Text part from UIMessage */
-interface TextPart {
-  type: 'text'
-  text: string
-}
-
-/** Image part from UIMessage */
-interface MessageImagePart {
-  type: 'image'
-  mimeType: string
-  data: string
-}
-
-/** Video part from UIMessage */
-interface MessageVideoPart {
-  type: 'video'
-  mimeType?: string
-  data?: string
-  fileUri?: string
-}
-
-/** Document part from UIMessage */
-interface MessageDocumentPart {
-  type: 'document'
-  mimeType: string
-  data?: string
-  fileUri?: string
-  filename?: string
-}
-
-/** Audio part from UIMessage */
-interface MessageAudioPart {
-  type: 'audio'
-  mimeType: string
-  data?: string
-  fileUri?: string
-  filename?: string
-}
-
 /** Metadata shape for UIMessage with annotations */
 interface MessageMetadata {
   annotations?: ResearchAnnotation[]
@@ -72,7 +40,7 @@ interface MessageMetadata {
 function getTextFromParts(parts: UIMessage['parts']): string {
   if (!parts) return ''
   return parts
-    .filter((p): p is TextPart => p.type === 'text')
+    .filter((p): p is MessageTextPart => p.type === 'text')
     .map(p => p.text || '')
     .join('')
 }

@@ -7,6 +7,12 @@ import TextareaAutosize from 'react-textarea-autosize'
 import { Copy, Loader2, Pencil } from 'lucide-react'
 import { toast } from 'sonner'
 
+import type {
+  MessageAudioPart,
+  MessageDocumentPart,
+  MessageImagePart,
+  MessageVideoPart
+} from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 import { AudioDisplay } from './audio-preview'
@@ -15,45 +21,6 @@ import { DocumentDisplay } from './document-preview'
 import { Button } from './ui/button'
 import { Skeleton } from './ui/skeleton'
 import { VideoDisplay } from './video-preview'
-
-/** Image part from message */
-interface MessageImagePart {
-  type: 'image'
-  mimeType: string
-  data?: string // base64 (not present if attachmentId is set)
-  attachmentId?: string // For Supabase Storage
-  filename?: string
-}
-
-/** Video part from message */
-interface MessageVideoPart {
-  type: 'video'
-  mimeType?: string
-  data?: string // base64 for inline (not present if attachmentId is set)
-  fileUri?: string // For YouTube or File API
-  attachmentId?: string // For Supabase Storage
-  filename?: string
-}
-
-/** Document part from message */
-interface MessageDocumentPart {
-  type: 'document'
-  mimeType: string
-  data?: string // base64 for inline (not present if attachmentId is set)
-  fileUri?: string // For File API
-  attachmentId?: string // For Supabase Storage
-  filename?: string
-}
-
-/** Audio part from message */
-interface MessageAudioPart {
-  type: 'audio'
-  mimeType: string
-  data?: string // base64 for inline (not present if attachmentId is set)
-  fileUri?: string // For File API
-  attachmentId?: string // For Supabase Storage
-  filename?: string
-}
 
 /**
  * Hook to fetch signed URL for an attachment
