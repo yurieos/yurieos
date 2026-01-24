@@ -7,6 +7,7 @@
 [![Next.js](https://img.shields.io/badge/Next.js-16.1-black?logo=next.js)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript)](https://www.typescriptlang.org/)
+[![AI SDK](https://img.shields.io/badge/AI_SDK-6.0-purple)](https://sdk.vercel.ai/)
 
 </div>
 
@@ -16,7 +17,7 @@
 
 - **Agentic Chat** — Gemini 3 Flash/Pro + Google Search + Code Execution
 - **Multimodal Support** — Images, videos, audio, and documents in chat
-- **Thinking Mode** — Configurable reasoning depth (minimal, low, medium, high)
+- **Thinking Mode** — Configurable reasoning depth (none, minimal, low, medium, high)
 - **Modern UI** — Vintage Paper theme with light/dark mode
 - **Keyboard Shortcuts** — `⌘O` new chat
 - **Optional Auth** — Supabase authentication (email/password, OAuth)
@@ -26,10 +27,10 @@
 
 ### Models
 
-| Model          | Features                          |
-| -------------- | --------------------------------- |
-| Gemini 3 Flash | Fast, efficient, minimal thinking |
-| Gemini 3 Pro   | Advanced reasoning, high thinking |
+| Model          | Thinking Level | Best For                    |
+| -------------- | -------------- | --------------------------- |
+| Gemini 3 Flash | Minimal        | Fast responses, simple tasks |
+| Gemini 3 Pro   | High           | Complex reasoning, analysis |
 
 ---
 
@@ -68,9 +69,10 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 ### Development
 
 ```bash
-npm run dev           # Start dev server
+npm run dev           # Start dev server (Turbopack)
 npm run build         # Production build
-npm run lint          # Biome lint
+npm run start         # Start production server
+npm run lint          # Biome check
 npm run typecheck     # TypeScript check
 npm run format        # Format code
 ```
@@ -91,14 +93,15 @@ Returns service status for Gemini, Redis, and Supabase.
 
 ### Tech Stack
 
-| Layer     | Technology                          |
-| --------- | ----------------------------------- |
-| Framework | Next.js 16.1 (App Router)           |
-| Runtime   | React 19, TypeScript 5.7            |
-| Styling   | Tailwind CSS + shadcn/ui            |
-| AI        | Google GenAI SDK, Vercel AI SDK 6.0 |
-| Auth      | Supabase (optional)                 |
-| Storage   | Upstash Redis (optional)            |
+| Layer     | Technology                           |
+| --------- | ------------------------------------ |
+| Framework | Next.js 16.1 (App Router, Turbopack) |
+| Runtime   | React 19, TypeScript 5.7             |
+| Styling   | Tailwind CSS + shadcn/ui             |
+| AI        | Google GenAI SDK 1.x, AI SDK 6.0     |
+| Auth      | Supabase (optional)                  |
+| Storage   | Upstash Redis (optional)             |
+| Linting   | Biome                                |
 
 ### Project Structure
 
@@ -113,7 +116,7 @@ src/
 │       ├── chat/         # Main chat streaming API
 │       ├── attachments/  # File upload API (Gemini Files API)
 │       ├── chats/        # Chat list API
-│       ├── config/models/# Models configuration API
+│       ├── models/       # Models configuration API
 │       └── health/       # Health check endpoint
 ├── lib/
 │   ├── gemini/           # Gemini AI Module
@@ -128,16 +131,15 @@ src/
 │   │   ├── system-instructions.ts
 │   │   ├── function-calling/
 │   │   └── types.ts
+│   ├── models.ts         # Model configuration
 │   ├── schema/           # Zod validation schemas
 │   ├── supabase/         # Supabase clients
-│   ├── redis/            # Redis config
-│   ├── config/           # Model configuration
+│   ├── redis-config.ts   # Redis configuration
 │   └── utils/            # Utilities
 ├── components/
 │   ├── ui/               # shadcn/ui components
 │   ├── sidebar/          # Chat history
 │   ├── chat/             # Chat-specific components
-│   ├── prompt-kit/       # Chain of thought
 │   ├── error-boundary.tsx
 │   └── ...               # Feature components
 ├── hooks/
