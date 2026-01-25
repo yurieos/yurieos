@@ -45,9 +45,9 @@ export function SidebarUserMenu({ user }: SidebarUserMenuProps) {
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground group/user-menu group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:justify-center focus-visible:ring-0 focus-visible:ring-offset-0"
             >
-              <Avatar className="size-8 rounded-full">
+              <Avatar className="size-8 rounded-full transition-[background-color,border-radius,transform] duration-150 group-hover/user-menu:scale-105 group-hover/user-menu:rounded-lg group-hover/user-menu:bg-sidebar-accent/15 group-data-[collapsible=icon]:size-7 group-data-[collapsible=icon]:group-hover/user-menu:scale-100 group-data-[collapsible=icon]:group-hover/user-menu:rounded-full group-data-[collapsible=icon]:group-hover/user-menu:bg-transparent">
                 <AvatarImage src={avatarUrl} alt={userName} />
                 <AvatarFallback className="rounded-full">
                   {getInitials(userName, user.email)}

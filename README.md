@@ -2,7 +2,7 @@
 
 <div align="center">
 
-**Private AI assistant with Gemini and real-time search**
+**Private AI assistant with Gemini streaming**
 
 [![Next.js](https://img.shields.io/badge/Next.js-16.1-black?logo=next.js)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://reactjs.org/)
@@ -15,22 +15,21 @@
 
 ## ✨ Features
 
-- **Agentic Chat** — Gemini 3 Flash/Pro + Google Search + Code Execution
-- **Multimodal Support** — Images, videos, audio, and documents in chat
+- **Streaming Chat** — Gemini 3 Flash/Pro with real-time text streaming
 - **Thinking Mode** — Configurable reasoning depth (none, minimal, low, medium, high)
 - **Modern UI** — Vintage Paper theme with light/dark mode
 - **Keyboard Shortcuts** — `⌘O` new chat
 - **Optional Auth** — Supabase authentication (email/password, OAuth)
 - **Chat History** — Upstash Redis for persistent conversations
-- **Safety** — Prompt injection protection, PII redaction
+- **Safety** — Content safety checks
 - **Error Recovery** — Typed errors, exponential backoff retry, graceful error boundaries
 
 ### Models
 
-| Model          | Thinking Level | Best For                    |
-| -------------- | -------------- | --------------------------- |
+| Model          | Thinking Level | Best For                     |
+| -------------- | -------------- | ---------------------------- |
 | Gemini 3 Flash | Minimal        | Fast responses, simple tasks |
-| Gemini 3 Pro   | High           | Complex reasoning, analysis |
+| Gemini 3 Pro   | High           | Complex reasoning, analysis  |
 
 ---
 
@@ -114,23 +113,15 @@ src/
 │   ├── (legal)/          # Legal pages (Privacy, Terms)
 │   └── api/
 │       ├── chat/         # Main chat streaming API
-│       ├── attachments/  # File upload API (Gemini Files API)
 │       ├── chats/        # Chat list API
 │       ├── models/       # Models configuration API
 │       └── health/       # Health check endpoint
 ├── lib/
 │   ├── gemini/           # Gemini AI Module
-│   │   ├── core.ts       # Client, citations, safety, URL context
-│   │   ├── agentic.ts    # Agentic workflow with tools
-│   │   ├── constants.ts  # Centralized API constants
+│   │   ├── core.ts       # Client, safety checks
 │   │   ├── errors.ts     # Typed error classes
 │   │   ├── retry.ts      # Exponential backoff retry
-│   │   ├── tokens.ts     # Token estimation utilities
-│   │   ├── files.ts      # Gemini Files API (large uploads)
-│   │   ├── streaming.ts  # Vercel AI SDK adapter
-│   │   ├── system-instructions.ts
-│   │   ├── function-calling/
-│   │   └── types.ts
+│   │   └── streaming.ts  # Vercel AI SDK adapter
 │   ├── models.ts         # Model configuration
 │   ├── schema/           # Zod validation schemas
 │   ├── supabase/         # Supabase clients
@@ -139,29 +130,11 @@ src/
 ├── components/
 │   ├── ui/               # shadcn/ui components
 │   ├── sidebar/          # Chat history
-│   ├── chat/             # Chat-specific components
 │   ├── error-boundary.tsx
 │   └── ...               # Feature components
 ├── hooks/
 └── proxy.ts              # Next.js 16 proxy (auth session)
 ```
-
----
-
-## 🔬 Operation Modes
-
-### Agentic Workflow
-
-```
-QUERY → TOOLS (Search + Code Execution + Functions) → SYNTHESIZE
-```
-
-Tools available:
-
-- **Google Search** — Real-time web grounding
-- **URL Context** — Analyze linked web pages
-- **Code Execution** — Run Python in sandbox
-- **Function Calling** — Built-in functions (calculator, datetime)
 
 ---
 

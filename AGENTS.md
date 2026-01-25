@@ -66,8 +66,7 @@ src/
 │   │   ├── streaming.ts    # Vercel AI SDK adapter
 │   │   ├── errors.ts       # Typed error classes
 │   │   ├── retry.ts        # Exponential backoff
-│   │   ├── constants.ts    # API constants
-│   │   └── types.ts        # Type definitions
+│   │   └── index.ts        # Module entry point
 │   ├── schema/             # Zod validation schemas
 │   ├── actions/            # Server actions (chat)
 │   ├── supabase/           # Supabase client utilities
@@ -138,15 +137,15 @@ Use Zod schemas from `lib/schema/`:
 
 ## Important Files
 
-| File                            | Purpose                    |
-| ------------------------------- | -------------------------- |
-| `src/lib/gemini/index.ts`       | Gemini module entry point  |
-| `src/lib/gemini/streaming.ts`   | Streaming response adapter |
-| `src/lib/gemini/core.ts`        | Client and safety checks   |
-| `src/lib/schema/chat.ts`        | Chat request validation    |
-| `src/lib/models.ts`             | Model configuration        |
-| `src/app/api/chat/route.ts`     | Main chat API endpoint     |
-| `src/components/chat.tsx`       | Main chat component        |
+| File                          | Purpose                    |
+| ----------------------------- | -------------------------- |
+| `src/lib/gemini/index.ts`     | Gemini module entry point  |
+| `src/lib/gemini/streaming.ts` | Streaming response adapter |
+| `src/lib/gemini/core.ts`      | Client and safety checks   |
+| `src/lib/schema/chat.ts`      | Chat request validation    |
+| `src/lib/models.ts`           | Model configuration        |
+| `src/app/api/chat/route.ts`   | Main chat API endpoint     |
+| `src/components/chat.tsx`     | Main chat component        |
 
 ## Chat Flow
 
