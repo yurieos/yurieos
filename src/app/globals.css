@@ -76,13 +76,13 @@
       opacity: 0;
     }
     to {
-      height: var(--radix-collapsible-content-height);
+      height: var(--collapsible-panel-height);
       opacity: 1;
     }
   }
   @keyframes collapse-up {
     from {
-      height: var(--radix-collapsible-content-height);
+      height: var(--collapsible-panel-height);
       opacity: 1;
     }
     to {
@@ -96,13 +96,13 @@
       opacity: 0;
     }
     to {
-      height: var(--radix-collapsible-content-height);
+      height: var(--collapsible-panel-height);
       opacity: 1;
     }
   }
   @keyframes collapsible-up {
     from {
-      height: var(--radix-collapsible-content-height);
+      height: var(--collapsible-panel-height);
       opacity: 1;
     }
     to {
@@ -313,6 +313,8 @@
 
   body {
     @apply bg-background text-foreground;
+    /* Base UI: Required for iOS 26+ Safari backdrop positioning */
+    position: relative;
   }
 
   .prose pre {

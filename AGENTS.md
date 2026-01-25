@@ -58,7 +58,7 @@ src/
 │       ├── models/         # Model configuration
 │       └── health/         # Health check
 ├── components/
-│   ├── ui/                 # shadcn/ui components
+│   ├── ui/                 # Base UI components (unstyled primitives)
 │   └── sidebar/            # Sidebar components
 ├── lib/
 │   ├── gemini/             # Gemini AI integration
@@ -144,6 +144,7 @@ Use Zod schemas from `lib/schema/`:
 | `src/lib/gemini/core.ts`      | Client and safety checks   |
 | `src/lib/schema/chat.ts`      | Chat request validation    |
 | `src/lib/models.ts`           | Model configuration        |
+| `src/lib/utils/slot.tsx`      | Slot utility for asChild   |
 | `src/app/api/chat/route.ts`   | Main chat API endpoint     |
 | `src/components/chat.tsx`     | Main chat component        |
 
@@ -180,3 +181,9 @@ No test suite is currently configured. Before committing:
 3. **Redis optional**: Chat history requires Redis configuration
 4. **Supabase optional**: App works without auth (anonymous users)
 5. **Streaming**: Uses Vercel AI SDK format
+6. **Base UI**: Uses `@base-ui/react` for unstyled components with Tailwind styling. Key differences from Radix:
+   - Uses `render` prop pattern (wrapped with `asChild` for compatibility)
+   - Content → Popup, Overlay → Backdrop naming
+   - Requires `Positioner` wrapper for positioned elements
+   - Data attributes: `data-[starting-style]`/`data-[ending-style]` for animations
+   - Local `Slot` utility at `src/lib/utils/slot.tsx` for `asChild` pattern

@@ -76,7 +76,8 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          {/* Base UI: isolation creates stacking context for portal z-index */}
+          <div className="isolate flex flex-1 flex-col">{children}</div>
           <Toaster />
           <Analytics />
         </ThemeProvider>

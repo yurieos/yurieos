@@ -96,7 +96,7 @@ Returns service status for Gemini, Redis, and Supabase.
 | --------- | ------------------------------------ |
 | Framework | Next.js 16.1 (App Router, Turbopack) |
 | Runtime   | React 19, TypeScript 5.7             |
-| Styling   | Tailwind CSS + shadcn/ui             |
+| Styling   | Tailwind CSS + Base UI               |
 | AI        | Google GenAI SDK 1.x, AI SDK 6.0     |
 | Auth      | Supabase (optional)                  |
 | Storage   | Upstash Redis (optional)             |
@@ -128,7 +128,7 @@ src/
 │   ├── redis-config.ts   # Redis configuration
 │   └── utils/            # Utilities
 ├── components/
-│   ├── ui/               # shadcn/ui components
+│   ├── ui/               # Base UI components
 │   ├── sidebar/          # Chat history
 │   ├── error-boundary.tsx
 │   └── ...               # Feature components

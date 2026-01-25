@@ -2,13 +2,21 @@
 
 import * as React from 'react'
 
-import type { DialogProps } from '@radix-ui/react-dialog'
+import { Dialog as DialogPrimitive } from '@base-ui/react/dialog'
 import { Command as CommandPrimitive } from 'cmdk'
 import { Search } from 'lucide-react'
 
 import { cn } from '@/lib/utils/index'
 
 import { Dialog, DialogContent } from '@/components/ui/dialog'
+
+// Define DialogProps with standard children type for compatibility
+interface DialogProps {
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+  defaultOpen?: boolean
+  children?: React.ReactNode
+}
 
 const Command = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive>,
